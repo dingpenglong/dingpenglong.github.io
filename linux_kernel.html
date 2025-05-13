@@ -3,494 +3,436 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linux 内核开发学习笔记</title>
+    <title>Linux内核开发学习笔记</title>
     <style>
+        /* 全局样式 */
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            line-height: 1.8;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
             color: #333;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f7f9fc;
+            background-color: #f5f5f5;
         }
 
-        h1, h2, h3, h4, h5 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        h1 {
-            font-size: 32px;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-
-        h2 {
-            font-size: 24px;
-        }
-
-        h3 {
-            font-size: 20px;
-        }
-
-        h4 {
-            font-size: 18px;
-        }
-
-        h5 {
-            font-size: 16px;
-        }
-
-        hr {
-            border: none;
-            height: 1px;
-            background: linear-gradient(to right, transparent, #3498db, transparent);
-            margin: 30px 0;
-        }
-
-        ul, ol {
-            padding-left: 20px;
-            margin-bottom: 20px;
-        }
-
-        li {
-            margin-bottom: 10px;
-        }
-
-        a {
-            color: #3498db;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        a:hover {
-            color: #2980b9;
-            text-decoration: underline;
-        }
-
-        p {
-            margin-bottom: 15px;
-        }
-
-        pre {
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            overflow-x: auto;
-            margin-bottom: 20px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #333;
-        }
-
-        code {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            background-color: #f1f1f1;
-            padding: 2px 4px;
-            border-radius: 3px;
-            color: #333;
-        }
-
-        .section {
-            background-color: white;
+        /* 导航栏样式 */
+        .nav {
+            background-color: #fff;
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 30px;
         }
 
-        .section-title {
-            font-size: 22px;
+        .nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav li {
+            margin: 10px 0;
+        }
+
+        .nav a {
             color: #2c3e50;
-            margin-top: 0;
+            text-decoration: none;
+            font-weight: 500;
         }
 
-        .code-block {
-            position: relative;
-            margin-bottom: 20px;
+        .nav a:hover {
+            color: #3498db;
         }
 
-        .code-block::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 3px;
-            background-color: #3498db;
-            border-radius: 3px 0 0 3px;
+        /* 内容区域样式 */
+        .content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .hljs-keyword {
-            color: #D54E21;
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
         }
 
-        .hljs-string {
-            color: #718C00;
+        h2 {
+            color: #2c3e50;
+            margin-top: 40px;
         }
 
-        .hljs-comment {
-            color: #888;
-            font-style: italic;
+        h3 {
+            color: #34495e;
+            margin-top: 30px;
         }
 
-        .hljs-built_in {
-            color: #3E779D;
-        }
-
-        .hljs-number {
-            color: #B87020;
-        }
-
-        .hljs-literal {
-            color: #AA752C;
-        }
-
-        .hljs-symbol {
-            color: #B800B8;
-        }
-
-        .hljs {
-            display: block;
+        /* 代码块样式 */
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
             overflow-x: auto;
-            padding: 0.5em;
-            background: #f7f7f9;
+            border: 1px solid #e9ecef;
         }
 
-        @media screen and (max-width: 768px) {
-            body {
-                padding: 15px;
-                font-size: 16px;
-            }
-            h1 {
-                font-size: 28px;
-            }
-            h2 {
-                font-size: 22px;
-            }
-            pre {
-                font-size: 13px;
-            }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            color: #e83e8c;
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        th {
+            background-color: #f8f9fa;
+        }
+
+        /* 链接样式 */
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* 提示框样式 */
+        .tip {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <div class="section">
-        <h1 id="linux-">Linux 内核开发学习笔记</h1>
-    </div>
-
-    <div class="section">
-        <h2 id="-">目录</h2>
+    <div class="nav">
+        <h2>目录</h2>
         <ul>
-            <li><a href="#-ssh-">一、远程登录 SSH 服务器</a></li>
-            <li><a href="#-">二、配置编译环境</a></li>
-            <li><a href="#-qemu">三、使用 QEMU</a></li>
-            <li><a href="#-gdb-">四、GDB 调试</a></li>
-            <li><a href="#-">五、个人博客搭建</a></li>
-            <li><a href="#-">六、常用命令速查</a></li>
-            <li><a href="#-">七、文件系统</a></li>
+            <li><a href="#ssh">一、远程登录 SSH 服务器</a></li>
+            <li><a href="#compile">二、配置编译环境</a></li>
+            <li><a href="#qemu">三、使用 QEMU</a></li>
+            <li><a href="#gdb">四、GDB 调试</a></li>
+            <li><a href="#blog">五、个人博客搭建</a></li>
+            <li><a href="#commands">六、常用命令速查</a></li>
+            <li><a href="#filesystem">七、文件系统</a></li>
+            <li><a href="#nfs">八、NFS文件系统</a></li>
         </ul>
     </div>
 
-    <div class="section">
-        <h3 id="-ssh-">一、远程登录 SSH 服务器</h3>
-        <div class="code-block">
-            <pre><code class="lang-mermaid">graph LR
-    A[Windows/Linux] --&gt;|ssh 账号@192.x.x.x| B(物理服务器)
-    B --&gt;|ssh 账号@172.x.x.x| C[Docker容器]
-    C --&gt;|进入| D[QEMU虚拟机]</code></pre>
+    <div class="content">
+        <h1>Linux 内核开发学习笔记</h1>
+
+        <section id="ssh">
+            <h2>一、远程登录 SSH 服务器</h2>
+            <div class="tip">
+                <p>SSH登录流程：Windows/Linux → 物理服务器 → Docker容器 → QEMU虚拟机</p>
+            </div>
             <pre><code>ssh 账号@193.x.x.x
 ssh 账号@172.x.x.x
-exit    <span class="hljs-comment">#退出</span></code></pre>
-        </div>
-        <h4 id="-code-server">安装 code-server</h4>
-        <p><code>curl -fsSL https://code-server.dev/install.sh | sh</code></p>
-        <h4 id="-">生成代码索引</h4>
-        <p><code>make gtags  <span class="hljs-comment"># 用于 VSCode 的代码跳转功能</span></code></p>
-    </div>
+exit    #退出</code></pre>
 
-    <div class="section">
-        <h3 id="-">二、配置编译环境</h3>
-        <h4 id="1-">1.内核编译流程</h4>
-        <h5 id="-">创建专用编译目录</h5>
-        <p><code>mkdir build</code></p>
-        <h5 id="-">配置内核选项</h5>
-        <p><code>make O=build menuconfig</code></p>
-        <h5 id="-">编译内核镜像</h5>
-        <p><code>make O=build bzImage -j$(nproc)</code></p>
-        <h5 id="make-">make内容补充</h5>
-        <p>可以使用<code>make help | less</code>查看<code>make</code>命令的具体内容</p>
-        <pre><code><span class="hljs-meta">#清理环境相关</span>
-<span class="hljs-built_in">make</span> mrproper            <span class="hljs-meta">#清理环境 彻底清理所有生成文件、配置文件及备份文件（需重新配置内核）</span>
-<span class="hljs-built_in">make</span> distclean            <span class="hljs-meta">#在 mrproper 基础上，额外删除编辑器备份和补丁文件（完全干净的环境）</span>
+            <h3>安装 code-server</h3>
+            <pre><code>curl -fsSL https://code-server.dev/install.sh | sh</code></pre>
 
-<span class="hljs-meta">#配置内核相关</span>
-<span class="hljs-built_in">make</span> defconfig            <span class="hljs-meta"># 生成默认配置</span>
-<span class="hljs-built_in">make</span> menuconfig            <span class="hljs-meta"># 自定义调整配置</span>
-<span class="hljs-built_in">make</span> xconfig / <span class="hljs-built_in">make</span> gconfig    <span class="hljs-meta">#分别使用 Qt 或 GTK+ 图形界面配置内核（适合桌面环境）</span>
-<span class="hljs-built_in">make</span> localmodconfig        <span class="hljs-meta">#根据当前加载的模块生成精简配置（禁用未使用的模块）</span>
-<span class="hljs-built_in">make</span> allyesconfig        <span class="hljs-meta">#将所有选项设置为 yes（生成最大化的内核，用于测试</span>
-<span class="hljs-built_in">make</span> allnoconfig        <span class="hljs-meta">#将所有选项设置为 no（最小化内核，需手动启用功能）</span>
-<span class="hljs-built_in">make</span> testconfig            <span class="hljs-meta">#运行 Kconfig 的单元测试</span>
-<span class="hljs-built_in">make</span> <span class="hljs-keyword">debug</span>.config        <span class="hljs-meta"># 将 debug.config 合并到当前 .config 文件</span>
-<span class="hljs-built_in">make</span> x86_debug.config        <span class="hljs-meta">#针对 x86/x86_64 架构的 调试和测试选项</span>
-<span class="hljs-built_in">make</span> kvm_guest.config        <span class="hljs-meta">#优化内核配置以作为 KVM 虚拟机客户机（Guest OS） 运行</span>
+            <h3>生成代码索引</h3>
+            <pre><code>make gtags  # 用于 VSCode 的代码跳转功能</code></pre>
+        </section>
 
-<span class="hljs-meta">#编译内核与模块</span>
-<span class="hljs-built_in">make</span> vmlinux        <span class="hljs-meta">#编译生成内核的裸二进制文件（未压缩的内核镜像）</span>
-<span class="hljs-built_in">make</span> modules_install    <span class="hljs-meta">#将编译好的模块安装到 /lib/modules/$(uname -r)/ 目录</span>
-<span class="hljs-built_in">make</span> headers_install    <span class="hljs-meta">#安装内核头文件到 ./usr（用于开发用户空间程序）</span>
-</code></pre>
-        <h4 id="2-">2.模块独立编译</h4>
-        <h5 id="-makefie-">修改makefile文件</h5>
-        <p><code>CONFIG_EXT2_FS := m  <span class="hljs-comment"># 设置为模块编译</span></code></p>
-        <h5 id="-">执行编译</h5>
-        <p><code>make -C /path/to/kernel/source M=$(pwd) modules</code></p>
-        <h4 id="3-">3.内核文档编译</h4>
-        <p><code>make O=build SPHINXOPTS=-v htmldocs -j$(nproc) <span class="hljs-comment">#生成内核的HTML版本</span></code></p>
-    </div>
+        <section id="compile">
+            <h2>二、内核编译环境</h2>
+            <h3>1. 内核编译流程</h3>
+            <h4>创建专用编译目录</h4>
+            <pre><code>mkdir build</code></pre>
 
-    <div class="section">
-        <h3 id="-qemu">三、使用 QEMU</h3>
-        <p><strong>qemu安装参考：</strong><a href="https://www.qemu.org/download/#linux">qemu官网</a></p>
-        <p><strong>qemu的start.sh需要关注的</strong>:</p>
-        <pre><code><span class="hljs-symbol">-append</span> <span class="hljs-string">"nokaslr ..."</span>   <span class="hljs-comment">#防止地址随机化，编译内核时关闭配置 CONFIG_RANDOMIZE_BASE</span>
-<span class="hljs-symbol">-S</span>    <span class="hljs-comment"># 挂起 gdbserver</span>
-<span class="hljs-symbol">-gdb</span> tcp::<span class="hljs-number">5555</span> <span class="hljs-comment">#指定端口号5555</span>
-<span class="hljs-symbol">-s</span>   <span class="hljs-comment">#相当于-gdb tcp::1234</span></code></pre>
-        <p>在每次启动qemu虚拟机的时候，可以先使用<code>ps -e -o pid,ppid,args | grep qemu</code>命令先查看有没有多个虚拟机开启，由下图可以看到，三个进程都是开启的qemu-system-x86_64</p>
-        <p>输出的父子进程关系如下所示：<code>5601 → 5602 (sudo) → 5603 (sudo) → 5604 (qemu-system-x86_64)</code></p>
-        <h4 id="-">服务器端</h4>
-        <pre><code>tmux ls                     <span class="hljs-comment"># 查看会话列表</span>
-tmux attach -t qemu         <span class="hljs-comment"># 进入 qemu 会话</span>
+            <h4>配置内核选项</h4>
+            <pre><code>make O=build menuconfig</code></pre>
+
+            <h4>编译内核镜像</h4>
+            <pre><code>make O=build bzImage -j$(nproc)</code></pre>
+
+            <h4>make内容补充</h4>
+            <p>可以使用<code>make help | less</code>查看<code>make</code>命令的具体内容</p>
+
+            <pre><code># 清理环境相关
+make mrproper            # 清理环境 彻底清理所有生成文件、配置文件及备份文件（需重新配置内核）
+make distclean           # 在 mrproper 基础上，额外删除编辑器备份和补丁文件（完全干净的环境）
+
+# 配置内核相关
+make defconfig           # 生成默认配置
+make menuconfig          # 自定义调整配置
+make xconfig / make gconfig  # 分别使用 Qt 或 GTK+ 图形界面配置内核（适合桌面环境）
+make localmodconfig      # 根据当前加载的模块生成精简配置（禁用未使用的模块）
+make allyesconfig        # 将所有选项设置为 yes（生成最大化的内核，用于测试）
+make allnoconfig         # 将所有选项设置为 no（最小化内核，需手动启用功能）
+make testconfig          # 运行 Kconfig 的单元测试
+make debug.config        # 将 debug.config 合并到当前 .config 文件
+make x86_debug.config    # 针对 x86/x86_64 架构的 调试和测试选项
+make kvm_guest.config    # 优化内核配置以作为 KVM 虚拟机客户机（Guest OS） 运行
+
+# 编译内核与模块
+make vmlinux             # 编译生成内核的裸二进制文件（未压缩的内核镜像）
+make modules_install     # 将编译好的模块安装到 /lib/modules/$(uname -r)/ 目录
+make headers_install     # 安装内核头文件到 ./usr（用于开发用户空间程序）</code></pre>
+
+            <h3>2. 模块独立编译</h3>
+            <h4>修改makefile文件</h4>
+            <pre><code>CONFIG_EXT2_FS := m  # 设置为模块编译</code></pre>
+
+            <h4>执行编译</h4>
+            <pre><code>make -C /path/to/kernel/source M=$(pwd) modules</code></pre>
+
+            <h3>3. 内核文档编译</h3>
+            <pre><code>make O=build SPHINXOPTS=-v htmldocs -j$(nproc)  # 生成内核的HTML版本</code></pre>
+        </section>
+
+        <section id="qemu">
+            <h2>三、使用 QEMU</h2>
+            <p>qemu安装参考：<a href="https://www.qemu.org/download/#linux">qemu官网</a></p>
+
+            <h3>qemu的start.sh需要关注的</h3>
+            <pre><code>-append "nokaslr ..."   防止地址随机化，编译内核时关闭配置 CONFIG_RANDOMIZE_BASE
+-S    挂起 gdbserver
+-gdb tcp:: 5555 #指定端口号5555
+-s   相当于-gdb tcp::1234</code></pre>
+
+            <p>在每次启动qemu虚拟机的时候，可以先使用<code>ps -e -o pid,ppid,args | grep qemu</code>先查看有没有多个虚拟机开启，可以看到，三个进程都是开启的 qenu-system-x86_64</p>
+            <p>输出的父子进程关系如下所示：</p>
+            <pre><code>5601 → 5602 (sudo) → 5603 (sudo) → 5604 (qenu-system-x86_64)</code></pre>
+
+            <h4>服务器端</h4>
+            <pre><code>tmux ls                     # 查看会话列表
+tmux attach -t qemu         # 进入 qemu 会话
 cd /home/dingpenglong/qemu-kernel/vm/1.Fedora-Server-dvd-x86_64-40-1.14
-bash start.sh               <span class="hljs-comment"># 启动 QEMU 虚拟机</span></code></pre>
-        <h4 id="-">虚拟机端</h4>
-        <pre><code><span class="hljs-keyword">cd</span> /home/linux/qemu-kernel
-<span class="hljs-keyword">cat</span> /etc/*release*          <span class="hljs-comment"># 验证系统信息</span>
-<span class="hljs-keyword">ps</span> -<span class="hljs-keyword">e</span> -<span class="hljs-keyword">o</span> pid,ppid,<span class="hljs-keyword">args</span> | <span class="hljs-keyword">grep</span> qemu  <span class="hljs-comment"># 检查 QEMU 进程</span></code></pre>
-    </div>
+bash start.sh               # 启动 QEMU 虚拟机</code></pre>
 
-    <div class="section">
-        <h3 id="-gdb-">四、GDB调试</h3>
-        <pre><code><span class="hljs-meta">#基础调试</span>
-target remote:5555            <span class="hljs-comment">#你的调试器（GDB）连接到那台“远程电脑”，让 GDB 可以控制它的执行</span>
-target remote :1234               <span class="hljs-comment"># 连接 QEMU 调试端口</span>
-c                                 <span class="hljs-comment"># 继续执行 (Continue)</span>
-Ctrl+C                            <span class="hljs-comment"># 中断程序执行</span>
-si                                <span class="hljs-comment"># 单步执行汇编指令 (Step Instruction)</span>
-n                                 <span class="hljs-comment"># 源代码级单步跳过 (Next)</span>
-s                                 <span class="hljs-comment"># 源代码级单步进入 (Step)</span>
+            <h4>虚拟机端</h4>
+            <pre><code>cd /home/linux/qemu-kernel
+cat /etc/*release*          # 验证系统信息
+ps -e -o pid,ppid,args | grep qemu  # 检查 QEMU 进程</code></pre>
+        </section>
 
-<span class="hljs-meta">#断点调试</span>
-b start_kernel                <span class="hljs-comment"># 在函数入口设置断点</span>
-b *0xffffffff81000000            <span class="hljs-comment"># 在指定地址设置断点</span>
-watch *(<span class="hljs-keyword">int</span>*)0x1234            <span class="hljs-comment"># 监控内存地址写入</span>
-rwatch [expression]            <span class="hljs-comment"># 监控内存读取</span>
-info breakpoints            <span class="hljs-comment"># 查看所有断点</span>
-disable 2                <span class="hljs-comment"># 禁用 2 号断点</span>
-delete 3                <span class="hljs-comment"># 删除 3 号断点</span>
+        <section id="gdb">
+            <h2>四、GDB 调试</h2>
+            <pre><code># 基础调试
+target remote:5555            # 你的调试器（GDB）连接到那台"远程电脑"，让 GDB 可以控制它的执行
+target remote :1234           # 连接 QEMU 调试端口
+c                             # 继续执行 (Continue)
+Ctrl+C                        # 中断程序执行
+si                            # 单步执行汇编指令 (Step Instruction)
+n                             # 源代码级单步跳过 (Next)
+s                             # 源代码级单步进入 (Step)
 
-<span class="hljs-meta">#上下文查看</span>
-bt                    <span class="hljs-comment"># 查看调用栈 (BackTrace)</span>
-info registers                <span class="hljs-comment"># 显示所有寄存器值</span>
-p $rax                    <span class="hljs-comment"># 查看 RAX 寄存器值</span>
-p $lx_current().pid            <span class="hljs-comment">#打印断点的进程</span>
-p $lx_current().comm            <span class="hljs-comment">#打印断点的进程</span>
-& ((struct cifsFileInfo *)0)-&gt;tlink    <span class="hljs-comment">#打印结构体偏移量</span>
+# 断点调试
+b start_kernel                # 在函数入口设置断点
+b *0xffffffff81000000         # 在指定地址设置断点
+watch *(int*)0x1234           # 监控内存地址写入
+rwatch [expression]           # 监控内存读取
+info breakpoints              # 查看所有断点
+disable 2                     # 禁用 2 号断点
+delete 3                      # 删除 3 号断点
 
-<span class="hljs-meta">#内存操作</span>
-x/10x 0x1234                <span class="hljs-comment"># 以十六进制查看 10 个内存字</span>
-x/20s 0xabcd                <span class="hljs-comment"># 查看内存中的 ASCII 字符串</span>
-x/i $pc                    <span class="hljs-comment"># 反汇编当前指令</span>
-disassemble /r                <span class="hljs-comment"># 带机器码反汇编当前函数</span>
-set {<span class="hljs-keyword">int</span>}0x1234 = 5            <span class="hljs-comment"># 修改内存值</span></code></pre>
-    </div>
+# 上下文查看
+bt                            # 查看调用栈 (BackTrace)
+info registers                # 显示所有寄存器值
+p $rax                        # 查看 RAX 寄存器值
+p $lx_current().pid           # 打印断点的进程
+p $lx_current().comm          # 打印断点的进程
+&((struct cifsFileInfo *)0)->tlink  # 打印结构体偏移量
 
-    <div class="section">
-        <h3 id="-">五、个人博客搭建</h3>
-        <h4 id="-">域名配置流程</h4>
-        <p>1.阿里云注册<code>yourname.com</code><br>
-        2.添加 DNS 解析记录</p>
-        <pre><code><span class="hljs-selector-tag">GitHub</span> <span class="hljs-selector-tag">Pages</span> 的 <span class="hljs-selector-tag">IP</span> 地址： 185<span class="hljs-selector-class">.199</span><span class="hljs-selector-class">.108</span><span class="hljs-selector-class">.153</span> 185<span class="hljs-selector-class">.199</span><span class="hljs-selector-class">.109</span><span class="hljs-selector-class">.153</span> 185<span class="hljs-selector-class">.199</span><span class="hljs-selector-class">.110</span><span class="hljs-selector-class">.153</span> 185<span class="hljs-selector-class">.199</span><span class="hljs-selector-class">.111</span><span class="hljs-selector-class">.153</span></code></pre>
-        <p>3.GitHubPages 配置</p>
-        <pre><code>创建 &lt;username&gt;<span class="hljs-selector-class">.github</span><span class="hljs-selector-class">.io</span> 仓库<br>
-启用 GitHub Pages 服务<br>
+# 内存操作
+x/10x 0x1234                  # 以十六进制查看 10 个内存字
+x/20s 0xabcd                  # 查看内存中的 ASCII 字符串
+x/i $pc                       # 反汇编当前指令
+disassemble /r                # 带机器码反汇编当前函数
+set {int}0x1234 = 5           # 修改内存值</code></pre>
+        </section>
+
+        <section id="blog">
+            <h2>五、个人博客搭建</h2>
+            <h3>域名配置流程</h3>
+            <ol>
+                <li>阿里云注册<code>yourname.com</code></li>
+                <li>添加 DNS 解析记录</li>
+                <pre><code>GitHub Pages 的 IP 地址：
+185.199.108.153
+185.199.109.153
+185.199.110.153
+185.199.111.153</code></pre>
+                <li>GitHubPages 配置</li>
+                <pre><code>创建 <username>.github.io 仓库
+启用 GitHub Pages 服务
 配置自定义域名</code></pre>
-    </div>
+            </ol>
+        </section>
 
-    <div class="section">
-        <h3 id="-">六、常用命令速查</h3>
-        <p><a href="https://linuxcommand.p2hp.com/">Linux命令大全</a></p>
-        <h4 id="1-vim-">1.vim编辑器</h4>
-        <p><a href="https://www.runoob.com/linux/linux-vim.html">Vim编辑器菜鸟教程</a><br>
-        <a href="https://yianwillis.github.io/vimcdoc/doc/quickref.html">Vim官方手册中文版</a></p>
-        <pre><code><span class="hljs-symbol">:w</span>        保存文件
-<span class="hljs-symbol">:wq</span>或zz        保存并退出
-x        删除光标所在字符 
-dd          删除当前行
-gg        定位到首行
-u        撤回操作
-<span class="hljs-symbol">:</span>5,10d        删除5到10行
-v进入可视模式，选择多行后按d 
-Ctrl + Z    挂起 Vim 到后台
-fg        从后台恢复 Vim
-/keyword     向下搜索 keyword
-?keyword    向上搜索 keyword
-<span class="hljs-symbol">:%s/old/new/g</span>    全局替换所有 old 为 new
-<span class="hljs-symbol">:%s/old/new/gc</span>    替换时逐个确认
-</code></pre>
-        <h4 id="2-git-">2.Git版本控制</h4>
-        <p><a href="https://www.runoob.com/git/git-tutorial.html">Git菜鸟教程</a></p>
-        <pre><code>git init              在当前目录初始化 Git 仓库
-git log            查看提交历史    --oneline（简洁显示）、-p（显示差异）
-git status        查看工作区状态（修改/未跟踪的文件）
-git add &lt;file&gt;        将文件添加到暂存区    git add .（添加所有文件）
-git pull        拉取远程仓库并合并到当前分支    git pull origin main
-git fetch        仅拉取远程仓库更新，不自动合并    git fetch --all
-git reset        回退提交    --soft（保留修改）、--hard（丢弃修改）
-git diff        查看工作区与暂存区的差异    git diff HEAD（比较最新提交）
-git commit        提交暂存区的修改    -m "message"（添加提交信息）
-git revert &lt;commit&gt;    撤销指定提交（生成新提交）    git revert HEAD（撤销最新提交）
-</code></pre>
-        <p><strong>GIT使用流程</strong>:</p>
-        <pre><code>git init(如果要上传本地仓库)
-git clone https:...   <span class="hljs-comment">#克隆git上的代码</span>
-git checkout -b new-feature  <span class="hljs-comment">#为了避免直接在 main 或 master 分支上进行开发，通常会创建一个新的分支</span>
-git add <span class="hljs-tag">&lt;file&gt;</span>         <span class="hljs-comment">#添加到暂存区</span>
-git commit -m <span class="hljs-string">""</span>       <span class="hljs-comment">#提交更改</span>
-git pull origin <span class="hljs-keyword">master</span> <span class="hljs-title">#拉取远端更新并且合并到本地，最好从远程仓库拉取最新的更改，以避免冲突</span>
-git push origin <span class="hljs-keyword">master</span> <span class="hljs-title">#推送到远程仓库</span></code></pre>
-        <p><strong>推荐一个登陆git网站的好用的工具</strong> <a href="https://steampp.net/">Steam++</a><br>
-        听这个名字就知道，之前一直用这个软件去登陆steam商店，偶然发现还能加速GitHub，免费且流畅</p>
-        <h4 id="3-tmux-">3.Tmux终端复用</h4>
-        <pre><code>tmux new -s &lt;name&gt;    创建名为 &lt;name&gt; 的新会话
-Ctrl + B D        退出当前会话（会话在后台运行）
-tmux ls            显示所有会话
-tmux attach -t &lt;name&gt;    重新连接到指定会话
-Ctrl + B C        新建窗口
-Ctrl + B N/P        切换下一个/上一个窗口
-Ctrl + B %        垂直分割窗格
-Ctrl + B "        水平分割窗格</code></pre>
-        <h4 id="4-ps-">4.ps进程管理</h4>
-        <pre><code>ps aux            查看所有进程的详细信息    
-ps -eo pid,ppid,cmd    显示进程的 PID、PPID 和完整命令    
-ps -ef | grep &lt;进程名&gt;    过滤特定进程    ps -ef | grep nginx
-ps -e -o pid,ppid,args | grep qemu    #用于查询qemu虚拟机的pid、ppid、args 每次启动qemu虚拟机的时候要确保没有同时开启多个虚拟机</code></pre>
-        <h4 id="5-ssh-scp-">5.SSH&SCP远程连接</h4>
-        <pre><code>ssh user@host                例如ssh root@192.168.1.100
-ssh -p &lt;port&gt; user@host            指定端口登录
-scp file user@host:/path        上传文件到远程主机
-scp user@host:/path/file local_dir    从远程主机下载文件
-ssh-copy-id user@host            将公钥复制到远程主机</code></pre>
-    </div>
+        <section id="commands">
+            <h2>六、常用命令速查</h2>
+            <h3>1. Vim编辑器</h3>
+            <p><a href="https://www.runoob.com/linux/linux-vim.html">Vim编辑器菜鸟教程</a></p>
+            <p><a href="https://yianwillis.github.io/vimcdoc/doc/quickref.html">Vim官方手册中文版</a></p>
+            <pre><code># :w          保存文件
+# :wq或zz     #保存并退出
+# x           #删除光标所在字符
+# dd          #删除当前行
+# gg          #定位到首行
+# u           #撤回操作
+# :5,10d      #删除5到10行
+# v进入可视模式，选择多行后按d
+# Ctrl + Z    #挂起 Vim 到后台
+# fg          #从后台恢复 Vim
+# /keyword    #向下搜索 keyword
+# ?keyword    #向上搜索 keyword
+# :%s/old/new/g  #全局替换所有 old 为 new
+# :%s/old/new/gc #替换时逐个确认</code></pre>
 
-    <div class="section">
-        <h3 id="-">七、文件系统</h3>
-        <h4 id="-">操作流程</h4>
-        <pre><code>fallocate -l 1G 1
-mkfs.ext4 -F /dev/sda           <span class="hljs-comment"># 格式化文件系统</span>
-mount -t ext4 /dev/sda /mnt     <span class="hljs-comment"># 把磁盘挂载到某个目录</span>
-df /dev/sda <span class="hljs-comment"># 查看是否已经挂载上</span>
-echo "我爱操作系统" &gt; /mnt/file   <span class="hljs-comment"># 存到挂载点下的某个文件中</span>
-cat /mnt/file                   <span class="hljs-comment"># 输出文件内容</span>
+            <h3>2. Git版本控制</h3>
+            <p><a href="https://www.runoob.com/git/git-tutorial.html">Git菜鸟教程</a></p>
+            <pre><code># git init            在当前目录初始化 Git 仓库
+# git log             #查看提交历史 --oneline（简洁显示）、-p（显示差异）
+# git status          #查看工作区状态（修改/未跟踪的文件）
+# git add <file>      #将文件添加到暂存区
+# git pull            #拉取远程仓库并合并到当前分支
+# git fetch           #仅拉取远程仓库更新，不自动合并
+# git reset           #回退提交 --soft（保留修改）、--hard（丢弃修改）
+# git diff            #查看工作区与暂存区的差异
+# git commit          #提交暂存区的修改
+# git revert <commit> #撤销指定提交（生成新提交）</code></pre>
+
+            <h4>GIT使用流程</h4>
+            <pre><code># git init(如果要上传本地仓库)
+# git clone https:...   # 克隆git上的代码
+# git checkout -b new-feature  # 创建一个新的分支
+# git add <file>         # 添加到暂存区
+# git commit -m ""       # 提交更改
+# git pull origin master # 拉取远端更新并且合并到本地
+# git push origin master # 推送到远程仓库</code></pre>
+
+            <p>推荐一个登陆git网站的好用的工具 <a href="https://steampp.net/">Steam++</a></p>
+            <p>听这个名字就知道，之前一直用这个软件去登陆steam商店，偶然发现还能加速GitHub，免费且流畅</p>
+
+            <h3>3. Tmux终端复用</h3>
+            <pre><code># tmux new -s <name>    创建名为 <name> 的新会话
+# Ctrl + B D           #退出当前会话（会话在后台运行）
+# tmux ls              #显示所有会话
+# tmux attach -t <name> #重新连接到指定会话
+# Ctrl + B C           #新建窗口
+# Ctrl + B N/P         #切换下一个/上一个窗口
+# Ctrl + B %           #垂直分割窗格
+# Ctrl + B "           #水平分割窗格</code></pre>
+
+            <h3>4. ps进程管理</h3>
+            <pre><code># ps aux                查看所有进程的详细信息
+# ps -eo pid,ppid,cmd  #显示进程的 PID、PPID 和完整命令
+# ps -ef | grep <进程名> #过滤特定进程
+# ps -e -o pid,ppid,args | grep qemu  # 用于查询qemu虚拟机的pid、ppid、args</code></pre>
+
+            <h3>5. SSH&SCP远程连接</h3>
+            <pre><code># ssh user@host                例如ssh root@192.168.1.100
+# ssh -p <port> user@host     #指定端口登录
+# scp file user@host:/path    #上传文件到远程主机
+# scp user@host:/path/file local_dir  #从远程主机下载文件
+# ssh-copy-id user@host       #将公钥复制到远程主机</code></pre>
+
+            <h3>6. Linux命令大全</h3>
+            <p><a href="https://linuxcommand.p2hp.com/">Linux命令大全</a></p>
+        </section>
+
+        <section id="filesystem">
+            <h2>七、文件系统</h2>
+            <h3>1. 操作流程</h3>
+            <pre><code>fallocate -l 1G 1
+mkfs.ext4 -F /dev/sda           # 格式化文件系统
+mount -t ext4 /dev/sda /mnt     # 把磁盘挂载到某个目录
+df /dev/sda                    # 查看是否已经挂载上
+echo "我爱操作系统" > /mnt/file   # 存到挂载点下的某个文件中
+cat /mnt/file                   # 输出文件内容
 debugfs /dev/sda
-<span class="hljs-comment"># debugfs:  stats # Block size: 1024</span>
-<span class="hljs-comment"># debugfs:  stat file # BLOCKS: (0):7169</span>
-dd if=/dev/sda of=./data bs=1 skip=7341056 count=20  <span class="hljs-comment">#具体的skip=多少需要根据Block size 和BLOCKS计算</span>
+# debugfs:  stats # Block size: 1024
+# debugfs:  stat file # BLOCKS: (0):7169
+dd if=/dev/sda of=./data bs=1 skip=7341056 count=20  # 具体的skip=多少需要根据Block size 和BLOCKS计算
 cat data
-umount /mnt                     <span class="hljs-comment"># 卸载文件系统</span></code></pre>
-        <h4 id="-">虚拟文件系统对象、数据结构、以及关系</h4>
-        <h5 id="-">基本概念</h5>
-        <p><strong>1.超级块是对一个文件系统的描述；</strong></p>
-        <p><strong>2.索引节点inode是对一个文件物理属性的描述；</strong></p>
-        <p><strong>3.目录项dentry是对一个文件逻辑属性的描述；</strong></p>
-        <p><strong>4.文件file是对当前进程打开的文件的描述；</strong></p>
-        <p>一个进程和文件系统相关的信息是由fs_struct来描述的（如当前正在执行的文件和当前工作目录），一个进程打开的文件集是由files_struct来描述的，而每个打开的文件是由file结构描述的。</p>
-        <p><strong>多个目录下denrty对应同一个索引节点inode</strong><br>
-        <strong>文件夹下的nlink代表的是文件夹的子目录数（不包含文件）</strong><br>
-        <strong>文件的nlink代表的是硬链接数</strong></p>
-    </div>
+umount /mnt                     # 卸载文件系统</code></pre>
 
-    <div class="section">
-        <h3 id="-nfs-">八、nfs文件系统</h3>
-        <h4 id="1-nfs-">1.nfs环境</h4>
-        <h5 id="1-1-server-">1.1 Server 环境</h5>
-        <p>nfs server软件安装</p>
-        <pre><code>apt-get install nfs-kernel-server -y <span class="hljs-comment"># debian</span>
-dnf install nfs-utils -y <span class="hljs-comment"># openeuler</span></code></pre>
-        <p>然后需要修改配置文件/etc/exports</p>
-        <pre><code>/tmp/ *(rw,no_root_squash,fsid=0)           <span class="hljs-comment">#共享tmp目录 *代表允许所有IP地质访问共享目录，rw 允许读写，no_root_squash 允许客户端root用户直接以服务端root权限操作文件，NFSv4 要求一个根文件系统（fsid=0），其他导出应作为其子目录。</span>
+            <h3>2. 虚拟文件系统对象、数据结构、以及关系</h3>
+            <h4>基本概念</h4>
+            <ul>
+                <li>超级块是对一个文件系统的描述；</li>
+                <li>索引节点inode是对一个文件物理属性的描述；</li>
+                <li>目录项dentry是对一个文件逻辑属性的描述；</li>
+                <li>文件file是对当前进程打开的文件的描述；</li>
+            </ul>
+            <p>一个进程和文件系统相关的信息是由fs_struct来描述的（如当前正在执行的文件和当前工作目录），一个进程打开的文件集是由files_struct来描述的，而每个打开的文件是由file结构描述的。</p>
+            <p>多个目录下denrty对应同一个索引节点inode</p>
+            <p>文件夹下的nlink代表的是文件夹的子目录数（不包含文件）</p>
+            <p>文件的nlink代表的是硬链接数</p>
+        </section>
+
+        <section id="nfs">
+            <h2>八、NFS文件系统</h2>
+            <h3>1. nfs环境</h3>
+            <h4>1.1 Server 环境</h4>
+            <p>nfs server软件安装</p>
+            <pre><code>apt-get install nfs-kernel-server -y # debian
+dnf install nfs-utils -y # openeuler</code></pre>
+            <p>然后需要修改配置文件/etc/exports</p>
+            <pre><code>/tmp/ *(rw,no_root_squash,fsid=0)           # 共享tmp目录
 /tmp/s_test/ *(rw,no_root_squash,fsid=1)
 /tmp/s_scratch *(rw,no_root_squash,fsid=2)</code></pre>
-        <h5 id="1-2-client-">1.2 Client 环境</h5>
-        <p>nfs client软件安装</p>
-        <pre><code>apt-get install nfs-common -y <span class="hljs-comment"># debian</span>
-dnf install nfs-utils -y <span class="hljs-comment"># openeuler</span></code></pre>
-        <p>nfs clinet 挂载命令：</p>
-        <pre><code>mount -t nfs -o vers=4.0 ${server_ip}:/s_test /mnt
+
+            <h4>1.2 Client 环境</h4>
+            <p>nfs client软件安装</p>
+            <pre><code>apt-get install nfs-common -y # debian
+dnf install nfs-utils -y # openeuler</code></pre>
+            <p>nfs clinet 挂载命令：</p>
+            <pre><code>mount -t nfs -o vers=4.0 ${server_ip}:/s_test /mnt
 mount -t nfs -o vers=4.1 ${server_ip}:/s_test /mnt
 mount -t nfs -o vers=4.2 ${server_ip}:/s_test /mnt</code></pre>
-        <p>一般都会指定vers的版本，如果server端没有配置fisd，那么挂载的根路径将是/，需要用如下命令：
-        <code>mount -t nfs -o vers=4.0 ${server_ip}:/tmp/s_test /mnt # 或 tmp/s_test</code></p>
-    </div>
 
-    <div class="section">
-        <h1 id="todo">todo</h1>
-        <h2 id="1-ko-">1.编译的.ko文件，如何映射到内核文件里面？</h2>
-        <h2 id="2-0001-debug-vfs-patch-debug_inode_nlink-">2.调试补丁为 0001-debug-vfs.patch ，看其中的debug_inode_nlink()函数----没看到？如何打补丁？</h2>
-        <p>查阅资料：</p>
-        <p>#假设内核源码在 ~/linux-5.15<br>
-        cd ~/linux-5.15<br>
-        git checkout -b debug-vfs<br>
-        git am ~/patches/0001-debug-vfs.patch</p>
-        <p>#查看 debug_inode_nlink() 定义<br>
-        git show HEAD:fs/inode.c | grep -A 15 debug_inode_nlink</p>
-        <p>#编译并测试<br>
-        make -j$(nproc)<br>
-        sudo make modules_install install<br>
-        reboot</p>
-        <h2 id="3-bpf-">3.BPF调度器</h2>
-        <h4 id="-boot-form-hard-disk-">虚拟机卡在了Boot form Hard Disk阶段</h4>
-        <p>注：做实验千万不要在Vitrual manager的虚拟机上跑，最好在qemu上跑。</p>
-        <h2 id="4-">4.调试补丁</h2>
-        <ul>
-            <li><ol>
-            <li>应用补丁： 确保你的工作目录是你的Linux内核源代码根目录，patch命令应用补丁
-            <code>patch -p1 &lt; /home/linux/blog/course/kernel/src/0001-debug-vfs.patch</code></li>
+            <p>一般都会指定vers的版本，如果server端没有配置fisd，那么挂载的根路径将是/，需要用如下命令：</p>
+            <pre><code>mount -t nfs -o vers=4.0 ${server_ip}:/tmp/s_test /mnt # 或 tmp/s_test</code></pre>
+
+            <h3>遇到的常见问题的小Tips</h3>
+            <h4>1. 虚拟机卡在了Boot form Hard Disk阶段</h4>
+            <p>这种情况只能重装虚拟机系统</p>
+            <p>注：做实验千万不要在Vitrual manager的虚拟机上跑，最好在qemu上跑。</p>
+
+            <h4>2. 调试补丁</h4>
+            <ol>
+                <li>应用补丁： 确保你的工作目录是你的Linux内核源代码根目录，patch命令应用补丁</li>
+                <pre><code>patch -p1 < /home/linux/blog/course/kernel/src/0001-debug-vfs.patch</code></pre>
+                <li>然后配置内核<code>make menuconfig</code>、编译内核<code>make bzImage -j8</code></li>
             </ol>
-            </li>
-            <li><ol>
-            <li>然后配置内核<code>make menuconfig</code>、编译内核<code>make bzImage -j8</code> </li>
+
+            <h4>3. git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</h4>
+            <ol>
+                <li>如果在学校和公司无法在网站上访问，可以申请一个服务器代理。</li>
+                <li>检查防火墙配置。<code>sudo systemctl disable firewalld</code></li>
             </ol>
-            </li>
-        </ul>
-        <h2 id="5-failed-to-connect-to-127-0-0-1-port-1080-">5.Failed to connect to 127.0.0.1 port 1080: 拒绝连接</h2>
-        <ul>
-            <li><ol>
-            <li>检查全局代理设置 
-            <code>git config --global http.proxy</code>
-            <code>git config --global https.proxy</code>
-            如果有则需要取消代理设置
-            <code>git config --global --unset http.proxy</code>
-            <code>git config --global --unset https.proxy</code></li>
+
+            <h4>4. 编译的.ko文件，如何映射到内核文件里面？</h4>
+            <ol>
+                <li>加载内核模块：<code>sudo insmod your_module.ko</code> 或者<code>sudo modprobe your_module</code></li>
+                <li>验证是否加载成功：<code>lsmod | grep your_module</code></li>
+                <li>卸载模块：<code>sudo rmmod your_module</code></li>
             </ol>
-            </li>
-            <li><ol>
-            <li>检查环境变量中的代理设置
-            <code>env | grep -i proxy</code>
-            如果有代理设置，则取消
-            <code>unset http_proxy</code>
-            <code>unset https_proxy</code></li>
-            </ol>
-            </li>
-        </ul>
-        <h2 id="6-gnutls_handshake-failed-error-in-the-pull-function-">6.gnutls_handshake() failed: Error in the pull function.</h2>
-        <p>禁用SSL验证：<code>git config --global http.sslVerify "false"</code></p>
+        </section>
+
+        <h2>待办理</h2>
+        <h3>1. 编译的.ko文件，如何映射到内核文件里面？</h3>
     </div>
 </body>
-</html>
+</html> 
