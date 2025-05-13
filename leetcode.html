@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>力扣算法题解笔记</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+        }
+
+        .content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: "Courier New", Courier, monospace;
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>力扣算法题解笔记</h1>
+
+    <div class="content">
+        <h2>15. 三数之和</h2>
+        <p><strong>方法</strong>：双指针法</p>
+        <p><strong>关键点</strong>：</p>
+        <ul>
+            <li><code>i</code> 去重：检查 <code>nums[i]</code> 是否与前一个元素相同，避免重复。</li>
+            <li>双指针循环：使用 <code>while (j < k)</code> 遍历。</li>
+            <li><code>j</code> 和 <code>k</code> 去重：在找到有效三元组后，跳过重复的 <code>j</code> 和 <code>k</code>。</li>
+        </ul>
+        <pre><code>while j < k:
+    if sum == 0:
+        # 处理结果并移动j和k
+        while j < k and nums[j] == nums[j+1]: j +=1
+        while j < k and nums[k] == nums[k-1]: k -=1
+        j +=1; k -=1
+</code></pre>
+    </div>
+
+    <div class="content">
+        <h2>42. 接雨水</h2>
+        <h3>方法1：动态规划</h3>
+        <p><strong>步骤</strong>：</p>
+        <ol>
+            <li>预计算左侧最大值数组 <code>ldp</code> 和右侧最大值数组 <code>rdp</code>。</li>
+            <li>对每个位置取 <code>min(ldp[i], rdp[i]) - height[i]</code> 累加。</li>
+        </ol>
+        <h3>方法2：双指针优化</h3>
+        <p><strong>关键点</strong>：</p>
+        <ul>
+            <li>维护 <code>lmax</code> 和 <code>rmax</code> 分别表示左右遍历时的最大值。</li>
+            <li>当 <code>height[left] <= height[right]</code> 时处理左指针，反之处理右指针。</li>
+            <li><strong>公式</strong>：<code>ans += (lmax - height[left])</code> 或 <code>ans += (rmax - height[right])</code>。</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2>3. 无重复字符的最长子串</h2>
+        <p><strong>方法</strong>：滑动窗口（Set实现）</p>
+        <p><strong>关键点</strong>：</p>
+        <ul>
+            <li>使用 <code>set</code> 记录当前窗口字符。</li>
+            <li>当遇到重复字符时，移动左指针并删除对应字符，直到无重复。</li>
+            <li><strong>注意</strong>：用 <code>while</code> 循环处理重复字符的移除。</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2>239. 滑动窗口最大值</h2>
+        <p><strong>方法</strong>：单调递减双端队列</p>
+        <p><strong>步骤</strong>：</p>
+        <ol>
+            <li>队列保存索引，且队列对应值单调递减。</li>
+            <li>窗口滑动时，移除超出窗口范围的队首元素。</li>
+            <li>新元素入队前，移除队尾小于它的元素。</li>
+            <li>当窗口形成后（<code>i >= k-1</code>），队首即为最大值。</li>
+        </ol>
+    </div>
+
+    <div class="content">
+        <h2>76. 最小覆盖子串</h2>
+        <p><strong>方法</strong>：滑动窗口 + 哈希表</p>
+        <p><strong>关键点</strong>：</p>
+        <ul>
+            <li>用数组统计 <code>t</code> 中字符出现次数，维护窗口内字符覆盖状态。</li>
+            <li>扩展右指针直到覆盖 <code>t</code>，然后收缩左指针找最小窗口。</li>
+            <li><strong>优化</strong>：用 <code>count</code> 变量记录匹配字符数，避免每次检查全表。</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2>41. 缺失的第一个正数</h2>
+        <p><strong>方法</strong>：原地哈希</p>
+        <p><strong>步骤</strong>：</p>
+        <ol>
+            <li>遍历数组，将正整数 <code>nums[i]</code> 交换到索引 <code>nums[i]-1</code> 的位置。</li>
+            <li>再次遍历，找到第一个不满足 <code>nums[i] == i+1</code> 的位置。</li>
+            <li><strong>边界</strong>：若全匹配，返回 <code>n+1</code>。</li>
+        </ol>
+    </div>
+
+    <div class="content">
+        <h2>48. 旋转图像</h2>
+        <p><strong>方法</strong>：数学变换</p>
+        <p><strong>步骤</strong>：</p>
+        <ol>
+            <li><strong>转置矩阵</strong>：交换 <code>matrix[i][j]</code> 与 <code>matrix[j][i]</code>。</li>
+            <li><strong>水平翻转每行</strong>：交换 <code>matrix[i][j]</code> 与 <code>matrix[i][n-j-1]</code>。</li>
+        </ol>
+    </div>
+
+    <div class="content">
+        <h2>17. 电话号码的字母组合</h2>
+        <p><strong>方法</strong>：回溯算法</p>
+        <p><strong>关键点</strong>：</p>
+        <ul>
+            <li>递归终止条件：路径长度等于数字串长度。</li>
+            <li>遍历当前数字对应的所有字母，回溯选择与撤销。</li>
+            <li><strong>参数</strong>：<code>index</code> 表示当前处理的数字位置。</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2>39. 组合总和</h2>
+        <p><strong>方法</strong>：回溯 + 剪枝</p>
+        <p><strong>关键点</strong>：</p>
+        <ul>
+            <li>允许重复选择元素，递归时 <code>start</code> 参数不变。</li>
+            <li>排序后剪枝：若当前候选数大于剩余和，提前终止。</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2>79. 单词搜索</h2>
+        <p><strong>方法</strong>：DFS + 回溯</p>
+        <p><strong>关键点</strong>：</p>
+        <ul>
+            <li>终止条件：索引达到单词长度或字符不匹配。</li>
+            <li>标记已访问位置，递归后恢复状态。</li>
+            <li><strong>注意</strong>：四个方向的DFS需处理越界问题。</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2>74. 搜索二维矩阵</h2>
+        <p><strong>方法</strong>：二分查找</p>
+        <p><strong>关键点</strong>：</p>
+        <ul>
+            <li>将二维矩阵视为一维数组，计算中间元素的坐标：<code>mid_val = matrix[mid//n][mid%n]</code>。</li>
+            <li>根据 <code>mid_val</code> 与 <code>target</code> 的关系调整搜索范围。</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2>20. 有效的括号</h2>
+        <p><strong>方法</strong>：栈</p>
+        <p><strong>关键点</strong>：</p>
+        <ul>
+            <li>遇到左括号入栈，右括号时检查栈顶是否匹配。</li>
+            <li><strong>边界处理</strong>：栈为空时遇到右括号直接返回False。</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2>394. 字符串解码</h2>
+        <p><strong>方法</strong>：双栈（数字栈 + 字符串栈）</p>
+        <p><strong>步骤</strong>：</p>
+        <ol>
+            <li>遇到数字时解析完整数值入数字栈。</li>
+            <li>遇到 <code>[</code> 时，当前字符串入栈并重置。</li>
+            <li>遇到 <code>]</code> 时，弹出数字和字符串，拼接后更新结果。</li>
+        </ol>
+    </div>
+
+    <div class="content">
+        <h2>739. 每日温度</h2>
+        <p><strong>方法</strong>：单调栈</p>
+        <p><strong>关键点</strong>：</p>
+        <ul>
+            <li>栈保存温度递减的日期索引。</li>
+            <li>遍历时若当前温度大于栈顶温度，弹出并计算天数差。</li>
+            <li><strong>结果数组</strong>：<code>ans[stack.pop()] = i - idx</code></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h2>347. 前K个高频元素</h2>
+        <p><strong>方法</strong>：最小堆（优先队列）</p>
+        <p><strong>步骤</strong>：</p>
+        <ol>
+            <li>统计频率存入哈希表。</li>
+            <li>维护大小为 <code>k</code> 的最小堆，按频率排序。</li>
+            <li>遍历哈希表，堆满后弹出较小频率元素。</li>
+        </ol>
+    </div>
+
+    <div class="content">
+        <h2>146 LRU缓存</h2>
+        <p><strong>方法</strong>：双向链表、哈希表</p>
+        <p><strong>步骤</strong>：</p>
+        <ol>
+            <li>设计一个双向链表，实现push_fornt函数、remove_node函数、get_node函数</li>
+            <li>push_fornt函数是在链表头部添加一个结点,实现操作如下所示：<br>
+            <code>x->pre =dummy; x->next=dummy->next;x->pre->next =x;x->next->pre =x;</code></li>
+            <li>remove_node函数是删除一个结点，实现如下：<br>
+            <code>x->pre->next = x->next;x->next->pre = x->pre;</code></li>
+            <li>get_node函数是获取key对应的节点，同时把该节点移动到链表头部，操作如下所示：<br>
+            <code>用hashmap通过key找到node，先remove结点node，然后再push_front结点</code></li>
+            <li>LRU的每次Put操作，需要先判断结点是否存在该hashmap中，存在则直接替换key对应的值，不存在则放到链表头部，如果hashmap的大小大于了LRU缓存大小，那么则删除hashmap中对应的key，删除链表中最后一个结点。注<code>用DLinkedNode* back_node = dummy->pre;</code>获取最后一个结点</li>
+        </ol>
+    </div>
+
+    <div class="content">
+        <h2>快速排序</h2>
+        <pre><code>void quickSort(std::vector<int>& arr, int left, int right) {
+    if (left >= right) return;
+
+    int pivot = arr[left];
+    int i = left + 1;
+    int j = right;
+
+    while (i <= j) {
+        while (i <= j && arr[i] <= pivot) i++;
+        while (i <= j && arr[j] >= pivot) j--;
+        if (i < j) std::swap(arr[i], arr[j]);
+    }
+    std::swap(arr[left], arr[j]);
+
+    quickSort(arr, left, j - 1);
+    quickSort(arr, j + 1, right);
+}</code></pre>
+    </div>
+
+    <div class="content">
+        <h2>归并排序</h2>
+        <pre><code>void merge(std::vector<int>& arr, int left, int mid, int right) {
+    std::vector<int> temp(right - left + 1);
+    int i = left, j = mid + 1, k = 0;
+
+    while (i <= mid && j <= right) {
+        if (arr[i] <= arr[j]) {
+            temp[k++] = arr[i++];
+        } else {
+            temp[k++] = arr[j++];
+        }
+    }
+
+    while (i <= mid) {
+        temp[k++] = arr[i++];
+    }
+
+    while (j <= right) {
+        temp[k++] = arr[j++];
+    }
+
+    for (i = left, k = 0; i <= right; ++i, ++k) {
+        arr[i] = temp[k];
+    }
+}
+
+void mergeSort(std::vector<int>& arr, int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid + 1, right);
+        merge(arr, left, mid, right);
+    }
+}</code></pre>
+    </div>
+
+    <div class="content">
+        <h2>堆排序</h2>
+        <pre><code>void heapify(std::vector<int>& arr, int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+
+    if (left < n && arr[left] > arr[largest]) {
+        largest = left;
+    }
+
+    if (right < n && arr[right] > arr[largest]) {
+        largest = right;
+    }
+
+    if (largest != i) {
+        std::swap(arr[i], arr[largest]);
+        heapify(arr, n, largest);
+    }
+}
+
+void heapSort(std::vector<int>& arr) {
+    int n = arr.size();
+
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        heapify(arr, n, i);
+    }
+
+    for (int i = n - 1; i > 0; i--) {
+        std::swap(arr[0], arr[i]);
+        heapify(arr, i, 0);
+    }
+}</code></pre>
+    </div>
+
+</body>
+</html> 
