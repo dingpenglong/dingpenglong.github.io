@@ -6,65 +6,59 @@
     <title>丁鹏龙的个人主页</title>
     <style>
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: Arial, sans-serif;
             line-height: 1.6;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f0f8ff;
+            background-color: #f9f9f9;
+            color: #333;
         }
 
-        h1 {
+        h1, h2 {
             color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
         }
 
-        .section {
-            background-color: white;
+        .content {
+            background-color: #fff;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin: 20px 0;
-        }
-
-        h2 {
-            color: #3498db;
-            margin-top: 0;
-        }
-
-        ul {
-            padding-left: 20px;
-        }
-
-        li {
-            margin: 10px 0;
-        }
-        a {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #3498db;
-            color: white;
-            text-decoration: none;
             border-radius: 5px;
-            margin-top: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
         a:hover {
-            background-color: #2980b9;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <h1>欢迎来到我的个人主页！👋</h1>
+    <h1>丁鹏龙的个人主页</h1>
 
-    <div class="section">
+    <div class="content">
         <h2>个人简介</h2>
-        <p>大家好！我是丁鹏龙,一名正在学习Linux内核的技术爱好者。</p>
-        <p>📍 目前所在地：长沙<br>
-           💻 技术方向: Linux内核开发<br>
-           🌱 兴趣爱好：编程、阅读、健身、羽毛球
-        </p>
-        <a href="https://dingpenglong.com/linux_kernel">跳转到Linux内核开发学习</a> 
+        <p>大家好！我是丁鹏龙，目前是研究生在读，专注于Linux内核开发。</p>
+        <p>📍 长沙 | 💻 Linux内核开发 | 🌱 编程、阅读、健身、羽毛球</p>
+    </div>
+
+    <div class="content">
+        <h2>我的GitHub</h2>
+        <p>在这里可以找到我的项目和代码：</p>
+        <a href="https://github.com/dingpenglong">访问我的GitHub</a>
+    </div>
+
+    <div class="content">
+        <h2>学习内容</h2>
+        <ul>
+            <li><a href="https://dingpenglong.com/linux_kernel">Linux内核开发学习</a></li>
+            <li><a href="https://dingpenglong.com/embedded">嵌入式(STM32和RTOS,Linux)</a></li>
+            <li><a href="https://dingpenglong.com/leetcode">力扣算法题解答</a></li>
+        </ul>
     </div>
 </body>
-</html>
+</html> 
