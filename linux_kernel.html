@@ -130,6 +130,9 @@
             <li><a href="#commands">六、常用命令速查</a></li>
             <li><a href="#filesystem">七、文件系统</a></li>
             <li><a href="#nfs">八、NFS文件系统</a></li>
+            <li><a href="#bpf">九、BPF</a></li>
+            <li><a href="#smb">十、SMB文件系统</a></li>
+            <li><a href="#kernel-practice">十一、Linux 内核实战</a></li>
         </ul>
     </div>
 
@@ -404,35 +407,377 @@ mount -t nfs -o vers=4.2 ${server_ip}:/s_test /mnt</code></pre>
 
             <p>一般都会指定vers的版本，如果server端没有配置fisd，那么挂载的根路径将是/，需要用如下命令：</p>
             <pre><code>mount -t nfs -o vers=4.0 ${server_ip}:/tmp/s_test /mnt # 或 tmp/s_test</code></pre>
+        </section>
 
-            <h3>遇到的常见问题的小Tips</h3>
-            <h4>1. 虚拟机卡在了Boot form Hard Disk阶段</h4>
-            <p>这种情况只能重装虚拟机系统</p>
-            <p>注：做实验千万不要在Vitrual manager的虚拟机上跑，最好在qemu上跑。</p>
-
-            <h4>2. 调试补丁</h4>
+        <section id="bpf">
+            <h2>九、BPF</h2>
             <ol>
-                <li>应用补丁： 确保你的工作目录是你的Linux内核源代码根目录，patch命令应用补丁</li>
-                <pre><code>patch -p1 < /home/linux/blog/course/kernel/src/0001-debug-vfs.patch</code></pre>
-                <li>然后配置内核<code>make menuconfig</code>、编译内核<code>make bzImage -j8</code></li>
+                <li>BPF全称是「Berkeley Packet Filter」,翻译过来是「伯克利包过滤器」。</li>
+                <li>那么为什么需要BPF呢？这就得提到很多年前的程序都是作为用户级进程进行的，为了分析只在内核空间的数据，这些数据都得从内核空间拷贝到用户空间的内存中，因此会有大量的开销。</li>
+                <li>随着现在的数据增多，不得不放弃在用户空间分析内核数据，因而BPF应运而生——一种在内核空间执行高效安全的程序的机制。这里BPF的原理就不深究了，具体看怎么使用。</li>
             </ol>
 
-            <h4>3. git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</h4>
-            <ol>
-                <li>如果在学校和公司无法在网站上访问，可以申请一个服务器代理。</li>
-                <li>检查防火墙配置。<code>sudo systemctl disable firewalld</code></li>
-            </ol>
+            <pre><code>先安装bpf：
+    apt-get install bpftrace  #ubuntu系统
+    dnf install bpftrace   ##fedroa系统
+编写test.bt:
+kprobe:ext2_read_folio
+{
+        @start[tid] = nsecs;
+        printf("kprobe\n");
+        print(kstack());
+}
 
-            <h4>4. 编译的.ko文件，如何映射到内核文件里面？</h4>
+kretprobe:ext2_read_folio
+{
+        $us = (nsecs - @start[tid]) / 100;
+        printf("kretprobe, duration %d\n", $us);
+        delete(@start[tid]);
+        print(kstack());
+}
+然后执行命令
+bpftrace test.bt &
+mkfs.ext2 -F image
+mount image /mnt
+echo something > /mnt/file
+echo 3 > /proc/sys/vm/drop_caches
+cat /mnt/file</code></pre>
+            <p>test.bt 脚本通过以下方式跟踪 ext2_read_folio 脚本中包含两个探针（kprobe 和 kretprobe），记录进入read函数和出read函数的时间戳，并计算。</p>
+
+            <h3>在Ubuntu 22.04上安装BCC的完整指南</h3>
+            <p>BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</p>
+
+            <h4>方法一：使用PPA源安装（推荐）</h4>
+            <p>这是最简单快捷的安装方法，适用于大多数用户。</p>
+
+            <h5>步骤1：添加BCC PPA源</h5>
+            <pre><code>sudo apt-add-repository ppa:hadret/bpfcc
+sudo apt-get update</code></pre>
+
+            <h5>步骤2：安装BCC包</h5>
+            <pre><code>sudo apt-get install -y bpfcc-tools python3-bpfcc</code></pre>
+
+            <h5>步骤3：验证安装</h5>
+            <pre><code># 列出已安装的BCC工具
+find /usr -name "*-bpfcc" -type f | sort
+
+# 验证Python模块
+python3 -c "import bcc; print(bcc.__file__)"
+
+# 测试运行BCC程序（例如execsnoop）
+sudo execsnoop-bpfcc -h</code></pre>
+
+            <h4>方法二：从源代码编译安装</h4>
+            <p>如果你需要最新版本或自定义构建，可以从源代码安装。</p>
+
+            <h5>步骤1：安装依赖项</h5>
+            <pre><code># 安装基本依赖
+sudo apt-get update
+sudo apt-get install -y bison build-essential cmake flex git libedit-dev \
+  libllvm14 llvm-14-dev libclang-14-dev python3 zlib1g-dev libelf-dev \
+  libfl-dev python3-pip
+
+# 安装其他依赖
+sudo apt-get install -y arping clang-14 dh-python libdbus-1-dev libluajit-5.1-dev \
+  luajit libpcap-dev libpython3-dev libzip-dev python3-netaddr python3-pyroute2
+
+# 安装内核头文件
+sudo apt-get install -y linux-headers-$(uname -r)</code></pre>
+
+            <h5>步骤2：克隆BCC仓库</h5>
+            <pre><code>cd ~
+git clone https://github.com/iovisor/bcc.git
+# 如果遇到网络问题，可以使用国内镜像：
+# git clone https://gitee.com/mirrors/bcc.git</code></pre>
+
+            <h5>步骤3：编译和安装</h5>
+            <pre><code>mkdir -p ~/bcc/build && cd ~/bcc/build
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_CMD=python3 ..
+make -j$(nproc)
+sudo make install</code></pre>
+
+            <h5>步骤4：验证安装</h5>
+            <pre><code># 验证Python模块
+python3 -c "import bcc; print(bcc.__file__)"
+
+# 测试BCC工具
+sudo /usr/share/bcc/tools/execsnoop</code></pre>
+
+            <h4>创建并运行自己的BCC程序</h4>
+            <pre><code>#!/usr/bin/python3
+# 文件名: test_bcc.py
+from bcc import BPF
+
+# 定义BPF程序
+program = """
+int hello(void *ctx) {
+    bpf_trace_printk("Hello, BCC!\\n");
+    return 0;
+}
+"""
+
+# 加载BPF程序
+b = BPF(text=program)
+b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
+
+# 打印头部
+print("正在跟踪clone()系统调用...")
+print("按Ctrl+C退出")
+
+# 读取并打印trace输出
+try:
+    b.trace_print()
+except KeyboardInterrupt:
+    pass</code></pre>
+
+            <p>运行此脚本：</p>
+            <pre><code>chmod +x test_bcc.py
+sudo ./test_bcc.py</code></pre>
+
+            <h4>常用BCC工具</h4>
+            <p>BCC安装后提供了许多强大的工具，包括：</p>
+            <ul>
+                <li><code>execsnoop-bpfcc</code> - 跟踪新进程的执行</li>
+                <li><code>opensnoop-bpfcc</code> - 跟踪open()系统调用</li>
+                <li><code>tcptracer-bpfcc</code> - 跟踪TCP连接</li>
+                <li><code>tcpconnect-bpfcc</code> - 跟踪主动TCP连接</li>
+                <li><code>tcpaccept-bpfcc</code> - 跟踪被动TCP连接</li>
+                <li><code>biosnoop-bpfcc</code> - 跟踪块I/O延迟</li>
+                <li><code>funccount-bpfcc</code> - 统计函数调用次数</li>
+                <li><code>stackcount-bpfcc</code> - 统计内核堆栈轨迹</li>
+            </ul>
+            <p>使用这些工具时需要加上<code>sudo</code>权限。</p>
+
+            <h4>参考资料</h4>
+            <ul>
+                <li><a href="https://github.com/iovisor/bcc">BCC官方GitHub仓库</a></li>
+                <li><a href="https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md">BCC参考指南</a></li>
+                <li><a href="https://www.brendangregg.com/ebpf.html">Linux eBPF追踪工具</a></li>
+            </ul>
+        </section>
+
+        <section id="smb">
+            <h2>十、SMB文件系统</h2>
+            <h3>1. Server搭建</h3>
+            <h4>1.1 用户态</h4>
+            <pre><code># 待补充</code></pre>
+        </section>
+
+        <section id="kernel-practice">
+            <h2>十一、Linux 内核实战</h2>
+            <h3>1. nfs_latency测试</h3>
+            <p>用bpf获取rpc执行时间戳，计算函数执行时间这个代码是记录每调用一次rpc，就记录调用的rpc时间。代码具体用到了hashmap去存储每个进程号、当前时间戳。用数组去记录进程的pid和对应的耗时时间。</p>
+            
+            <h4>原始代码</h4>
+            <pre><code>nfs.bpf.c
+// SPDX-License-Identifier: GPL-2.0
+#include "vmlinux.h"
+#include <bpf/bpf_helpers.h>
+#include <bpf/bpf_tracing.h>
+
+char LICENSE[] SEC("license") = "GPL";
+
+struct event {
+    u32 pid;       //pid进程
+    u64 delta_ns;   //耗时时间
+    char comm[16];   //进程名
+};
+
+struct {
+    __uint(type, BPF_MAP_TYPE_HASH); //指定类型是BPF_MAP_TYPE_HASH ----哈希表
+    __uint(max_entries, 4096);          //最大key数量=4096
+    __type(key, u64);       
+    __type(value, u64);
+} start SEC(".maps");  //SEC是指定将这个结构体放在BPF的.maps段中，在BPF中，段是一种组织代码和数据的方式
+
+struct {
+    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  //数组
+} events SEC(".maps");
+
+SEC("kprobe/rpc_call_start")   //表示这个 BPF 程序会被加载到内核中，并在每次rpc_call_start内核函数被调用时触发执行，也就是rpc_start开始执行时触发
+int BPF_KPROBE(handle_rpc_start)  //BPF_KPROBE是一个宏用于定义一个 kprobe 类型的 BPF 程序
+{
+    u64 tid = bpf_get_current_pid_tgid();           //获取当前PID和TGID
+    u64 ts = bpf_ktime_get_ns();                //获取当前的时间戳
+    bpf_map_update_elem(&start, &tid, &ts, BPF_ANY); //向start哈希表里面更新数据，PF_ANY 表示如果键已存在，则更新值；如果键不存在，则插入新键值对
+    return 0;
+}
+
+SEC("kretprobe/rpc_call_done")
+int BPF_KRETPROBE(handle_rpc_done)
+{
+    u64 tid = bpf_get_current_pid_tgid();
+    u64 *tsp = bpf_map_lookup_elem(&start, &tid);
+    if (!tsp)
+        return 0;
+
+    u64 delta = bpf_ktime_get_ns() - *tsp;   //当前时间戳与hashmap中的时间戳进行计算，得到执行时间。
+    bpf_map_delete_elem(&start, &tid);
+
+    struct event e = {};
+    e.pid = tid >> 32;
+    e.delta_ns = delta;             
+    bpf_get_current_comm(&e.comm, sizeof(e.comm));  //获取数据存储到event结构体里面
+
+    bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &e, sizeof(e)); //
+    return 0;
+}
+nfs.c
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <bpf/libbpf.h>
+#include "nfs.skel.h"
+
+static volatile bool exiting = false;
+
+//用户态
+void handle_event(void *ctx, int cpu, void *data, __u32 size) //BPF 程序输出性能事件时，这个函数会被调用。
+{
+    struct event *e = data;
+    printf("PID %d (%s): %.2f ms\n", e->pid, e->comm, e->delta_ns / 1e6);
+}
+
+void handle_lost(void *ctx, int cpu, __u64 lost) //当有事件数据丢失时，这个函数会被调用
+{
+    fprintf(stderr, "Lost %llu events on CPU %d\n", lost, cpu);
+}
+
+void sig_handler(int sig)
+{
+    exiting = true;
+}
+
+int main()
+{
+    struct nfs_bpf *skel;
+    int err;
+
+    signal(SIGINT, sig_handler);
+    signal(SIGTERM, sig_handler); //注册信号处理程序，以便在收到 SIGINT 或 SIGTERM 时调用 sig_handler，
+
+    skel = nfs_bpf__open();
+    if (!skel) {
+        fprintf(stderr, "Failed to open skeleton\n");
+        return 1;
+    }
+
+    err = nfs_bpf__load(skel);
+    if (err) {
+        fprintf(stderr, "Failed to load skeleton\n");
+        return 1;
+    }
+
+    err = nfs_bpf__attach(skel);    //将 BPF 程序附加到内核中的 kprobe 和 kretprobe 点
+    if (err) {
+        fprintf(stderr, "Failed to attach\n");
+        return 1;
+    }
+
+    printf("Tracing NFS client RPC latency... Ctrl+C to exit\n");
+
+    struct perf_buffer *pb = NULL;
+    pb = perf_buffer__new(bpf_map__fd(skel->maps.events), 8,
+                          handle_event, handle_lost, NULL, NULL);  //创建缓冲区来接收程序输出的事件数据
+    if (!pb) {
+        fprintf(stderr, "Failed to open perf buffer\n");
+        return 1;
+    }
+
+    while (!exiting)
+        perf_buffer__poll(pb, 100);  //轮询缓冲区，等待事件数据的到来， poll轮询可以快速响应。
+
+    perf_buffer__free(pb);
+    nfs_bpf__destroy(skel);
+    return 0;
+}</code></pre>
+            
+            <h4>修改部分</h4>
+            <h5>1. 当前目录下没有 vmlinux.h 文件，这个文件在 nfs.bpf.c 中被引用</h5>
+            <pre><code>sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c > vmlinux.h</code></pre>
+            <p>这条命令它从运行中的 Linux 内核中提取类型信息，并将其转换为 C 语言头文件格式</p>
+
+            <h5>2. struct_event没有在nfs.c定义</h5>
+            <pre><code>struct event {
+    __u32 pid;       // 进程 ID
+    __u64 delta_ns;  // 耗时时间
+    char comm[16]; // 进程名
+};</code></pre>
+            <p>加入到nfs.c中。</p>
+
+            <h5>3. perf_buffer__new() 函数调用的参数数量不正确</h5>
+            <p>我们使用的参数是 6 个，但函数定义只接受 3 个参数</p>
+            <p>那么我们来看一下函数正确的参数：</p>
+            <pre><code>perf_buffer__new(int map_fd, size_t page_cnt,
+                 const struct perf_buffer_opts *opts);</code></pre>
+            <p>来看一下perf_buffer_opts结构体</p>
+            <pre><code>struct perf_buffer_opts {
+        /* if specified, sample_cb is called for each sample */
+        perf_buffer_sample_fn sample_cb;
+        /* if specified, lost_cb is called for each batch of lost samples */
+        perf_buffer_lost_fn lost_cb;
+        /* ctx is provided to sample_cb and lost_cb */
+        void *ctx;
+};</code></pre>
+            <p>其实就可以看出，调用的API函数已经更新了，只有三个参数，新版本的API，是把事件回调、丢失事件回调、用户上下文放到结构体里面，然后进行结构体指针传参。</p>
+
+            <h5>4. 内核中有 rpc_call_start 函数，但没有 rpc_call_done 函数</h5>
+            <p>同样可能是内核版本不同，将 rpc_call_done 改为 rpc_task_call_done</p>
+
+            <h5>5. map 'events' 创建失败的问题</h5>
+            <p>map 'events': failed to create: Invalid argument</p>
+            <p>从这句提示可以看出 events的结构体定义不对，map定义，添加更多特定参数以满足内核要求：</p>
+            <pre><code>struct {
+    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  //数组
+    __uint(key_size, sizeof(int));
+    __uint(value_size, sizeof(int));
+    __uint(max_entries, 128);
+} events SEC(".maps");</code></pre>
+
+            <h5>6. 无法找到 rpc_task_call_done 函数进行 kretprobe</h5>
+            <pre><code>sudo ls -la /sys/kernel/debug/tracing/events/sunrpc/</code></pre>
+            <p>输入指令后发现了 /sys/kernel/debug/tracing/events/sunrpc/rpc_task_call_done，这表明我们可以使用 tracepoint 而不是 kprobe,因此修改。</p>
+            
+            <h3>由此可以看出大部分都是版本问题</h3>
             <ol>
-                <li>加载内核模块：<code>sudo insmod your_module.ko</code> 或者<code>sudo modprobe your_module</code></li>
-                <li>验证是否加载成功：<code>lsmod | grep your_module</code></li>
-                <li>卸载模块：<code>sudo rmmod your_module</code></li>
+                <li>我的libbpf版本是0.5.0， ubuntu的内核版本是6.8.0-59。</li>
+                <li>perf_buffer API 变化，使用结构体传参。</li>
+                <li>kprobe 到 tracepoint 的迁移、旧版本: 使用 kprobe/kretprobe 跟踪特定函数，新版本: 使用 tracepoint 跟踪标准化的事件点</li>
+                <li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries</li>
             </ol>
         </section>
 
+        <h3>遇到的常见问题的小Tips</h3>
+        <h4>1. 虚拟机卡在了Boot form Hard Disk阶段</h4>
+        <p>这种情况只能重装虚拟机系统</p>
+        <p>注：做实验千万不要在Vitrual manager的虚拟机上跑，最好在qemu上跑。</p>
+
+        <h4>2. 调试补丁</h4>
+        <ol>
+            <li>应用补丁： 确保你的工作目录是你的Linux内核源代码根目录，patch命令应用补丁</li>
+            <pre><code>patch -p1 < /home/linux/blog/course/kernel/src/0001-debug-vfs.patch</code></pre>
+            <li>然后配置内核<code>make menuconfig</code>、编译内核<code>make bzImage -j8</code></li>
+        </ol>
+
+        <h4>3. git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</h4>
+        <ol>
+            <li>如果在学校和公司无法在网站上访问，可以申请一个服务器代理。</li>
+            <li>检查防火墙配置。<code>sudo systemctl disable firewalld</code></li>
+        </ol>
+
+        <h4>4. 编译的.ko文件，如何映射到内核文件里面？</h4>
+        <ol>
+            <li>加载内核模块：<code>sudo insmod your_module.ko</code> 或者<code>sudo modprobe your_module</code></li>
+            <li>验证是否加载成功：<code>lsmod | grep your_module</code></li>
+            <li>卸载模块：<code>sudo rmmod your_module</code></li>
+        </ol>
+        
         <h2>待办理</h2>
-        <h3>1. 编译的.ko文件，如何映射到内核文件里面？</h3>
+        <ul>
+            <li>完善SMB文件系统部分</li>
+            <li>补充更多实战案例</li>
+            <li>添加内核调试进阶技巧</li>
+        </ul>
     </div>
 </body>
 </html> 
