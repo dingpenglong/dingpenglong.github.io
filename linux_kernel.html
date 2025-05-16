@@ -168,8 +168,8 @@ exit    #退出</code></pre>
             <pre><code>make O=build bzImage -j$(nproc)</code></pre>
 
             <h4>make内容补充</h4>
-            <p>可以使用<code>make help | less</code>查看<code>make</code>命令的具体内容</p>
-
+            <p>可以使用<code>make help | less</code>查看<code>make</code>命令的具体内容，例如清理环境、配置内核、编译内核与模块等各类命令</p>
+            <p>例如：</p>
             <pre><code># 清理环境相关
 make mrproper            # 清理环境 彻底清理所有生成文件、配置文件及备份文件（需重新配置内核）
 make distclean           # 在 mrproper 基础上，额外删除编辑器备份和补丁文件（完全干净的环境）
@@ -240,45 +240,47 @@ n                             # 源代码级单步跳过 (Next)
 s                             # 源代码级单步进入 (Step)
 
 # 断点调试
-b start_kernel                # 在函数入口设置断点
-b *0xffffffff81000000         # 在指定地址设置断点
-watch *(int*)0x1234           # 监控内存地址写入
-rwatch [expression]           # 监控内存读取
-info breakpoints              # 查看所有断点
-disable 2                     # 禁用 2 号断点
-delete 3                      # 删除 3 号断点
+b start_kernel                # 在函数入口设置断点，当程序执行到该函数时暂停
+b *0xffffffff81000000         # 在指定内存地址设置断点
+watch *(int*)0x1234           # 当指定内存地址的值被写入时暂停
+rwatch [expression]           # 当指定内存地址的值被读取时暂停
+info breakpoints              # 查看所有设置的断点信息
+disable 2                     # 禁用第2号断点
+delete 3                      # 删除第3号断点
 
 # 上下文查看
-bt                            # 查看调用栈 (BackTrace)
-info registers                # 显示所有寄存器值
-p $rax                        # 查看 RAX 寄存器值
-p $lx_current().pid           # 打印断点的进程
-p $lx_current().comm          # 打印断点的进程
-&((struct cifsFileInfo *)0)->tlink  # 打印结构体偏移量
+bt                            # 查看当前的调用栈信息，了解函数调用的层次关系
+info registers                # 显示所有寄存器的当前值
+p $rax                        # 查看 RAX 寄存器的当前值
+p $lx_current().pid           # 查看当前进程的PID
+p $lx_current().comm          # 查看当前进程的名称
+&((struct cifsFileInfo *)0)->tlink  # 查看指定结构体成员的偏移量
 
 # 内存操作
-x/10x 0x1234                  # 以十六进制查看 10 个内存字
-x/20s 0xabcd                  # 查看内存中的 ASCII 字符串
-x/i $pc                       # 反汇编当前指令
+x/10x 0x1234                  # 以十六进制格式查看从地址0x1234开始的10个内存字
+x/20s 0xabcd                  # 查看从地址0xabcd开始的20个字符的ASCII字符串
+x/i $pc                       # 反汇编当前指令指针所指向的指令
 disassemble /r                # 带机器码反汇编当前函数
-set {int}0x1234 = 5           # 修改内存值</code></pre>
+set {int}0x1234 = 5           # 将地址0x1234处的整数值修改为5</code></pre>
         </section>
 
         <section id="blog">
             <h2>五、个人博客搭建</h2>
             <h3>域名配置流程</h3>
             <ol>
-                <li>阿里云注册<code>yourname.com</code></li>
-                <li>添加 DNS 解析记录</li>
-                <pre><code>GitHub Pages 的 IP 地址：
+                <li>在阿里云注册<code>yourname.com</code>域名</li>
+                <li>添加 DNS 解析记录，将域名解析到GitHub Pages的IP地址：
+                    <pre><code>GitHub Pages 的 IP 地址：
 185.199.108.153
 185.199.109.153
 185.199.110.153
 185.199.111.153</code></pre>
-                <li>GitHubPages 配置</li>
-                <pre><code>创建 <username>.github.io 仓库
-启用 GitHub Pages 服务
-配置自定义域名</code></pre>
+                </li>
+                <li>在GitHub上配置个人博客：
+                    <pre><code>1. 创建 <username>.github.io 仓库
+2. 在仓库设置中启用 GitHub Pages 服务
+3. 在仓库设置中配置自定义域名，将域名指向GitHub Pages</code></pre>
+                </li>
             </ol>
         </section>
 
@@ -373,13 +375,13 @@ umount /mnt                     # 卸载文件系统</code></pre>
             <h3>2. 虚拟文件系统对象、数据结构、以及关系</h3>
             <h4>基本概念</h4>
             <ul>
-                <li>超级块是对一个文件系统的描述；</li>
-                <li>索引节点inode是对一个文件物理属性的描述；</li>
-                <li>目录项dentry是对一个文件逻辑属性的描述；</li>
-                <li>文件file是对当前进程打开的文件的描述；</li>
+                <li>超级块是对一个文件系统的描述，包含文件系统的类型、大小、状态等重要信息；</li>
+                <li>索引节点inode是对一个文件物理属性的描述，包含文件的大小、所有者、权限、数据块位置等信息；</li>
+                <li>目录项dentry是对一个文件逻辑属性的描述，是文件名到inode的映射；</li>
+                <li>文件file是对当前进程打开的文件的描述，包含文件的读写位置、权限等信息。</li>
             </ul>
             <p>一个进程和文件系统相关的信息是由fs_struct来描述的（如当前正在执行的文件和当前工作目录），一个进程打开的文件集是由files_struct来描述的，而每个打开的文件是由file结构描述的。</p>
-            <p>多个目录下denrty对应同一个索引节点inode</p>
+            <p>多个目录下的dentry可以对应同一个索引节点inode</p>
             <p>文件夹下的nlink代表的是文件夹的子目录数（不包含文件）</p>
             <p>文件的nlink代表的是硬链接数</p>
         </section>
@@ -405,7 +407,7 @@ dnf install nfs-utils -y # openeuler</code></pre>
 mount -t nfs -o vers=4.1 ${server_ip}:/s_test /mnt
 mount -t nfs -o vers=4.2 ${server_ip}:/s_test /mnt</code></pre>
 
-            <p>一般都会指定vers的版本，如果server端没有配置fisd，那么挂载的根路径将是/，需要用如下命令：</p>
+            <p>一般都会指定vers的版本，如果server端没有配置fsid，那么挂载的根路径将是/，需要用如下命令：</p>
             <pre><code>mount -t nfs -o vers=4.0 ${server_ip}:/tmp/s_test /mnt # 或 tmp/s_test</code></pre>
         </section>
 
@@ -416,10 +418,13 @@ mount -t nfs -o vers=4.2 ${server_ip}:/s_test /mnt</code></pre>
                 <li>那么为什么需要BPF呢？这就得提到很多年前的程序都是作为用户级进程进行的，为了分析只在内核空间的数据，这些数据都得从内核空间拷贝到用户空间的内存中，因此会有大量的开销。</li>
                 <li>随着现在的数据增多，不得不放弃在用户空间分析内核数据，因而BPF应运而生——一种在内核空间执行高效安全的程序的机制。这里BPF的原理就不深究了，具体看怎么使用。</li>
             </ol>
-
+            <p>我通过ubuntu的apt安装的是0.14发行版，但bpftrace会出现"段错误"。我源码安装都没用，太🍀蛋了！！！</p>
+            <p>网上查阅到的解析就是，你再安装一遍新版本，v-0.14版本太老了,好像得安装APPimage</p>
+            <p><a href="https://github.com/bpftrace/bpftrace/discussions/3026">bpf -0.14 段错误官方回答</a></p>
             <pre><code>先安装bpf：
     apt-get install bpftrace  #ubuntu系统
     dnf install bpftrace   ##fedroa系统
+
 编写test.bt:
 kprobe:ext2_read_folio
 {
@@ -442,7 +447,7 @@ mount image /mnt
 echo something > /mnt/file
 echo 3 > /proc/sys/vm/drop_caches
 cat /mnt/file</code></pre>
-            <p>test.bt 脚本通过以下方式跟踪 ext2_read_folio 脚本中包含两个探针（kprobe 和 kretprobe），记录进入read函数和出read函数的时间戳，并计算。</p>
+            <p>test.bt 脚本通过以下方式跟踪 ext2_read_folio 函数：包含两个探针（kprobe 和 kretprobe），分别记录进入和退出该函数的时间戳，并计算函数执行时间。</p>
 
             <h3>在Ubuntu 22.04上安装BCC的完整指南</h3>
             <p>BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</p>
@@ -738,13 +743,39 @@ int main()
             <pre><code>sudo ls -la /sys/kernel/debug/tracing/events/sunrpc/</code></pre>
             <p>输入指令后发现了 /sys/kernel/debug/tracing/events/sunrpc/rpc_task_call_done，这表明我们可以使用 tracepoint 而不是 kprobe,因此修改。</p>
             
-            <h3>由此可以看出大部分都是版本问题</h3>
+            <h5>7.由此可以看出大部分都是版本问题</h5>
             <ol>
                 <li>我的libbpf版本是0.5.0， ubuntu的内核版本是6.8.0-59。</li>
                 <li>perf_buffer API 变化，使用结构体传参。</li>
                 <li>kprobe 到 tracepoint 的迁移、旧版本: 使用 kprobe/kretprobe 跟踪特定函数，新版本: 使用 tracepoint 跟踪标准化的事件点</li>
                 <li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries</li>
             </ol>
+            <h3>最后通过nfs挂载测试</h3>
+            <h4>本地挂载 NFS 共享</h4>
+<pre><code>
+# 创建挂载点
+sudo mkdir -p /mnt/nfs                
+# 挂载本地共享 (使用NFSv4协议)
+sudo mount -t nfs -o vers=4.1 localhost:/nfs_share /mnt/nfs                
+# 验证挂载
+df -hT | grep nfs4
+# 应输出类似：
+# localhost:/nfs_share nfs4   503G   41G  437G    9% /mnt/nfs                
+# 写操作
+dd if=/dev/urandom of=/mnt/nfs_share bs=1M count=10 status=progress
+</code></pre>
+
+            <h4>运行脚本文件</h4>
+<pre><code>
+sudo make
+sudo ./nfs
+#先运行./nfs 自去进行写操作
+#输出结果如下：
+Tracing NFS client RPC latency... Ctrl+C to exit
+PID 14807 (ls): 49.01 ms
+</code></pre>
+        <h3>2.针对nfs读写慢，编写bt脚本</h3>
+
         </section>
 
         <h3>遇到的常见问题的小Tips</h3>
@@ -780,4 +811,4 @@ int main()
         </ul>
     </div>
 </body>
-</html> 
+</html>
