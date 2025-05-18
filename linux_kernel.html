@@ -1,759 +1,675 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linux内核开发学习笔记</title>
-    <style>
-        /* 全局样式 */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-
-        /* 导航栏样式 */
-        .nav {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-
-        .nav ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .nav li {
-            margin: 10px 0;
-        }
-
-        .nav a {
-            color: #2c3e50;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .nav a:hover {
-            color: #3498db;
-        }
-
-        /* 内容区域样式 */
-        .content {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
-        }
-
-        h2 {
-            color: #2c3e50;
-            margin-top: 40px;
-        }
-
-        h3 {
-            color: #34495e;
-            margin-top: 30px;
-        }
-
-        /* 代码块样式 */
-        pre {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            border: 1px solid #e9ecef;
-        }
-
-        code {
-            font-family: Consolas, Monaco, 'Andale Mono', monospace;
-            color: #e83e8c;
-        }
-
-        /* 表格样式 */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        th, td {
-            padding: 12px;
-            border: 1px solid #dee2e6;
-        }
-
-        th {
-            background-color: #f8f9fa;
-        }
-
-        /* 链接样式 */
-        a {
-            color: #3498db;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        /* 提示框样式 */
-        .tip {
-            background-color: #f8f9fa;
-            border-left: 4px solid #3498db;
-            padding: 15px;
-            margin: 20px 0;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>PersonStudyRecord</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="linux-style.css" />
 </head>
 <body>
-    <div class="nav">
-        <h2>目录</h2>
-        <ul>
-            <li><a href="#ssh">一、远程登录 SSH 服务器</a></li>
-            <li><a href="#compile">二、配置编译环境</a></li>
-            <li><a href="#qemu">三、使用 QEMU</a></li>
-            <li><a href="#gdb">四、GDB 调试</a></li>
-            <li><a href="#blog">五、个人博客搭建</a></li>
-            <li><a href="#commands">六、常用命令速查</a></li>
-            <li><a href="#filesystem">七、文件系统</a></li>
-            <li><a href="#nfs">八、NFS文件系统</a></li>
-            <li><a href="#bpf">九、BPF</a></li>
-            <li><a href="#smb">十、SMB文件系统</a></li>
-            <li><a href="#kernel-practice">十一、Linux 内核实战</a></li>
-        </ul>
-    </div>
-
-    <div class="content">
-        <h1>Linux 内核开发学习笔记</h1>
-
-        <section id="ssh">
-            <h2>一、远程登录 SSH 服务器</h2>
-            <div class="tip">
-                <p>SSH登录流程：Windows/Linux → 物理服务器 → Docker容器 → QEMU虚拟机</p>
-            </div>
-            <pre><code>ssh 账号@193.x.x.x
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#linux-内核开发学习笔记">Linux 内核开发学习笔记</a>
+<ul>
+<li><a href="#目录">目录</a>
+<ul>
+<li><a href="#一远程登录-ssh-服务器流程">一、远程登录 SSH 服务器流程</a></li>
+<li><a href="#二内核编译环境">二、内核编译环境</a></li>
+<li><a href="#三使用qemu">三、使用QEMU</a></li>
+<li><a href="#四gdb调试">四、GDB调试</a></li>
+<li><a href="#五个人博客搭建">五、个人博客搭建</a></li>
+<li><a href="#六常用命令速查">六、常用命令速查</a></li>
+<li><a href="#七文件系统">七、文件系统</a></li>
+<li><a href="#八nfs文件系统">八、nfs文件系统</a></li>
+<li><a href="#九bpf">九、BPF</a></li>
+<li><a href="#十smb文件系统">十、SMB文件系统</a></li>
+<li><a href="#十一linux-内核实战">十一、Linux 内核实战</a></li>
+<li><a href="#遇到的常见问题的小tips">遇到的常见问题的小Tips</a></li>
+</ul></li>
+<li><a href="#待办理">待办理</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="linux-内核开发学习笔记">Linux 内核开发学习笔记</h1>
+<hr />
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#一远程登录-ssh-服务器流程">一、远程登录 SSH 服务器</a></li>
+<li><a href="#二内核编译环境">二、配置编译环境</a></li>
+<li><a href="#三使用qemu">三、使用 QEMU</a></li>
+<li><a href="#四gdb调试">四、GDB 调试</a></li>
+<li><a href="#五个人博客搭建">五、个人博客搭建</a></li>
+<li><a href="#六常用命令速查">六、常用命令速查</a></li>
+<li><a href="#七文件系统">七、文件系统</a></li>
+<li><a href="#八nfs文件系统">八、NFS文件系统</a></li>
+<li><a href="#九bpf">九、BPF</a></li>
+<li><a href="#十smb文件系统">十、SMB文件系统</a></li>
+<li><a href="#十一linux-内核实战">十一、Linux 内核实战</a></li>
+<li><a href="#十二linux内核源码阅读记录">十二、Linux内核源码阅读记录</a></li>
+</ul>
+<hr />
+<h3 id="一远程登录-ssh-服务器流程">一、远程登录 SSH 服务器流程</h3>
+<p>Windows/Linux → 物理服务器 → Docker容器 → QEMU虚拟机</p>
+<pre><code>ssh 账号@193.x.x.x
 ssh 账号@172.x.x.x
 exit    #退出</code></pre>
+<h4 id="安装-code-server">安装 code-server</h4>
+<p><code>curl -fsSL https://code-server.dev/install.sh | sh</code></p>
+<h4 id="生成代码索引">生成代码索引</h4>
+<p><code>make gtags  # 用于 VSCode 的代码跳转功能</code></p>
+<h3 id="二内核编译环境">二、内核编译环境</h3>
+<h4 id="内核编译流程">1.内核编译流程</h4>
+<h5 id="创建专用编译目录">创建专用编译目录</h5>
+<p><code>mkdir build</code></p>
+<h5 id="配置内核选项">配置内核选项</h5>
+<p><code>make O=build menuconfig</code></p>
+<h5 id="编译内核镜像">编译内核镜像</h5>
+<p><code>make O=build bzImage -j$(nproc)</code> ##### make内容补充 可以使用<code>make help | less</code>查看<code>make</code>命令的具体内容</p>
+<pre><code>#清理环境相关
+make mrproper           #清理环境 彻底清理所有生成文件、配置文件及备份文件（需重新配置内核）
+make distclean          #在 mrproper 基础上，额外删除编辑器备份和补丁文件（完全干净的环境）
 
-            <h3>安装 code-server</h3>
-            <pre><code>curl -fsSL https://code-server.dev/install.sh | sh</code></pre>
+#配置内核相关
+make defconfig          # 生成默认配置
+make menuconfig         # 自定义调整配置
+make xconfig / make gconfig #分别使用 Qt 或 GTK+ 图形界面配置内核（适合桌面环境）
+make localmodconfig     #根据当前加载的模块生成精简配置（禁用未使用的模块）
+make allyesconfig       #将所有选项设置为 yes（生成最大化的内核，用于测试
+make allnoconfig        #将所有选项设置为 no（最小化内核，需手动启用功能）
+make testconfig         #运行 Kconfig 的单元测试
+make debug.config       # 将 debug.config 合并到当前 .config 文件
+make x86_debug.config       #针对 x86/x86_64 架构的 调试和测试选项
+make kvm_guest.config       #优化内核配置以作为 KVM 虚拟机客户机（Guest OS） 运行
 
-            <h3>生成代码索引</h3>
-            <pre><code>make gtags  # 用于 VSCode 的代码跳转功能</code></pre>
-        </section>
-
-        <section id="compile">
-            <h2>二、内核编译环境</h2>
-            <h3>1. 内核编译流程</h3>
-            <h4>创建专用编译目录</h4>
-            <pre><code>mkdir build</code></pre>
-
-            <h4>配置内核选项</h4>
-            <pre><code>make O=build menuconfig</code></pre>
-
-            <h4>编译内核镜像</h4>
-            <pre><code>make O=build bzImage -j$(nproc)</code></pre>
-
-            <h4>make内容补充</h4>
-            <p>可以使用<code>make help | less</code>查看<code>make</code>命令的具体内容，例如清理环境、配置内核、编译内核与模块等各类命令</p>
-            <p>例如：</p>
-            <pre><code># 清理环境相关
-make mrproper            # 清理环境 彻底清理所有生成文件、配置文件及备份文件（需重新配置内核）
-make distclean           # 在 mrproper 基础上，额外删除编辑器备份和补丁文件（完全干净的环境）
-
-# 配置内核相关
-make defconfig           # 生成默认配置
-make menuconfig          # 自定义调整配置
-make xconfig / make gconfig  # 分别使用 Qt 或 GTK+ 图形界面配置内核（适合桌面环境）
-make localmodconfig      # 根据当前加载的模块生成精简配置（禁用未使用的模块）
-make allyesconfig        # 将所有选项设置为 yes（生成最大化的内核，用于测试）
-make allnoconfig         # 将所有选项设置为 no（最小化内核，需手动启用功能）
-make testconfig          # 运行 Kconfig 的单元测试
-make debug.config        # 将 debug.config 合并到当前 .config 文件
-make x86_debug.config    # 针对 x86/x86_64 架构的 调试和测试选项
-make kvm_guest.config    # 优化内核配置以作为 KVM 虚拟机客户机（Guest OS） 运行
-
-# 编译内核与模块
-make vmlinux             # 编译生成内核的裸二进制文件（未压缩的内核镜像）
-make modules_install     # 将编译好的模块安装到 /lib/modules/$(uname -r)/ 目录
-make headers_install     # 安装内核头文件到 ./usr（用于开发用户空间程序）</code></pre>
-
-            <h3>2. 模块独立编译</h3>
-            <h4>修改makefile文件</h4>
-            <pre><code>CONFIG_EXT2_FS := m  # 设置为模块编译</code></pre>
-
-            <h4>执行编译</h4>
-            <pre><code>make -C /path/to/kernel/source M=$(pwd) modules</code></pre>
-
-            <h3>3. 内核文档编译</h3>
-            <pre><code>make O=build SPHINXOPTS=-v htmldocs -j$(nproc)  # 生成内核的HTML版本</code></pre>
-        </section>
-
-        <section id="qemu">
-            <h2>三、使用 QEMU</h2>
-            <p>qemu安装参考：<a href="https://www.qemu.org/download/#linux">qemu官网</a></p>
-
-            <h3>qemu的start.sh需要关注的</h3>
-            <pre><code>-append "nokaslr ..."   防止地址随机化，编译内核时关闭配置 CONFIG_RANDOMIZE_BASE
+#编译内核与模块
+make vmlinux        #编译生成内核的裸二进制文件（未压缩的内核镜像）
+make modules_install    #将编译好的模块安装到 /lib/modules/$(uname -r)/ 目录
+make headers_install    #安装内核头文件到 ./usr（用于开发用户空间程序）</code></pre>
+<h4 id="模块独立编译">2.模块独立编译</h4>
+<h5 id="修改makefie文件">修改makefie文件</h5>
+<p><code>CONFIG_EXT2_FS := m  # 设置为模块编译</code></p>
+<h5 id="执行编译">执行编译</h5>
+<p><code>make -C /path/to/kernel/source M=$(pwd) modules</code></p>
+<h4 id="内核文档编译">3.内核文档编译</h4>
+<p><code>make O=build SPHINXOPTS=-v htmldocs -j$(nproc)</code> #生成内核的HTML版本</p>
+<h3 id="三使用qemu">三、使用QEMU</h3>
+<p><strong>qemu安装参考：</strong><a href="https://www.qemu.org/download/#linux">qemu官网</a></p>
+<p><strong>qemu的start.sh需要关注的</strong>:</p>
+<pre><code>-append &quot;nokaslr ...&quot;   防止地址随机化，编译内核时关闭配置 CONFIG_RANDOMIZE_BASE
 -S    挂起 gdbserver
 -gdb tcp:: 5555 #指定端口号5555
 -s   相当于-gdb tcp::1234</code></pre>
-
-            <p>在每次启动qemu虚拟机的时候，可以先使用<code>ps -e -o pid,ppid,args | grep qemu</code>先查看有没有多个虚拟机开启，可以看到，三个进程都是开启的 qenu-system-x86_64</p>
-            <p>输出的父子进程关系如下所示：</p>
-            <pre><code>5601 → 5602 (sudo) → 5603 (sudo) → 5604 (qenu-system-x86_64)</code></pre>
-
-            <h4>服务器端</h4>
-            <pre><code>tmux ls                     # 查看会话列表
+<p>在每次启动qemu’虚拟机的时候，可以先使用<code>ps -e -o pid,ppid,args | grep qemu</code> 先查看有没有多个虚拟机开启，可以看到，三个进程都是开启的 qenu-system-x86_64 输出的父子进程关系如下所示： <code>5601 → 5602 (sudo) → 5603 (sudo) → 5604 (qenu-system-x86_64)</code></p>
+<h4 id="服务器端">服务器端</h4>
+<pre><code>tmux ls                     # 查看会话列表
 tmux attach -t qemu         # 进入 qemu 会话
 cd /home/dingpenglong/qemu-kernel/vm/1.Fedora-Server-dvd-x86_64-40-1.14
 bash start.sh               # 启动 QEMU 虚拟机</code></pre>
-
-            <h4>虚拟机端</h4>
-            <pre><code>cd /home/linux/qemu-kernel
+<h4 id="虚拟机端">虚拟机端</h4>
+<pre><code>cd /home/linux/qemu-kernel
 cat /etc/*release*          # 验证系统信息
 ps -e -o pid,ppid,args | grep qemu  # 检查 QEMU 进程</code></pre>
-        </section>
+<h3 id="四gdb调试">四、GDB调试</h3>
+<pre><code>#基础调试
+target remote:5555          #你的调试器（GDB）连接到那台&quot;远程电脑&quot;，让 GDB 可以控制它的执行
+target remote :1234             # 连接 QEMU 调试端口
+c                               # 继续执行 (Continue)
+Ctrl+C                           # 中断程序执行
+si                              # 单步执行汇编指令 (Step Instruction)
+n                               # 源代码级单步跳过 (Next)
+s                               # 源代码级单步进入 (Step)
 
-        <section id="gdb">
-            <h2>四、GDB 调试</h2>
-            <pre><code># 基础调试
-target remote:5555            # 你的调试器（GDB）连接到那台"远程电脑"，让 GDB 可以控制它的执行
-target remote :1234           # 连接 QEMU 调试端口
-c                             # 继续执行 (Continue)
-Ctrl+C                        # 中断程序执行
-si                            # 单步执行汇编指令 (Step Instruction)
-n                             # 源代码级单步跳过 (Next)
-s                             # 源代码级单步进入 (Step)
+#断点调试
+b start_kernel              # 在函数入口设置断点
+b *0xffffffff81000000           # 在指定地址设置断点
+watch *(int*)0x1234         # 监控内存地址写入
+rwatch [expression]         # 监控内存读取
+info breakpoints            # 查看所有断点
+disable 2               # 禁用 2 号断点
+delete 3                # 删除 3 号断点
 
-# 断点调试
-b start_kernel                # 在函数入口设置断点，当程序执行到该函数时暂停
-b *0xffffffff81000000         # 在指定内存地址设置断点
-watch *(int*)0x1234           # 当指定内存地址的值被写入时暂停
-rwatch [expression]           # 当指定内存地址的值被读取时暂停
-info breakpoints              # 查看所有设置的断点信息
-disable 2                     # 禁用第2号断点
-delete 3                      # 删除第3号断点
+#上下文查看
+bt                  # 查看调用栈 (BackTrace)
+info registers              # 显示所有寄存器值
+p $rax                  # 查看 RAX 寄存器值
+p $lx_current().pid         #打印断点的进程
+p $lx_current().comm            #打印断点的进程
+&amp;((struct cifsFileInfo *)0)-&gt;tlink  #打印结构体偏移量
 
-# 上下文查看
-bt                            # 查看当前的调用栈信息，了解函数调用的层次关系
-info registers                # 显示所有寄存器的当前值
-p $rax                        # 查看 RAX 寄存器的当前值
-p $lx_current().pid           # 查看当前进程的PID
-p $lx_current().comm          # 查看当前进程的名称
-&((struct cifsFileInfo *)0)->tlink  # 查看指定结构体成员的偏移量
-
-# 内存操作
-x/10x 0x1234                  # 以十六进制格式查看从地址0x1234开始的10个内存字
-x/20s 0xabcd                  # 查看从地址0xabcd开始的20个字符的ASCII字符串
-x/i $pc                       # 反汇编当前指令指针所指向的指令
-disassemble /r                # 带机器码反汇编当前函数
-set {int}0x1234 = 5           # 将地址0x1234处的整数值修改为5</code></pre>
-        </section>
-
-        <section id="blog">
-            <h2>五、个人博客搭建</h2>
-            <h3>域名配置流程</h3>
-            <ol>
-                <li>在阿里云注册<code>yourname.com</code>域名</li>
-                <li>添加 DNS 解析记录，将域名解析到GitHub Pages的IP地址：
-                    <pre><code>GitHub Pages 的 IP 地址：
-185.199.108.153
-185.199.109.153
-185.199.110.153
-185.199.111.153</code></pre>
-                </li>
-                <li>在GitHub上配置个人博客：
-                    <pre><code>1. 创建 <username>.github.io 仓库
-2. 在仓库设置中启用 GitHub Pages 服务
-3. 在仓库设置中配置自定义域名，将域名指向GitHub Pages</code></pre>
-                </li>
-            </ol>
-        </section>
-
-        <section id="commands">
-            <h2>六、常用命令速查</h2>
-            <h3>1. Vim编辑器</h3>
-            <p><a href="https://www.runoob.com/linux/linux-vim.html">Vim编辑器菜鸟教程</a></p>
-            <p><a href="https://yianwillis.github.io/vimcdoc/doc/quickref.html">Vim官方手册中文版</a></p>
-            <pre><code># :w          保存文件
-# :wq或zz     #保存并退出
-# x           #删除光标所在字符
-# dd          #删除当前行
-# gg          #定位到首行
-# u           #撤回操作
-# :5,10d      #删除5到10行
-# v进入可视模式，选择多行后按d
-# Ctrl + Z    #挂起 Vim 到后台
-# fg          #从后台恢复 Vim
-# /keyword    #向下搜索 keyword
-# ?keyword    #向上搜索 keyword
-# :%s/old/new/g  #全局替换所有 old 为 new
-# :%s/old/new/gc #替换时逐个确认</code></pre>
-
-            <h3>2. Git版本控制</h3>
-            <p><a href="https://www.runoob.com/git/git-tutorial.html">Git菜鸟教程</a></p>
-            <pre><code># git init            在当前目录初始化 Git 仓库
-# git log             #查看提交历史 --oneline（简洁显示）、-p（显示差异）
-# git status          #查看工作区状态（修改/未跟踪的文件）
-# git add <file>      #将文件添加到暂存区
-# git pull            #拉取远程仓库并合并到当前分支
-# git fetch           #仅拉取远程仓库更新，不自动合并
-# git reset           #回退提交 --soft（保留修改）、--hard（丢弃修改）
-# git diff            #查看工作区与暂存区的差异
-# git commit          #提交暂存区的修改
-# git revert <commit> #撤销指定提交（生成新提交）</code></pre>
-
-            <h4>GIT使用流程</h4>
-            <pre><code># git init(如果要上传本地仓库)
-# git clone https:...   # 克隆git上的代码
-# git checkout -b new-feature  # 创建一个新的分支
-# git add <file>         # 添加到暂存区
-# git commit -m ""       # 提交更改
-# git pull origin master # 拉取远端更新并且合并到本地
-# git push origin master # 推送到远程仓库</code></pre>
-
-            <p>推荐一个登陆git网站的好用的工具 <a href="https://steampp.net/">Steam++</a></p>
-            <p>听这个名字就知道，之前一直用这个软件去登陆steam商店，偶然发现还能加速GitHub，免费且流畅</p>
-
-            <h3>3. Tmux终端复用</h3>
-            <pre><code># tmux new -s <name>    创建名为 <name> 的新会话
-# Ctrl + B D           #退出当前会话（会话在后台运行）
-# tmux ls              #显示所有会话
-# tmux attach -t <name> #重新连接到指定会话
-# Ctrl + B C           #新建窗口
-# Ctrl + B N/P         #切换下一个/上一个窗口
-# Ctrl + B %           #垂直分割窗格
-# Ctrl + B "           #水平分割窗格</code></pre>
-
-            <h3>4. ps进程管理</h3>
-            <pre><code># ps aux                查看所有进程的详细信息
-# ps -eo pid,ppid,cmd  #显示进程的 PID、PPID 和完整命令
-# ps -ef | grep <进程名> #过滤特定进程
-# ps -e -o pid,ppid,args | grep qemu  # 用于查询qemu虚拟机的pid、ppid、args</code></pre>
-
-            <h3>5. SSH&SCP远程连接</h3>
-            <pre><code># ssh user@host                例如ssh root@192.168.1.100
-# ssh -p <port> user@host     #指定端口登录
-# scp file user@host:/path    #上传文件到远程主机
-# scp user@host:/path/file local_dir  #从远程主机下载文件
-# ssh-copy-id user@host       #将公钥复制到远程主机</code></pre>
-
-            <h3>6. Linux命令大全</h3>
-            <p><a href="https://linuxcommand.p2hp.com/">Linux命令大全</a></p>
-        </section>
-
-        <section id="filesystem">
-            <h2>七、文件系统</h2>
-            <h3>1. 操作流程</h3>
-            <pre><code>fallocate -l 1G 1
+#内存操作
+x/10x 0x1234                # 以十六进制查看 10 个内存字
+x/20s 0xabcd                # 查看内存中的 ASCII 字符串
+x/i $pc                 # 反汇编当前指令
+disassemble /r              # 带机器码反汇编当前函数
+set {int}0x1234 = 5         # 修改内存值</code></pre>
+<h3 id="五个人博客搭建">五、个人博客搭建</h3>
+<h4 id="域名配置流程">域名配置流程</h4>
+<ol type="1">
+<li>阿里云注册<code>yourname.com</code></li>
+<li>添加 DNS 解析记录</li>
+</ol>
+<pre><code>GitHub Pages 的 IP 地址： 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153</code></pre>
+<ol start="3" type="1">
+<li>GitHubPages 配置</li>
+</ol>
+<pre><code>创建 &lt;username&gt;.github.io 仓库
+启用 GitHub Pages 服务
+配置自定义域名</code></pre>
+<h3 id="六常用命令速查">六、常用命令速查</h3>
+<p><a href="https://linuxcommand.p2hp.com/">Linux命令大全</a> #### 1.vim编辑器 <a href="https://www.runoob.com/linux/linux-vim.html">Vim编辑器菜鸟教程</a> <a href="https://yianwillis.github.io/vimcdoc/doc/quickref.html">Vim官方手册中文版</a></p>
+<pre><code>:w      #保存文件
+:wq或zz      #保存并退出
+x       #删除光标所在字符 
+dd          #删除当前行
+gg      #定位到首行
+u       #撤回操作
+:5,10d      #删除5到10行
+v进入可视模式，选择多行后按d 
+Ctrl + Z    #挂起 Vim 到后台
+fg      #从后台恢复 Vim
+/keyword    #向下搜索 keyword
+?keyword    #向上搜索 keyword
+:%s/old/new/g   #全局替换所有 old 为 new
+:%s/old/new/gc  #替换时逐个确认</code></pre>
+<h4 id="git版本控制">2.Git版本控制</h4>
+<p><a href="https://www.runoob.com/git/git-tutorial.html">Git菜鸟教程</a></p>
+<pre><code>git init            #在当前目录初始化 Git 仓库
+git log         #查看提交历史 --oneline（简洁显示）、-p（显示差异）
+git status      #查看工作区状态（修改/未跟踪的文件）
+git add &lt;file&gt;      #将文件添加到暂存区  git add .（添加所有文件）
+git pull        #拉取远程仓库并合并到当前分支 git pull origin main
+git fetch       #仅拉取远程仓库更新，不自动合并    git fetch --all
+git reset       #回退提交   --soft（保留修改）、--hard（丢弃修改）
+git diff        #查看工作区与暂存区的差异   git diff HEAD（比较最新提交）
+git commit      #提交暂存区的修改   -m &quot;message&quot;（添加提交信息）
+git revert &lt;commit&gt; #撤销指定提交（生成新提交）  git revert HEAD（撤销最新提交）</code></pre>
+<p><strong>GIT使用流程</strong>:</p>
+<pre><code>git init(如果要上传本地仓库)
+git clone https:...   #克隆git上的代码
+git checkout -b new-feature  #为了避免直接在 main 或 master 分支上进行开发，通常会创建一个新的分支
+git add &lt;file&gt;         #添加到暂存区
+git commit -m &quot;&quot;       #提交更改
+git pull origin master #拉取远端更新并且合并到本地，最好从远程仓库拉取最新的更改，以避免冲突
+git push origin master #推送到远程仓库</code></pre>
+<p><strong>推荐一个登陆git网站的好用的工具</strong> <a href="https://steampp.net/">Steam++</a></p>
+<p>听这个名字就知道，之前一直用这个软件去登陆steam商店，偶然发现还能加速GitHub，免费且流畅</p>
+<h4 id="tmux终端复用">3.Tmux终端复用</h4>
+<pre><code>tmux new -s &lt;name&gt;  #创建名为 &lt;name&gt; 的新会话
+Ctrl + B D      #退出当前会话（会话在后台运行）
+tmux ls         #显示所有会话
+tmux attach -t &lt;name&gt;   #重新连接到指定会话
+Ctrl + B C      #新建窗口
+Ctrl + B N/P        #切换下一个/上一个窗口
+Ctrl + B %      #垂直分割窗格
+Ctrl + B &quot;      #水平分割窗格</code></pre>
+<h4 id="ps进程管理">4.ps进程管理</h4>
+<pre><code>ps aux          #查看所有进程的详细信息    
+ps -eo pid,ppid,cmd #显示进程的 PID、PPID 和完整命令   
+ps -ef | grep &lt;进程名&gt; #过滤特定进程 ps -ef | grep nginx
+ps -e -o pid,ppid,args | grep qemu    #用于查询qemu虚拟机的pid、ppid、args 每次启动qemu虚拟机的时候要确保没有同时开启多个虚拟机</code></pre>
+<h4 id="sshscp远程连接">5.SSH&amp;SCP远程连接</h4>
+<pre><code>ssh user@host               #例如ssh root@192.168.1.100
+ssh -p &lt;port&gt; user@host         #指定端口登录
+scp file user@host:/path        #上传文件到远程主机
+scp user@host:/path/file local_dir  #从远程主机下载文件
+ssh-copy-id user@host           #将公钥复制到远程主机</code></pre>
+<h3 id="七文件系统">七、文件系统</h3>
+<h4 id="操作流程">1.操作流程</h4>
+<pre><code>fallocate -l 1G 1
 mkfs.ext4 -F /dev/sda           # 格式化文件系统
 mount -t ext4 /dev/sda /mnt     # 把磁盘挂载到某个目录
-df /dev/sda                    # 查看是否已经挂载上
-echo "我爱操作系统" > /mnt/file   # 存到挂载点下的某个文件中
+df /dev/sda # 查看是否已经挂载上
+echo &quot;我爱操作系统&quot; &gt; /mnt/file   # 存到挂载点下的某个文件中
 cat /mnt/file                   # 输出文件内容
 debugfs /dev/sda
 # debugfs:  stats # Block size: 1024
 # debugfs:  stat file # BLOCKS: (0):7169
-dd if=/dev/sda of=./data bs=1 skip=7341056 count=20  # 具体的skip=多少需要根据Block size 和BLOCKS计算
+dd if=/dev/sda of=./data bs=1 skip=7341056 count=20  #具体的skip=多少需要根据Block size 和BLOCKS计算
 cat data
 umount /mnt                     # 卸载文件系统</code></pre>
-
-            <h3>2. 虚拟文件系统对象、数据结构、以及关系</h3>
-            <h4>基本概念</h4>
-            <ul>
-                <li>超级块是对一个文件系统的描述，包含文件系统的类型、大小、状态等重要信息；</li>
-                <li>索引节点inode是对一个文件物理属性的描述，包含文件的大小、所有者、权限、数据块位置等信息；</li>
-                <li>目录项dentry是对一个文件逻辑属性的描述，是文件名到inode的映射；</li>
-                <li>文件file是对当前进程打开的文件的描述，包含文件的读写位置、权限等信息。</li>
-            </ul>
-            <p>一个进程和文件系统相关的信息是由fs_struct来描述的（如当前正在执行的文件和当前工作目录），一个进程打开的文件集是由files_struct来描述的，而每个打开的文件是由file结构描述的。</p>
-            <p>多个目录下的dentry可以对应同一个索引节点inode</p>
-            <p>文件夹下的nlink代表的是文件夹的子目录数（不包含文件）</p>
-            <p>文件的nlink代表的是硬链接数</p>
-        </section>
-
-        <section id="nfs">
-            <h2>八、NFS文件系统</h2>
-            <h3>1. nfs环境</h3>
-            <h4>1.1 Server 环境</h4>
-            <p>nfs server软件安装</p>
-            <pre><code>apt-get install nfs-kernel-server -y # debian
+<h4 id="基本概念">2.基本概念</h4>
+<ul>
+<li><ol type="1">
+<li>超级块是对一个文件系统的描述；</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>索引节点inode是对一个文件物理属性的描述；</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>目录项dentry是对一个文件逻辑属性的描述；</li>
+</ol></li>
+<li><ol start="4" type="1">
+<li>文件file是对当前进程打开的文件的描述；</li>
+</ol></li>
+</ul>
+<p>一个进程和文件系统相关的信息是由fs_struct来描述的（如当前正在执行的文件和当前工作目录），一个进程打开的文件集是由files_struct来描述的，而每个打开的文件是由file结构描述的。</p>
+<h4 id="文件数据结构的理解和重点">3.文件数据结构的理解和重点：</h4>
+<ul>
+<li><ol type="1">
+<li>多个目录下denrty对应同一个索引节点inode</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>文件夹下的nlink代表的是文件夹的子目录数（不包含文件）</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>文件的nlink代表的是硬链接数</li>
+</ol></li>
+</ul>
+<h3 id="八nfs文件系统">八、nfs文件系统</h3>
+<h4 id="nfs环境">1.nfs环境</h4>
+<h5 id="server-环境">1.1 Server 环境</h5>
+<p>nfs server软件安装</p>
+<pre><code>apt-get install nfs-kernel-server -y # debian
 dnf install nfs-utils -y # openeuler</code></pre>
-            <p>然后需要修改配置文件/etc/exports</p>
-            <pre><code>/tmp/ *(rw,no_root_squash,fsid=0)           # 共享tmp目录
+<p>然后需要修改配置文件/etc/exports</p>
+<pre><code>/tmp/ *(rw,no_root_squash,fsid=0)           #共享tmp目录 *代表允许所有IP地质访问共享目录，rw 允许读写，no_root_squash 允许客户端root用户直接以服务端root权限操作文件，NFSv4 要求一个根文件系统（fsid=0），其他导出应作为其子目录。
 /tmp/s_test/ *(rw,no_root_squash,fsid=1)
 /tmp/s_scratch *(rw,no_root_squash,fsid=2)</code></pre>
-
-            <h4>1.2 Client 环境</h4>
-            <p>nfs client软件安装</p>
-            <pre><code>apt-get install nfs-common -y # debian
+<h5 id="client-环境">1.2 Client 环境</h5>
+<p>nfs client软件安装</p>
+<pre><code>apt-get install nfs-common -y # debian
 dnf install nfs-utils -y # openeuler</code></pre>
-            <p>nfs clinet 挂载命令：</p>
-            <pre><code>mount -t nfs -o vers=4.0 ${server_ip}:/s_test /mnt
+<p>nfs clinet 挂载命令：</p>
+<pre><code>mount -t nfs -o vers=4.0 ${server_ip}:/s_test /mnt
 mount -t nfs -o vers=4.1 ${server_ip}:/s_test /mnt
-mount -t nfs -o vers=4.2 ${server_ip}:/s_test /mnt</code></pre>
-
-            <p>一般都会指定vers的版本，如果server端没有配置fsid，那么挂载的根路径将是/，需要用如下命令：</p>
-            <pre><code>mount -t nfs -o vers=4.0 ${server_ip}:/tmp/s_test /mnt # 或 tmp/s_test</code></pre>
-        </section>
-
-        <section id="bpf">
-            <h2>九、BPF</h2>
-            <ol>
-                <li>BPF全称是「Berkeley Packet Filter」,翻译过来是「伯克利包过滤器」。</li>
-                <li>那么为什么需要BPF呢？这就得提到很多年前的程序都是作为用户级进程进行的，为了分析只在内核空间的数据，这些数据都得从内核空间拷贝到用户空间的内存中，因此会有大量的开销。</li>
-                <li>随着现在的数据增多，不得不放弃在用户空间分析内核数据，因而BPF应运而生——一种在内核空间执行高效安全的程序的机制。这里BPF的原理就不深究了，具体看怎么使用。</li>
-            </ol>
-            <p>我通过ubuntu的apt安装的是0.14发行版，但bpftrace会出现"段错误"。我源码安装都没用，太🍀蛋了！！！</p>
-            <p>网上查阅到的解析就是，你再安装一遍新版本，v-0.14版本太老了,好像得安装APPimage</p>
-            <p><a href="https://github.com/bpftrace/bpftrace/discussions/3026">bpf -0.14 段错误官方回答</a></p>
-            <pre><code>先安装bpf：
+mount -t nfs -o vers=4.2 ${server_ip}:/s_test /mnt   #这里的server_ip填写实际的NFS服务器地址</code></pre>
+<p>一般都会指定vers的版本，如果server端没有配置fisd，那么挂载的根路径将是/，需要用如下命令： <code>mount -t nfs -o vers=4.0 ${server_ip}:/tmp/s_test /mnt # 或 tmp/s_test</code></p>
+<h3 id="九bpf">九、BPF</h3>
+<ul>
+<li><ol type="1">
+<li>BPF全称是「Berkeley Packet Filter」,翻译过来是「伯克利包过滤器」。</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>那么为什么需要BPF呢？这就得提到很多年前的程序都是作为用户级进程进行的，为了分析只在内核空间的数据，这些数据都得从内核空间拷贝到用户空间的内存中，因此会有大量的开销。</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>随着现在的数据增多，不得不放弃在用户空间分析内核数据，因而BPF应运而生——一种在内核空间执行高效安全的程序的机制。这里BPF的原理就不深究了，具体看怎么使用。</li>
+</ol></li>
+</ul>
+<pre><code>先安装bpftrace：
     apt-get install bpftrace  #ubuntu系统
     dnf install bpftrace   ##fedroa系统
-
-编写test.bt:
+我通过ubuntu的apt安装的是0.14发行版，但bpftrace会出现&quot;段错误&quot;。我源码安装都没用，太🍀蛋了！！！
+网上查阅到的解析就是，你再安装一遍新版本，v-0.14版本太老了。下载APPImage安装吧。</code></pre>
+<p><a href="https://github.com/bpftrace/bpftrace/discussions/3026">bpf -0.14 段错误官方回答</a></p>
+<pre><code>编写test.bt:
 kprobe:ext2_read_folio
 {
         @start[tid] = nsecs;
-        printf("kprobe\n");
+        printf(&quot;kprobe\n&quot;);
         print(kstack());
 }
 
 kretprobe:ext2_read_folio
 {
         $us = (nsecs - @start[tid]) / 100;
-        printf("kretprobe, duration %d\n", $us);
+        printf(&quot;kretprobe, duration %d\n&quot;, $us);
         delete(@start[tid]);
         print(kstack());
 }
 然后执行命令
-bpftrace test.bt &
+bpftrace test.bt &amp;
 mkfs.ext2 -F image
 mount image /mnt
-echo something > /mnt/file
-echo 3 > /proc/sys/vm/drop_caches
+echo something &gt; /mnt/file
+echo 3 &gt; /proc/sys/vm/drop_caches
 cat /mnt/file</code></pre>
-            <p>test.bt 脚本通过以下方式跟踪 ext2_read_folio 函数：包含两个探针（kprobe 和 kretprobe），分别记录进入和退出该函数的时间戳，并计算函数执行时间。</p>
+<p>test.bt 脚本通过以下方式跟踪 ext2_read_folio 脚本中包含两个探针（kprobe 和 kretprobe），记录进入read函数和出read函数的时间戳，并计算。</p>
+<h4 id="在ubuntu-22.04上安装bcc的完整指南">在Ubuntu 22.04上安装BCC的完整指南</h4>
+<h5 id="bcc-bpf-compiler-collection-是一个用于创建高效内核追踪和操作工具的工具包基于扩展的伯克利包过滤器ebpf技术本指南详细介绍了在ubuntu-22.04上安装和验证bcc的步骤">BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</h5>
+<h5 id="方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</h5>
+<p>这是最简单快捷的安装方法，适用于大多数用户。</p>
+<h6 id="步骤1添加bcc-ppa源">步骤1：添加BCC PPA源</h6>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-add-repository ppa:hadret/bpfcc</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span></code></pre></div>
+<h6 id="步骤2安装bcc包">步骤2：安装BCC包</h6>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bpfcc-tools python3-bpfcc</span></code></pre></div>
+<h6 id="步骤3验证安装">步骤3：验证安装</h6>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="co"># 列出已安装的BCC工具</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="fu">find</span> /usr -name <span class="st">&quot;*-bpfcc&quot;</span> -type f <span class="kw">|</span> <span class="fu">sort</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true"></a></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true"></a><span class="co"># 测试运行BCC程序（例如execsnoop）</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true"></a><span class="fu">sudo</span> execsnoop-bpfcc -h</span></code></pre></div>
+<h5 id="方法二从源代码编译安装">方法二：从源代码编译安装</h5>
+<p>如果你需要最新版本或自定义构建，可以从源代码安装。</p>
+<h6 id="步骤1安装依赖项">步骤1：安装依赖项</h6>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="co"># 安装基本依赖</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bison build-essential cmake flex git libedit-dev <span class="kw">\</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a>  <span class="ex">libllvm14</span> llvm-14-dev libclang-14-dev python3 zlib1g-dev libelf-dev <span class="kw">\</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true"></a>  <span class="ex">libfl-dev</span> python3-pip</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true"></a></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true"></a><span class="co"># 安装其他依赖</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y arping clang-14 dh-python libdbus-1-dev libluajit-5.1-dev <span class="kw">\</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true"></a>  <span class="ex">luajit</span> libpcap-dev libpython3-dev libzip-dev python3-netaddr python3-pyroute2</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true"></a></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true"></a><span class="co"># 安装内核头文件</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y linux-headers-<span class="va">$(</span><span class="fu">uname</span> -r<span class="va">)</span></span></code></pre></div>
+<h6 id="步骤2克隆bcc仓库">步骤2：克隆BCC仓库</h6>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="bu">cd</span> ~</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="fu">git</span> clone https://github.com/iovisor/bcc.git</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a><span class="co"># 如果遇到网络问题，可以使用国内镜像：</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a><span class="co"># git clone https://gitee.com/mirrors/bcc.git</span></span></code></pre></div>
+<h6 id="步骤3编译和安装">步骤3：编译和安装</h6>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="fu">mkdir</span> -p ~/bcc/build <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/bcc/build</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a><span class="fu">cmake</span> -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_CMD=python3 ..</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">nproc</span><span class="va">)</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a><span class="fu">sudo</span> make install</span></code></pre></div>
+<h6 id="步骤4验证安装">步骤4：验证安装</h6>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a><span class="co"># 测试BCC工具</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true"></a><span class="fu">sudo</span> /usr/share/bcc/tools/execsnoop</span></code></pre></div>
+<h5 id="创建并运行自己的bcc程序">创建并运行自己的BCC程序</h5>
+<div class="sourceCode" id="cb29"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="co"># 文件名: test_bcc.py</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a><span class="im">from</span> bcc <span class="im">import</span> BPF</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a><span class="co"># 定义BPF程序</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true"></a>program <span class="op">=</span> <span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true"></a><span class="st">int hello(void *ctx) {</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true"></a><span class="st">    bpf_trace_printk(&quot;Hello, BCC!</span><span class="ch">\\</span><span class="st">n&quot;);</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true"></a><span class="st">    return 0;</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true"></a><span class="st">}</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true"></a><span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true"></a></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true"></a><span class="co"># 加载BPF程序</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true"></a>b <span class="op">=</span> BPF(text<span class="op">=</span>program)</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true"></a>b.attach_kprobe(event<span class="op">=</span>b.get_syscall_fnname(<span class="st">&quot;clone&quot;</span>), fn_name<span class="op">=</span><span class="st">&quot;hello&quot;</span>)</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true"></a></span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true"></a><span class="co"># 打印头部</span></span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true"></a><span class="bu">print</span>(<span class="st">&quot;正在跟踪clone()系统调用...&quot;</span>)</span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true"></a><span class="bu">print</span>(<span class="st">&quot;按Ctrl+C退出&quot;</span>)</span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true"></a></span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true"></a><span class="co"># 读取并打印trace输出</span></span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true"></a><span class="cf">try</span>:</span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true"></a>    b.trace_print()</span>
+<span id="cb29-24"><a href="#cb29-24" aria-hidden="true"></a><span class="cf">except</span> <span class="pp">KeyboardInterrupt</span>:</span>
+<span id="cb29-25"><a href="#cb29-25" aria-hidden="true"></a>    <span class="cf">pass</span></span></code></pre></div>
+<p>运行此脚本：</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="fu">chmod</span> +x test_bcc.py</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="fu">sudo</span> ./test_bcc.py</span></code></pre></div>
+<h5 id="常用bcc工具">常用BCC工具</h5>
+<p>BCC安装后提供了许多强大的工具，包括：</p>
+<ul>
+<li><code>execsnoop-bpfcc</code> - 跟踪新进程的执行</li>
+<li><code>opensnoop-bpfcc</code> - 跟踪open()系统调用</li>
+<li><code>tcptracer-bpfcc</code> - 跟踪TCP连接</li>
+<li><code>tcpconnect-bpfcc</code> - 跟踪主动TCP连接</li>
+<li><code>tcpaccept-bpfcc</code> - 跟踪被动TCP连接</li>
+<li><code>biosnoop-bpfcc</code> - 跟踪块I/O延迟</li>
+<li><code>funccount-bpfcc</code> - 统计函数调用次数</li>
+<li><code>stackcount-bpfcc</code> - 统计内核堆栈轨迹</li>
+</ul>
+<p>使用这些工具时需要加上<code>sudo</code>权限。</p>
+<h5 id="参考资料">参考资料</h5>
+<ul>
+<li><a href="https://github.com/iovisor/bcc">BCC官方GitHub仓库</a></li>
+<li><a href="https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md">BCC参考指南</a></li>
+<li><a href="https://www.brendangregg.com/ebpf.html">Linux eBPF追踪工具</a></li>
+</ul>
+<h3 id="十smb文件系统">十、SMB文件系统</h3>
+<h4 id="server搭建">1.Server搭建</h4>
+<h5 id="用户态">1.1 用户态</h5>
+<pre><code># 待办理</code></pre>
+<h3 id="十一linux-内核实战">十一、Linux 内核实战</h3>
+<h4 id="本地挂载-nfs-共享">本地挂载 NFS 共享</h4>
+<pre><code># 创建挂载点
+sudo mkdir -p /mnt/nfs
 
-            <h3>在Ubuntu 22.04上安装BCC的完整指南</h3>
-            <p>BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</p>
+# 挂载本地共享 (使用NFSv4协议)
+sudo mount -t nfs -o vers=4.1 localhost:/nfs_share /mnt/nfs_test
 
-            <h4>方法一：使用PPA源安装（推荐）</h4>
-            <p>这是最简单快捷的安装方法，适用于大多数用户。</p>
+# 验证挂载
+df -hT | grep nfs4
+# 应输出类似：
+# localhost:/nfs_share nfs4   503G   41G  437G    9% /mnt/nfs_test
 
-            <h5>步骤1：添加BCC PPA源</h5>
-            <pre><code>sudo apt-add-repository ppa:hadret/bpfcc
-sudo apt-get update</code></pre>
-
-            <h5>步骤2：安装BCC包</h5>
-            <pre><code>sudo apt-get install -y bpfcc-tools python3-bpfcc</code></pre>
-
-            <h5>步骤3：验证安装</h5>
-            <pre><code># 列出已安装的BCC工具
-find /usr -name "*-bpfcc" -type f | sort
-
-# 验证Python模块
-python3 -c "import bcc; print(bcc.__file__)"
-
-# 测试运行BCC程序（例如execsnoop）
-sudo execsnoop-bpfcc -h</code></pre>
-
-            <h4>方法二：从源代码编译安装</h4>
-            <p>如果你需要最新版本或自定义构建，可以从源代码安装。</p>
-
-            <h5>步骤1：安装依赖项</h5>
-            <pre><code># 安装基本依赖
-sudo apt-get update
-sudo apt-get install -y bison build-essential cmake flex git libedit-dev \
-  libllvm14 llvm-14-dev libclang-14-dev python3 zlib1g-dev libelf-dev \
-  libfl-dev python3-pip
-
-# 安装其他依赖
-sudo apt-get install -y arping clang-14 dh-python libdbus-1-dev libluajit-5.1-dev \
-  luajit libpcap-dev libpython3-dev libzip-dev python3-netaddr python3-pyroute2
-
-# 安装内核头文件
-sudo apt-get install -y linux-headers-$(uname -r)</code></pre>
-
-            <h5>步骤2：克隆BCC仓库</h5>
-            <pre><code>cd ~
-git clone https://github.com/iovisor/bcc.git
-# 如果遇到网络问题，可以使用国内镜像：
-# git clone https://gitee.com/mirrors/bcc.git</code></pre>
-
-            <h5>步骤3：编译和安装</h5>
-            <pre><code>mkdir -p ~/bcc/build && cd ~/bcc/build
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_CMD=python3 ..
-make -j$(nproc)
-sudo make install</code></pre>
-
-            <h5>步骤4：验证安装</h5>
-            <pre><code># 验证Python模块
-python3 -c "import bcc; print(bcc.__file__)"
-
-# 测试BCC工具
-sudo /usr/share/bcc/tools/execsnoop</code></pre>
-
-            <h4>创建并运行自己的BCC程序</h4>
-            <pre><code>#!/usr/bin/python3
-# 文件名: test_bcc.py
-from bcc import BPF
-
-# 定义BPF程序
-program = """
-int hello(void *ctx) {
-    bpf_trace_printk("Hello, BCC!\\n");
-    return 0;
-}
-"""
-
-# 加载BPF程序
-b = BPF(text=program)
-b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
-
-# 打印头部
-print("正在跟踪clone()系统调用...")
-print("按Ctrl+C退出")
-
-# 读取并打印trace输出
-try:
-    b.trace_print()
-except KeyboardInterrupt:
-    pass</code></pre>
-
-            <p>运行此脚本：</p>
-            <pre><code>chmod +x test_bcc.py
-sudo ./test_bcc.py</code></pre>
-
-            <h4>常用BCC工具</h4>
-            <p>BCC安装后提供了许多强大的工具，包括：</p>
-            <ul>
-                <li><code>execsnoop-bpfcc</code> - 跟踪新进程的执行</li>
-                <li><code>opensnoop-bpfcc</code> - 跟踪open()系统调用</li>
-                <li><code>tcptracer-bpfcc</code> - 跟踪TCP连接</li>
-                <li><code>tcpconnect-bpfcc</code> - 跟踪主动TCP连接</li>
-                <li><code>tcpaccept-bpfcc</code> - 跟踪被动TCP连接</li>
-                <li><code>biosnoop-bpfcc</code> - 跟踪块I/O延迟</li>
-                <li><code>funccount-bpfcc</code> - 统计函数调用次数</li>
-                <li><code>stackcount-bpfcc</code> - 统计内核堆栈轨迹</li>
-            </ul>
-            <p>使用这些工具时需要加上<code>sudo</code>权限。</p>
-
-            <h4>参考资料</h4>
-            <ul>
-                <li><a href="https://github.com/iovisor/bcc">BCC官方GitHub仓库</a></li>
-                <li><a href="https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md">BCC参考指南</a></li>
-                <li><a href="https://www.brendangregg.com/ebpf.html">Linux eBPF追踪工具</a></li>
-            </ul>
-        </section>
-
-        <section id="smb">
-            <h2>十、SMB文件系统</h2>
-            <h3>1. Server搭建</h3>
-            <h4>1.1 用户态</h4>
-            <pre><code># 待补充</code></pre>
-        </section>
-
-        <section id="kernel-practice">
-            <h2>十一、Linux 内核实战</h2>
-            <h3>1. nfs_latency测试</h3>
-            <p>用bpf获取rpc执行时间戳，计算函数执行时间这个代码是记录每调用一次rpc，就记录调用的rpc时间。代码具体用到了hashmap去存储每个进程号、当前时间戳。用数组去记录进程的pid和对应的耗时时间。</p>
-            
-            <h4>原始代码</h4>
-            <pre><code>nfs.bpf.c
-// SPDX-License-Identifier: GPL-2.0
-#include "vmlinux.h"
-#include <bpf/bpf_helpers.h>
-#include <bpf/bpf_tracing.h>
-
-char LICENSE[] SEC("license") = "GPL";
-
-struct event {
-    u32 pid;       //pid进程
-    u64 delta_ns;   //耗时时间
-    char comm[16];   //进程名
-};
-
-struct {
-    __uint(type, BPF_MAP_TYPE_HASH); //指定类型是BPF_MAP_TYPE_HASH ----哈希表
-    __uint(max_entries, 4096);          //最大key数量=4096
-    __type(key, u64);       
-    __type(value, u64);
-} start SEC(".maps");  //SEC是指定将这个结构体放在BPF的.maps段中，在BPF中，段是一种组织代码和数据的方式
-
-struct {
-    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  //数组
-} events SEC(".maps");
-
-SEC("kprobe/rpc_call_start")   //表示这个 BPF 程序会被加载到内核中，并在每次rpc_call_start内核函数被调用时触发执行，也就是rpc_start开始执行时触发
-int BPF_KPROBE(handle_rpc_start)  //BPF_KPROBE是一个宏用于定义一个 kprobe 类型的 BPF 程序
-{
-    u64 tid = bpf_get_current_pid_tgid();           //获取当前PID和TGID
-    u64 ts = bpf_ktime_get_ns();                //获取当前的时间戳
-    bpf_map_update_elem(&start, &tid, &ts, BPF_ANY); //向start哈希表里面更新数据，PF_ANY 表示如果键已存在，则更新值；如果键不存在，则插入新键值对
-    return 0;
-}
-
-SEC("kretprobe/rpc_call_done")
-int BPF_KRETPROBE(handle_rpc_done)
-{
-    u64 tid = bpf_get_current_pid_tgid();
-    u64 *tsp = bpf_map_lookup_elem(&start, &tid);
-    if (!tsp)
-        return 0;
-
-    u64 delta = bpf_ktime_get_ns() - *tsp;   //当前时间戳与hashmap中的时间戳进行计算，得到执行时间。
-    bpf_map_delete_elem(&start, &tid);
-
-    struct event e = {};
-    e.pid = tid >> 32;
-    e.delta_ns = delta;             
-    bpf_get_current_comm(&e.comm, sizeof(e.comm));  //获取数据存储到event结构体里面
-
-    bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &e, sizeof(e)); //
-    return 0;
-}
-nfs.c
-#include <stdio.h>
-#include <unistd.h>
-#include <signal.h>
-#include <bpf/libbpf.h>
-#include "nfs.skel.h"
-
-static volatile bool exiting = false;
-
-//用户态
-void handle_event(void *ctx, int cpu, void *data, __u32 size) //BPF 程序输出性能事件时，这个函数会被调用。
-{
-    struct event *e = data;
-    printf("PID %d (%s): %.2f ms\n", e->pid, e->comm, e->delta_ns / 1e6);
-}
-
-void handle_lost(void *ctx, int cpu, __u64 lost) //当有事件数据丢失时，这个函数会被调用
-{
-    fprintf(stderr, "Lost %llu events on CPU %d\n", lost, cpu);
-}
-
-void sig_handler(int sig)
-{
-    exiting = true;
-}
-
-int main()
-{
-    struct nfs_bpf *skel;
-    int err;
-
-    signal(SIGINT, sig_handler);
-    signal(SIGTERM, sig_handler); //注册信号处理程序，以便在收到 SIGINT 或 SIGTERM 时调用 sig_handler，
-
-    skel = nfs_bpf__open();
-    if (!skel) {
-        fprintf(stderr, "Failed to open skeleton\n");
-        return 1;
-    }
-
-    err = nfs_bpf__load(skel);
-    if (err) {
-        fprintf(stderr, "Failed to load skeleton\n");
-        return 1;
-    }
-
-    err = nfs_bpf__attach(skel);    //将 BPF 程序附加到内核中的 kprobe 和 kretprobe 点
-    if (err) {
-        fprintf(stderr, "Failed to attach\n");
-        return 1;
-    }
-
-    printf("Tracing NFS client RPC latency... Ctrl+C to exit\n");
-
-    struct perf_buffer *pb = NULL;
-    pb = perf_buffer__new(bpf_map__fd(skel->maps.events), 8,
-                          handle_event, handle_lost, NULL, NULL);  //创建缓冲区来接收程序输出的事件数据
-    if (!pb) {
-        fprintf(stderr, "Failed to open perf buffer\n");
-        return 1;
-    }
-
-    while (!exiting)
-        perf_buffer__poll(pb, 100);  //轮询缓冲区，等待事件数据的到来， poll轮询可以快速响应。
-
-    perf_buffer__free(pb);
-    nfs_bpf__destroy(skel);
-    return 0;
-}</code></pre>
-            
-            <h4>修改部分</h4>
-            <h5>1. 当前目录下没有 vmlinux.h 文件，这个文件在 nfs.bpf.c 中被引用</h5>
-            <pre><code>sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c > vmlinux.h</code></pre>
-            <p>这条命令它从运行中的 Linux 内核中提取类型信息，并将其转换为 C 语言头文件格式</p>
-
-            <h5>2. struct_event没有在nfs.c定义</h5>
-            <pre><code>struct event {
-    __u32 pid;       // 进程 ID
-    __u64 delta_ns;  // 耗时时间
-    char comm[16]; // 进程名
-};</code></pre>
-            <p>加入到nfs.c中。</p>
-
-            <h5>3. perf_buffer__new() 函数调用的参数数量不正确</h5>
-            <p>我们使用的参数是 6 个，但函数定义只接受 3 个参数</p>
-            <p>那么我们来看一下函数正确的参数：</p>
-            <pre><code>perf_buffer__new(int map_fd, size_t page_cnt,
-                 const struct perf_buffer_opts *opts);</code></pre>
-            <p>来看一下perf_buffer_opts结构体</p>
-            <pre><code>struct perf_buffer_opts {
-        /* if specified, sample_cb is called for each sample */
-        perf_buffer_sample_fn sample_cb;
-        /* if specified, lost_cb is called for each batch of lost samples */
-        perf_buffer_lost_fn lost_cb;
-        /* ctx is provided to sample_cb and lost_cb */
-        void *ctx;
-};</code></pre>
-            <p>其实就可以看出，调用的API函数已经更新了，只有三个参数，新版本的API，是把事件回调、丢失事件回调、用户上下文放到结构体里面，然后进行结构体指针传参。</p>
-
-            <h5>4. 内核中有 rpc_call_start 函数，但没有 rpc_call_done 函数</h5>
-            <p>同样可能是内核版本不同，将 rpc_call_done 改为 rpc_task_call_done</p>
-
-            <h5>5. map 'events' 创建失败的问题</h5>
-            <p>map 'events': failed to create: Invalid argument</p>
-            <p>从这句提示可以看出 events的结构体定义不对，map定义，添加更多特定参数以满足内核要求：</p>
-            <pre><code>struct {
-    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  //数组
-    __uint(key_size, sizeof(int));
-    __uint(value_size, sizeof(int));
-    __uint(max_entries, 128);
-} events SEC(".maps");</code></pre>
-
-            <h5>6. 无法找到 rpc_task_call_done 函数进行 kretprobe</h5>
-            <pre><code>sudo ls -la /sys/kernel/debug/tracing/events/sunrpc/</code></pre>
-            <p>输入指令后发现了 /sys/kernel/debug/tracing/events/sunrpc/rpc_task_call_done，这表明我们可以使用 tracepoint 而不是 kprobe,因此修改。</p>
-            
-            <h5>7.由此可以看出大部分都是版本问题</h5>
-            <ol>
-                <li>我的libbpf版本是0.5.0， ubuntu的内核版本是6.8.0-59。</li>
-                <li>perf_buffer API 变化，使用结构体传参。</li>
-                <li>kprobe 到 tracepoint 的迁移、旧版本: 使用 kprobe/kretprobe 跟踪特定函数，新版本: 使用 tracepoint 跟踪标准化的事件点</li>
-                <li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries</li>
-            </ol>
-            <h3>最后通过nfs挂载测试</h3>
-            <h4>本地挂载 NFS 共享</h4>
-<pre><code>
-# 创建挂载点
+# 写操作
+# dd if=/dev/urandom of=/mnt/nfs_test/large_file.dat bs=1M count=10 status=progress</code></pre>
+<h4 id="nfs_latency测试">1.nfs_latency测试</h4>
+<p>用bpf获取rpc执行时间戳，计算函数执行时间这个代码是记录每调用一次rpc，就记录调用的rpc时间。代码具体用到了hashmap去存储每个进程号、当前时间戳。用数组去记录进程的pid和对应的耗时时间。 ##### 原始代码</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a>nfs.bpf.c</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a><span class="co">// SPDX-License-Identifier: GPL-2.0</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;vmlinux.h&quot;</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/bpf_helpers.h&gt;</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/bpf_tracing.h&gt;</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true"></a></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true"></a><span class="dt">char</span> LICENSE[] SEC(<span class="st">&quot;license&quot;</span>) = <span class="st">&quot;GPL&quot;</span>;</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true"></a></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true"></a>    u32 pid;       <span class="co">//pid进程</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true"></a>    u64 delta_ns;   <span class="co">//耗时时间</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>];   <span class="co">//进程名</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true"></a>};</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true"></a></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true"></a><span class="kw">struct</span> {</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_HASH); <span class="co">//指定类型是BPF_MAP_TYPE_HASH ----哈希表</span></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">4096</span>);          <span class="co">//最大key数量=4096</span></span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true"></a>    __type(key, u64);       </span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true"></a>    __type(value, u64);</span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true"></a>} start SEC(<span class="st">&quot;.maps&quot;</span>);  <span class="co">//SEC是指定将这个结构体放在BPF的.maps段中，在BPF中，段是一种组织代码和数据的方式</span></span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true"></a></span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true"></a><span class="kw">struct</span> {</span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true"></a></span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true"></a>SEC(<span class="st">&quot;kprobe/rpc_call_start&quot;</span>)   <span class="co">//表示这个 BPF 程序会被加载到内核中，并在每次rpc_call_start内核函数被调用时触发执行，也就是rpc_start开始执行时触发</span></span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true"></a><span class="dt">int</span> BPF_KPROBE(handle_rpc_start)  <span class="co">//BPF_KPROBE是一个宏用于定义一个 kprobe 类型的 BPF 程序</span></span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true"></a>{</span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true"></a>    u64 tid = bpf_get_current_pid_tgid();           <span class="co">//获取当前PID和TGID</span></span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true"></a>    u64 ts = bpf_ktime_get_ns();                <span class="co">//获取当前的时间戳</span></span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true"></a>    bpf_map_update_elem(&amp;start, &amp;tid, &amp;ts, BPF_ANY); <span class="co">//向start哈希表里面更新数据，PF_ANY 表示如果键已存在，则更新值；如果键不存在，则插入新键值对</span></span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true"></a>}</span>
+<span id="cb33-34"><a href="#cb33-34" aria-hidden="true"></a></span>
+<span id="cb33-35"><a href="#cb33-35" aria-hidden="true"></a>SEC(<span class="st">&quot;kretprobe/rpc_call_done&quot;</span>)</span>
+<span id="cb33-36"><a href="#cb33-36" aria-hidden="true"></a><span class="dt">int</span> BPF_KRETPROBE(handle_rpc_done)</span>
+<span id="cb33-37"><a href="#cb33-37" aria-hidden="true"></a>{</span>
+<span id="cb33-38"><a href="#cb33-38" aria-hidden="true"></a>    u64 tid = bpf_get_current_pid_tgid();</span>
+<span id="cb33-39"><a href="#cb33-39" aria-hidden="true"></a>    u64 *tsp = bpf_map_lookup_elem(&amp;start, &amp;tid);</span>
+<span id="cb33-40"><a href="#cb33-40" aria-hidden="true"></a>    <span class="cf">if</span> (!tsp)</span>
+<span id="cb33-41"><a href="#cb33-41" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb33-42"><a href="#cb33-42" aria-hidden="true"></a></span>
+<span id="cb33-43"><a href="#cb33-43" aria-hidden="true"></a>    u64 delta = bpf_ktime_get_ns() - *tsp;   <span class="co">//当前时间戳与hashmap中的时间戳进行计算，得到执行时间。</span></span>
+<span id="cb33-44"><a href="#cb33-44" aria-hidden="true"></a>    bpf_map_delete_elem(&amp;start, &amp;tid);</span>
+<span id="cb33-45"><a href="#cb33-45" aria-hidden="true"></a></span>
+<span id="cb33-46"><a href="#cb33-46" aria-hidden="true"></a>    <span class="kw">struct</span> event e = {};</span>
+<span id="cb33-47"><a href="#cb33-47" aria-hidden="true"></a>    e.pid = tid &gt;&gt; <span class="dv">32</span>;</span>
+<span id="cb33-48"><a href="#cb33-48" aria-hidden="true"></a>    e.delta_ns = delta;             </span>
+<span id="cb33-49"><a href="#cb33-49" aria-hidden="true"></a>    bpf_get_current_comm(&amp;e.comm, <span class="kw">sizeof</span>(e.comm));  <span class="co">//获取数据存储到event结构体里面</span></span>
+<span id="cb33-50"><a href="#cb33-50" aria-hidden="true"></a></span>
+<span id="cb33-51"><a href="#cb33-51" aria-hidden="true"></a>    bpf_perf_event_output(ctx, &amp;events, BPF_F_CURRENT_CPU, &amp;e, <span class="kw">sizeof</span>(e)); <span class="co">//</span></span>
+<span id="cb33-52"><a href="#cb33-52" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb33-53"><a href="#cb33-53" aria-hidden="true"></a>}</span>
+<span id="cb33-54"><a href="#cb33-54" aria-hidden="true"></a>nfs.c</span>
+<span id="cb33-55"><a href="#cb33-55" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb33-56"><a href="#cb33-56" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb33-57"><a href="#cb33-57" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;signal.h&gt;</span></span>
+<span id="cb33-58"><a href="#cb33-58" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/libbpf.h&gt;</span></span>
+<span id="cb33-59"><a href="#cb33-59" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;nfs.skel.h&quot;</span></span>
+<span id="cb33-60"><a href="#cb33-60" aria-hidden="true"></a></span>
+<span id="cb33-61"><a href="#cb33-61" aria-hidden="true"></a><span class="dt">static</span> <span class="dt">volatile</span> <span class="dt">bool</span> exiting = false;</span>
+<span id="cb33-62"><a href="#cb33-62" aria-hidden="true"></a></span>
+<span id="cb33-63"><a href="#cb33-63" aria-hidden="true"></a><span class="co">//用户态</span></span>
+<span id="cb33-64"><a href="#cb33-64" aria-hidden="true"></a><span class="dt">void</span> handle_event(<span class="dt">void</span> *ctx, <span class="dt">int</span> cpu, <span class="dt">void</span> *data, __u32 size) <span class="co">//BPF 程序输出性能事件时，这个函数会被调用。</span></span>
+<span id="cb33-65"><a href="#cb33-65" aria-hidden="true"></a>{</span>
+<span id="cb33-66"><a href="#cb33-66" aria-hidden="true"></a>    <span class="kw">struct</span> event *e = data;</span>
+<span id="cb33-67"><a href="#cb33-67" aria-hidden="true"></a>    printf(<span class="st">&quot;PID %d (%s): %.2f ms</span><span class="sc">\n</span><span class="st">&quot;</span>, e-&gt;pid, e-&gt;comm, e-&gt;delta_ns / <span class="fl">1e6</span>);</span>
+<span id="cb33-68"><a href="#cb33-68" aria-hidden="true"></a>}</span>
+<span id="cb33-69"><a href="#cb33-69" aria-hidden="true"></a></span>
+<span id="cb33-70"><a href="#cb33-70" aria-hidden="true"></a><span class="dt">void</span> handle_lost(<span class="dt">void</span> *ctx, <span class="dt">int</span> cpu, __u64 lost) <span class="co">//当有事件数据丢失时，这个函数会被调用</span></span>
+<span id="cb33-71"><a href="#cb33-71" aria-hidden="true"></a>{</span>
+<span id="cb33-72"><a href="#cb33-72" aria-hidden="true"></a>    fprintf(stderr, <span class="st">&quot;Lost %llu events on CPU %d</span><span class="sc">\n</span><span class="st">&quot;</span>, lost, cpu);</span>
+<span id="cb33-73"><a href="#cb33-73" aria-hidden="true"></a>}</span>
+<span id="cb33-74"><a href="#cb33-74" aria-hidden="true"></a></span>
+<span id="cb33-75"><a href="#cb33-75" aria-hidden="true"></a><span class="dt">void</span> sig_handler(<span class="dt">int</span> sig)</span>
+<span id="cb33-76"><a href="#cb33-76" aria-hidden="true"></a>{</span>
+<span id="cb33-77"><a href="#cb33-77" aria-hidden="true"></a>    exiting = true;</span>
+<span id="cb33-78"><a href="#cb33-78" aria-hidden="true"></a>}</span>
+<span id="cb33-79"><a href="#cb33-79" aria-hidden="true"></a></span>
+<span id="cb33-80"><a href="#cb33-80" aria-hidden="true"></a><span class="dt">int</span> main()</span>
+<span id="cb33-81"><a href="#cb33-81" aria-hidden="true"></a>{</span>
+<span id="cb33-82"><a href="#cb33-82" aria-hidden="true"></a>    <span class="kw">struct</span> nfs_bpf *skel;</span>
+<span id="cb33-83"><a href="#cb33-83" aria-hidden="true"></a>    <span class="dt">int</span> err;</span>
+<span id="cb33-84"><a href="#cb33-84" aria-hidden="true"></a></span>
+<span id="cb33-85"><a href="#cb33-85" aria-hidden="true"></a>    signal(SIGINT, sig_handler);</span>
+<span id="cb33-86"><a href="#cb33-86" aria-hidden="true"></a>    signal(SIGTERM, sig_handler); <span class="co">//注册信号处理程序，以便在收到 SIGINT 或 SIGTERM 时调用 sig_handler，</span></span>
+<span id="cb33-87"><a href="#cb33-87" aria-hidden="true"></a></span>
+<span id="cb33-88"><a href="#cb33-88" aria-hidden="true"></a>    skel = nfs_bpf__open();</span>
+<span id="cb33-89"><a href="#cb33-89" aria-hidden="true"></a>    <span class="cf">if</span> (!skel) {</span>
+<span id="cb33-90"><a href="#cb33-90" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to open skeleton</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb33-91"><a href="#cb33-91" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb33-92"><a href="#cb33-92" aria-hidden="true"></a>    }</span>
+<span id="cb33-93"><a href="#cb33-93" aria-hidden="true"></a></span>
+<span id="cb33-94"><a href="#cb33-94" aria-hidden="true"></a>    err = nfs_bpf__load(skel);</span>
+<span id="cb33-95"><a href="#cb33-95" aria-hidden="true"></a>    <span class="cf">if</span> (err) {</span>
+<span id="cb33-96"><a href="#cb33-96" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to load skeleton</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb33-97"><a href="#cb33-97" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb33-98"><a href="#cb33-98" aria-hidden="true"></a>    }</span>
+<span id="cb33-99"><a href="#cb33-99" aria-hidden="true"></a></span>
+<span id="cb33-100"><a href="#cb33-100" aria-hidden="true"></a>    err = nfs_bpf__attach(skel);    <span class="co">//将 BPF 程序附加到内核中的 kprobe 和 kretprobe 点</span></span>
+<span id="cb33-101"><a href="#cb33-101" aria-hidden="true"></a>    <span class="cf">if</span> (err) {</span>
+<span id="cb33-102"><a href="#cb33-102" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to attach</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb33-103"><a href="#cb33-103" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb33-104"><a href="#cb33-104" aria-hidden="true"></a>    }</span>
+<span id="cb33-105"><a href="#cb33-105" aria-hidden="true"></a></span>
+<span id="cb33-106"><a href="#cb33-106" aria-hidden="true"></a>    printf(<span class="st">&quot;Tracing NFS client RPC latency... Ctrl+C to exit</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb33-107"><a href="#cb33-107" aria-hidden="true"></a></span>
+<span id="cb33-108"><a href="#cb33-108" aria-hidden="true"></a>    <span class="kw">struct</span> perf_buffer *pb = NULL;</span>
+<span id="cb33-109"><a href="#cb33-109" aria-hidden="true"></a>    pb = perf_buffer__new(bpf_map__fd(skel-&gt;maps.events), <span class="dv">8</span>,</span>
+<span id="cb33-110"><a href="#cb33-110" aria-hidden="true"></a>                          handle_event, handle_lost, NULL, NULL);  <span class="co">//创建缓冲区来接收程序输出的事件数据</span></span>
+<span id="cb33-111"><a href="#cb33-111" aria-hidden="true"></a>    <span class="cf">if</span> (!pb) {</span>
+<span id="cb33-112"><a href="#cb33-112" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to open perf buffer</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb33-113"><a href="#cb33-113" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb33-114"><a href="#cb33-114" aria-hidden="true"></a>    }</span>
+<span id="cb33-115"><a href="#cb33-115" aria-hidden="true"></a></span>
+<span id="cb33-116"><a href="#cb33-116" aria-hidden="true"></a>    <span class="cf">while</span> (!exiting)</span>
+<span id="cb33-117"><a href="#cb33-117" aria-hidden="true"></a>        perf_buffer__poll(pb, <span class="dv">100</span>);  <span class="co">//轮询缓冲区，等待事件数据的到来， poll轮询可以快速响应。</span></span>
+<span id="cb33-118"><a href="#cb33-118" aria-hidden="true"></a></span>
+<span id="cb33-119"><a href="#cb33-119" aria-hidden="true"></a>    perf_buffer__free(pb);</span>
+<span id="cb33-120"><a href="#cb33-120" aria-hidden="true"></a>    nfs_bpf__destroy(skel);</span>
+<span id="cb33-121"><a href="#cb33-121" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb33-122"><a href="#cb33-122" aria-hidden="true"></a>}</span></code></pre></div>
+<h5 id="修改部分">修改部分</h5>
+<h6 id="error-当前目录下没有-vmlinux.h-文件这个文件在-nfs.bpf.c-中被引用">（1）error: 当前目录下没有 vmlinux.h 文件，这个文件在 nfs.bpf.c 中被引用</h6>
+<p><code>sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c &gt; vmlinux.h</code> 这条命令它从运行中的 Linux 内核中提取类型信息，并将其转换为 C 语言头文件格式</p>
+<h6 id="error-struct_event没有在nfs.c定义">（2）error: struct_event没有在nfs.c定义</h6>
+<div class="sourceCode" id="cb34"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true"></a>    __u32 pid;       <span class="co">// 进程 ID</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true"></a>    __u64 delta_ns;  <span class="co">// 耗时时间</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>]; <span class="co">// 进程名</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true"></a>};</span></code></pre></div>
+<p>加入到nfs.c中。</p>
+<h6 id="perf_buffer__new-函数调用的参数数量不正确我们使用的参数是-6-个但函数定义只接受-3-个参数">（3）perf_buffer__new() 函数调用的参数数量不正确，我们使用的参数是 6 个，但函数定义只接受 3 个参数</h6>
+<p>那么我们来看一下函数正确的参数：</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a>perf_buffer__new(<span class="dt">int</span> map_fd, <span class="dt">size_t</span> page_cnt,</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true"></a>                 <span class="dt">const</span> <span class="kw">struct</span> perf_buffer_opts *opts);</span></code></pre></div>
+<p>来看一下perf_buffer_opts结构体</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true"></a><span class="kw">struct</span> perf_buffer_opts {</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true"></a>        <span class="co">/* if specified, sample_cb is called for each sample */</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true"></a>        perf_buffer_sample_fn sample_cb;</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true"></a>        <span class="co">/* if specified, lost_cb is called for each batch of lost samples */</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true"></a>        perf_buffer_lost_fn lost_cb;</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true"></a>        <span class="co">/* ctx is provided to sample_cb and lost_cb */</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true"></a>        <span class="dt">void</span> *ctx;</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true"></a>};</span></code></pre></div>
+<p>其实就可以看出，调用的API函数已经更新了，只有三个参数，新版本的API，是把事件回调、丢失事件回调、用户上下文放到结构体里面，然后进行结构体指针传参。</p>
+<h6 id="内核中有-rpc_call_start-函数但没有-rpc_call_done-函数导致程序.nfs无法加载">（4）内核中有 rpc_call_start 函数，但没有 rpc_call_done 函数。导致程序.nfs无法加载</h6>
+<p>同样可能是内核版本不同，将 rpc_call_done 改为 rpc_task_call_done</p>
+<h6 id="map-events-创建失败的问题">（5）map ‘events’ 创建失败的问题</h6>
+<p>map ‘events’: failed to create: Invalid argument 从这句提示可以看出 events的结构体定义不对，map定义，添加更多特定参数以满足内核要求：</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a><span class="kw">struct</span> {</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true"></a>    __uint(key_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true"></a>    __uint(value_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">128</span>);</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span></code></pre></div>
+<h6 id="无法找到-rpc_task_call_done-函数进行-kretprobe">（6）无法找到 rpc_task_call_done 函数进行 kretprobe</h6>
+<p><code>sudo ls -la /sys/kernel/debug/tracing/events/sunrpc/</code> 输入指令后发现了 /sys/kernel/debug/tracing/events/sunrpc/rpc_task_call_done，这表明我们可以使用 tracepoint 而不是 kprobe,因此修改。</p>
+<h6 id="由此可以看出大部分都是版本问题">（7）由此可以看出大部分都是版本问题</h6>
+<ol type="1">
+<li>我的libbpf版本是0.5.0， ubuntu的内核版本是6.8.0-59。</li>
+<li>perf_buffer API 变化，使用结构体传参。</li>
+<li>kprobe 到 tracepoint 的迁移、旧版本: 使用 kprobe/kretprobe 跟踪特定函数，新版本: 使用 tracepoint 跟踪标准化的事件点</li>
+<li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries ##### 最后通过nfs挂载测试 ###### 本地挂载 NFS 共享</li>
+</ol>
+<pre><code># 创建挂载点
 sudo mkdir -p /mnt/nfs                
 # 挂载本地共享 (使用NFSv4协议)
 sudo mount -t nfs -o vers=4.1 localhost:/nfs_share /mnt/nfs                
@@ -762,53 +678,70 @@ df -hT | grep nfs4
 # 应输出类似：
 # localhost:/nfs_share nfs4   503G   41G  437G    9% /mnt/nfs                
 # 写操作
-dd if=/dev/urandom of=/mnt/nfs_share bs=1M count=10 status=progress
-</code></pre>
-
-            <h4>运行脚本文件</h4>
-<pre><code>
-sudo make
+dd if=/dev/urandom of=/mnt/nfs_share bs=1M count=10 status=progress</code></pre>
+<h6 id="运行脚本文件">运行脚本文件</h6>
+<pre><code>sudo make
 sudo ./nfs
 #先运行./nfs 自去进行写操作
 #输出结果如下：
 Tracing NFS client RPC latency... Ctrl+C to exit
-PID 14807 (ls): 49.01 ms
-</code></pre>
-        <h3>2.针对nfs读写慢，编写bt脚本</h3>
-
-        </section>
-
-        <h3>遇到的常见问题的小Tips</h3>
-        <h4>1. 虚拟机卡在了Boot form Hard Disk阶段</h4>
-        <p>这种情况只能重装虚拟机系统</p>
-        <p>注：做实验千万不要在Vitrual manager的虚拟机上跑，最好在qemu上跑。</p>
-
-        <h4>2. 调试补丁</h4>
-        <ol>
-            <li>应用补丁： 确保你的工作目录是你的Linux内核源代码根目录，patch命令应用补丁</li>
-            <pre><code>patch -p1 < /home/linux/blog/course/kernel/src/0001-debug-vfs.patch</code></pre>
-            <li>然后配置内核<code>make menuconfig</code>、编译内核<code>make bzImage -j8</code></li>
-        </ol>
-
-        <h4>3. git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</h4>
-        <ol>
-            <li>如果在学校和公司无法在网站上访问，可以申请一个服务器代理。</li>
-            <li>检查防火墙配置。<code>sudo systemctl disable firewalld</code></li>
-        </ol>
-
-        <h4>4. 编译的.ko文件，如何映射到内核文件里面？</h4>
-        <ol>
-            <li>加载内核模块：<code>sudo insmod your_module.ko</code> 或者<code>sudo modprobe your_module</code></li>
-            <li>验证是否加载成功：<code>lsmod | grep your_module</code></li>
-            <li>卸载模块：<code>sudo rmmod your_module</code></li>
-        </ol>
-        
-        <h2>待办理</h2>
-        <ul>
-            <li>完善SMB文件系统部分</li>
-            <li>补充更多实战案例</li>
-            <li>添加内核调试进阶技巧</li>
-        </ul>
-    </div>
+PID 14807 (ls): 49.01 ms</code></pre>
+<h4 id="针对nfs读写慢编写bt脚本">2.针对nfs读写慢，编写bt脚本</h4>
+<h5 id="nfs-写操作核心函数简化版">NFS 写操作核心函数（简化版）</h5>
+<h5 id="客户端流程">客户端流程</h5>
+<ol type="1">
+<li>用户发起写操作<br />
+<code>write()</code> → <code>vfs_write()</code> → <code>nfs_file_write()</code></li>
+<li>数据缓存与提交<br />
+<code>nfs_write_begin()</code> → 页缓存操作 → <code>nfs_write_end()</code></li>
+<li>RPC 网络通信 <code>nfs_initiate_write()</code> → <code>rpc_call_sync()</code> → NFSv3 <code>WRITE</code> / NFSv4 <code>COMPOUND</code></li>
+</ol>
+<h5 id="服务端流程">服务端流程</h5>
+<ol type="1">
+<li>接收请求 <code>nfsd_dispatch()</code> → <code>nfsd3_proc_write()</code> (NFSv3) / <code>nfsd4_proc_write()</code> (NFSv4)</li>
+<li>写入存储 <code>nfsd_vfs_write()</code> → <code>vfs_writev()</code></li>
+</ol>
+<h5 id="关键函数">关键函数</h5>
+<ul>
+<li>客户端：<code>nfs_file_write</code>, <code>nfs_writepages</code>, <code>rpc_call_sync</code></li>
+<li>服务端：<code>nfsd_proc_write</code>, <code>vfs_writev</code></li>
+</ul>
+<h3 id="遇到的常见问题的小tips">遇到的常见问题的小Tips</h3>
+<h4 id="虚拟机卡在了boot-form-hard-disk阶段">1. 虚拟机卡在了Boot form Hard Disk阶段</h4>
+<p>这种情况只能重装虚拟机系统<br />
+注：做实验千万不要在Vitrual manager的虚拟机上跑，最好在qemu上跑。</p>
+<h4 id="调试补丁">2. 调试补丁</h4>
+<ul>
+<li>应用补丁： 确保你的工作目录是你的Linux内核源代码根目录，patch命令应用补丁<br />
+<code>patch -p1 &lt; /home/linux/blog/course/kernel/src/0001-debug-vfs.patch</code></li>
+<li>然后配置内核<code>make menuconfig</code>、编译内核<code>make bzImage -j8</code></li>
+</ul>
+<h4 id="git-clone时候failed-to-connect-to-github.com-port-443-after-0-ms-连接被拒绝">3. git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</h4>
+<ul>
+<li>如果在学校和公司无法在网站上访问，可以申请一个服务器代理。</li>
+<li>检查防火墙配置。<code>sudo systemctl disable firewalld</code></li>
+</ul>
+<h4 id="git-clone时候failed-to-connect-to-github.com-port-443-after-0-ms-连接被拒绝-1">3.git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</h4>
+<ul>
+<li><ol type="1">
+<li>如果在学校和公司无法在网站上访问，可以申请一个服务器代理。</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>检查防火墙配置。<code>sudo systemctl disable firewalld</code></li>
+</ol></li>
+</ul>
+<h4 id="编译的.ko文件如何映射到内核文件里面">4.编译的.ko文件，如何映射到内核文件里面？</h4>
+<ul>
+<li><ol type="1">
+<li>加载内核模块:<code>sudo insmod your_module.ko</code> 或者<code>sudo modprobe your_module</code></li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>验证是否加载成功：<code>lsmod | grep your_module</code></li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>卸载模块：<code>sudo rmmod your_module</code></li>
+</ol></li>
+</ul>
+<h2 id="待办理">待办理</h2>
 </body>
 </html>
