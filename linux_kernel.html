@@ -673,8 +673,10 @@ df -hT | grep nfs4
 <li>我的libbpf版本是0.5.0， ubuntu的内核版本是6.8.0-59。</li>
 <li>perf_buffer API 变化，使用结构体传参。</li>
 <li>kprobe 到 tracepoint 的迁移、旧版本: 使用 kprobe/kretprobe 跟踪特定函数，新版本: 使用 tracepoint 跟踪标准化的事件点</li>
-<li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries ##### 最后通过nfs挂载测试 ###### 本地挂载 NFS 共享</li>
+<li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries </li>
 </ol>
+<h5>最后通过nfs挂载测试</h5>
+<h6>本地挂载 NFS 共享</h6>
 <pre><code># 创建挂载点
 sudo mkdir -p /mnt/nfs                
 # 挂载本地共享 (使用NFSv4协议)
