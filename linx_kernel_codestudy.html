@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Linux内核源码解读</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <link rel="stylesheet" href="theme.css" />
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#linux内核源码解读">Linux内核源码解读</a>
+<ul>
+<li><a href="#通过qemu运行一个最小系统">通过qemu运行一个最小系统</a>
+<ul>
+<li><a href="#下载linux内核源码和busybox源码">1. 下载linux内核源码和busybox源码</a></li>
+<li><a href="#内核源码各个目录的解读">3. 内核源码各个目录的解读</a></li>
+<li><a href="#驱动与设备">驱动与设备</a></li>
+<li><a href="#文件系统与网络">文件系统与网络</a></li>
+<li><a href="#工具与辅助模块">工具与辅助模块</a></li>
+<li><a href="#安全与虚拟化">安全与虚拟化</a></li>
+<li><a href="#文档与示例">文档与示例</a></li>
+<li><a href="#其他重要目录">其他重要目录</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="linux内核源码解读">Linux内核源码解读</h1>
+<h2 id="通过qemu运行一个最小系统">通过qemu运行一个最小系统</h2>
+<h3 id="下载linux内核源码和busybox源码">1. 下载linux内核源码和busybox源码</h3>
+<p>我下载的版本是Linux内核4.9.229版本 <a href="https://mirrors.edge.kernel.org/pub/linux/kernel/">linux源码下载地址</a> 我下载的busybos源码版本是1.36.1版本 <a href="https://busybox.net/downloads/">busybox源码下载地址</a></p>
+<pre><code># 下载最新稳定版（如 1.36.1）
+wget https://busybox.net/downloads/busybox-1.36.1.tar.bz2
+tar -xf busybox-1.36.1.tar.bz2
+cd busybox-1.36.1
+make menuconfig #可以根据需求做一些特定的修改
+make 
+make install</code></pre>
+<p>make install 后我们的busybox的内容是不完整的，可以去修改busybox的配置。 参考b站 <code>简说linux</code> <a href="https://space.bilibili.com/646178510/lists?sid=375089&amp;spm_id_from=333.788.0.0">b站视频链接</a> 将源码编译后用qemu运行。 ### 2. 通过qemu启动内核 qemu启动脚本：<code>vim start.sh</code></p>
+<pre><code>qemu-system-x86_64 -kernel ./linux-4.9.229/arch/x86_64/boot/bzImage  -initrd ./busybox-1.36.1/rootfs.img.gz  -app
+end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
+<h3 id="内核源码各个目录的解读">3. 内核源码各个目录的解读</h3>
+<h4 id="核心功能目录">核心功能目录</h4>
+<ol type="1">
+<li><strong><code>arch</code></strong>
+<ul>
+<li><strong>架构相关代码</strong>：每个子目录对应一种CPU架构（如<code>x86</code>、<code>arm</code>、<code>arm64</code>）。</li>
+<li><strong>关键内容</strong>：处理器调度、内存管理、中断处理等硬件相关实现。</li>
+</ul></li>
+<li><strong><code>kernel</code></strong>
+<ul>
+<li><strong>核心子系统</strong>：进程调度（<code>sched/</code>）、信号处理（<code>signal.c</code>）、系统调用（<code>sys.c</code>）等。</li>
+<li><strong>基础机制</strong>：定时器、RCU锁、模块加载等。</li>
+</ul></li>
+<li><strong><code>mm</code></strong>
+<ul>
+<li><strong>内存管理</strong>：物理内存分配（<code>page_alloc.c</code>）、虚拟内存（<code>vmalloc.c</code>）、页表管理（<code>pgtable.c</code>）等。</li>
+</ul></li>
+<li><strong><code>init</code></strong>
+<ul>
+<li><strong>内核启动流程</strong>：<code>main.c</code>包含内核初始化入口（<code>start_kernel</code>）。</li>
+<li><strong>早期用户空间初始化</strong>（如<code>initramfs</code>）。</li>
+</ul></li>
+</ol>
+<h3 id="驱动与设备">驱动与设备</h3>
+<ol type="1">
+<li><strong><code>drivers</code></strong>
+<ul>
+<li><strong>设备驱动</strong>：按设备类型分类，如<code>char/</code>（字符设备）、<code>pci/</code>、<code>usb/</code>、<code>net/</code>等。</li>
+<li><strong>总线与平台驱动</strong>：<code>i2c/</code>、<code>spi/</code>、<code>platform/</code>。</li>
+</ul></li>
+<li><strong><code>block</code></strong>
+<ul>
+<li><strong>块设备层</strong>：I/O调度算法（<code>deadline-iosched.c</code>）、通用块设备驱动。</li>
+</ul></li>
+</ol>
+<h3 id="文件系统与网络">文件系统与网络</h3>
+<ol type="1">
+<li><strong><code>fs</code></strong>
+<ul>
+<li><strong>文件系统实现</strong>：<code>ext4/</code>、<code>btrfs/</code>、<code>proc/</code>、<code>sysfs/</code>等。</li>
+<li><strong>虚拟文件系统（VFS）</strong>：<code>vfs/</code>目录下的通用文件操作接口。</li>
+</ul></li>
+<li><strong><code>net</code></strong>
+<ul>
+<li><strong>网络协议栈</strong>：IPv4/IPv6（<code>ipv4/</code>、<code>ipv6/</code>）、TCP/UDP、Socket层。</li>
+<li><strong>协议实现</strong>：<code>ethernet/</code>、<code>wireless/</code>、<code>mac80211/</code>等。</li>
+</ul></li>
+</ol>
+<h3 id="工具与辅助模块">工具与辅助模块</h3>
+<ol type="1">
+<li><strong><code>lib</code></strong>
+<ul>
+<li><strong>通用库函数</strong>：字符串处理、CRC校验、链表实现等。</li>
+</ul></li>
+<li><strong><code>scripts</code></strong>
+<ul>
+<li><strong>构建与配置脚本</strong>：内核编译工具链（如<code>Kconfig</code>解析、<code>Makefile</code>生成）。</li>
+</ul></li>
+<li><strong><code>tools</code></strong>
+<ul>
+<li><strong>用户态工具</strong>：性能分析工具（如<code>perf/</code>）、调试工具。</li>
+</ul></li>
+</ol>
+<h3 id="安全与虚拟化">安全与虚拟化</h3>
+<ol type="1">
+<li><strong><code>security</code></strong>
+<ul>
+<li><strong>安全模块</strong>：SELinux、AppArmor、SMACK等实现。</li>
+</ul></li>
+<li><strong><code>virt</code></strong>
+<ul>
+<li><strong>虚拟化支持</strong>：KVM（Kernel-based Virtual Machine）相关代码。</li>
+</ul></li>
+</ol>
+<h3 id="文档与示例">文档与示例</h3>
+<ol type="1">
+<li><strong><code>Documentation</code></strong>
+<ul>
+<li><strong>内核文档</strong>：配置指南、API说明、子系统设计文档。</li>
+</ul></li>
+<li><strong><code>samples</code></strong>
+<ul>
+<li><strong>示例代码</strong>：内核模块、BPF程序等示例。</li>
+</ul></li>
+</ol>
+<h3 id="其他重要目录">其他重要目录</h3>
+<ul>
+<li><strong><code>include</code></strong>：内核头文件（分为架构相关头文件<code>asm/</code>和通用头文件<code>linux/</code>）。</li>
+<li><strong><code>ipc</code></strong>：进程间通信机制（如共享内存、信号量、消息队列）。</li>
+<li><strong><code>crypto</code></strong>：加密算法实现（如AES、SHA系列）。</li>
+<li><strong><code>sound</code></strong>：音频子系统与驱动。</li>
+<li><strong><code>usr</code></strong>：早期用户空间支持（如<code>initramfs</code>构建）。</li>
+</ul>
+<p>可以结合<code>Documentation/</code>和在线内核文档（如 <a href="https://www.kernel.org/doc/">kernel.org/doc</a>) 获得详细内容。</p>
+</body>
+</html>
