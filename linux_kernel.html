@@ -75,7 +75,7 @@
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="linux-style.css" />
+  <link rel="stylesheet" href="theme.css" />
 </head>
 <body>
 <nav id="TOC" role="doc-toc">
@@ -95,6 +95,7 @@
 <li><a href="#九bpf">九、BPF</a></li>
 <li><a href="#十smb文件系统">十、SMB文件系统</a></li>
 <li><a href="#十一linux-内核实战">十一、Linux 内核实战</a></li>
+<li><a href="#十二linux内核源码解读">十二、Linux内核源码解读</a></li>
 <li><a href="#遇到的常见问题的小tips">遇到的常见问题的小Tips</a></li>
 </ul></li>
 <li><a href="#待办理">待办理</a></li>
@@ -226,13 +227,16 @@ set {int}0x1234 = 5         # 修改内存值</code></pre>
 <pre><code>创建 &lt;username&gt;.github.io 仓库
 启用 GitHub Pages 服务
 配置自定义域名</code></pre>
+<ol start="4" type="1">
+<li>使用<code>pandoc</code>将markdown文件生成类似Linux源码格式的html文件</li>
+</ol>
+<pre><code># 下载Linux内核官方CSS
+wget https://kernel.org/doc/html/latest/_static/css/theme.css
+pandoc input.md -o output.html --css=theme.css --toc --standalone</code></pre>
 <h3 id="六常用命令速查">六、常用命令速查</h3>
-<p><a href="https://linuxcommand.p2hp.com/">Linux命令大全</a> </p>
-<h4>1.vim编辑器</h4>
-<p>
-  <a href="https://www.runoob.com/linux/linux-vim.html">Vim编辑器菜鸟教程</a><br>
-  <a href="https://yianwillis.github.io/vimcdoc/doc/quickref.html">Vim官方手册中文版</a>
-</p>
+<p><a href="https://linuxcommand.p2hp.com/">Linux命令大全</a></p>
+<h4 id="vim编辑器">1.vim编辑器</h4>
+<p><a href="https://www.runoob.com/linux/linux-vim.html">Vim编辑器菜鸟教程</a> <a href="https://yianwillis.github.io/vimcdoc/doc/quickref.html">Vim官方手册中文版</a></p>
 <pre><code>:w      #保存文件
 :wq或zz      #保存并退出
 x       #删除光标所在字符 
@@ -396,79 +400,79 @@ cat /mnt/file</code></pre>
 <h5 id="方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</h5>
 <p>这是最简单快捷的安装方法，适用于大多数用户。</p>
 <h6 id="步骤1添加bcc-ppa源">步骤1：添加BCC PPA源</h6>
-<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-add-repository ppa:hadret/bpfcc</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-add-repository ppa:hadret/bpfcc</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span></code></pre></div>
 <h6 id="步骤2安装bcc包">步骤2：安装BCC包</h6>
-<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bpfcc-tools python3-bpfcc</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bpfcc-tools python3-bpfcc</span></code></pre></div>
 <h6 id="步骤3验证安装">步骤3：验证安装</h6>
-<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="co"># 列出已安装的BCC工具</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="fu">find</span> /usr -name <span class="st">&quot;*-bpfcc&quot;</span> -type f <span class="kw">|</span> <span class="fu">sort</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true"></a></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true"></a><span class="co"># 测试运行BCC程序（例如execsnoop）</span></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true"></a><span class="fu">sudo</span> execsnoop-bpfcc -h</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="co"># 列出已安装的BCC工具</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a><span class="fu">find</span> /usr -name <span class="st">&quot;*-bpfcc&quot;</span> -type f <span class="kw">|</span> <span class="fu">sort</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true"></a></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true"></a><span class="co"># 测试运行BCC程序（例如execsnoop）</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true"></a><span class="fu">sudo</span> execsnoop-bpfcc -h</span></code></pre></div>
 <h5 id="方法二从源代码编译安装">方法二：从源代码编译安装</h5>
 <p>如果你需要最新版本或自定义构建，可以从源代码安装。</p>
 <h6 id="步骤1安装依赖项">步骤1：安装依赖项</h6>
-<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="co"># 安装基本依赖</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bison build-essential cmake flex git libedit-dev <span class="kw">\</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a>  <span class="ex">libllvm14</span> llvm-14-dev libclang-14-dev python3 zlib1g-dev libelf-dev <span class="kw">\</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true"></a>  <span class="ex">libfl-dev</span> python3-pip</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true"></a></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true"></a><span class="co"># 安装其他依赖</span></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y arping clang-14 dh-python libdbus-1-dev libluajit-5.1-dev <span class="kw">\</span></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true"></a>  <span class="ex">luajit</span> libpcap-dev libpython3-dev libzip-dev python3-netaddr python3-pyroute2</span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true"></a></span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true"></a><span class="co"># 安装内核头文件</span></span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y linux-headers-<span class="va">$(</span><span class="fu">uname</span> -r<span class="va">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="co"># 安装基本依赖</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bison build-essential cmake flex git libedit-dev <span class="kw">\</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a>  <span class="ex">libllvm14</span> llvm-14-dev libclang-14-dev python3 zlib1g-dev libelf-dev <span class="kw">\</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true"></a>  <span class="ex">libfl-dev</span> python3-pip</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a><span class="co"># 安装其他依赖</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y arping clang-14 dh-python libdbus-1-dev libluajit-5.1-dev <span class="kw">\</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true"></a>  <span class="ex">luajit</span> libpcap-dev libpython3-dev libzip-dev python3-netaddr python3-pyroute2</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true"></a></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true"></a><span class="co"># 安装内核头文件</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y linux-headers-<span class="va">$(</span><span class="fu">uname</span> -r<span class="va">)</span></span></code></pre></div>
 <h6 id="步骤2克隆bcc仓库">步骤2：克隆BCC仓库</h6>
-<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="bu">cd</span> ~</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="fu">git</span> clone https://github.com/iovisor/bcc.git</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a><span class="co"># 如果遇到网络问题，可以使用国内镜像：</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a><span class="co"># git clone https://gitee.com/mirrors/bcc.git</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="bu">cd</span> ~</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a><span class="fu">git</span> clone https://github.com/iovisor/bcc.git</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a><span class="co"># 如果遇到网络问题，可以使用国内镜像：</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a><span class="co"># git clone https://gitee.com/mirrors/bcc.git</span></span></code></pre></div>
 <h6 id="步骤3编译和安装">步骤3：编译和安装</h6>
-<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="fu">mkdir</span> -p ~/bcc/build <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/bcc/build</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a><span class="fu">cmake</span> -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_CMD=python3 ..</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">nproc</span><span class="va">)</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a><span class="fu">sudo</span> make install</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="fu">mkdir</span> -p ~/bcc/build <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/bcc/build</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a><span class="fu">cmake</span> -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_CMD=python3 ..</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">nproc</span><span class="va">)</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a><span class="fu">sudo</span> make install</span></code></pre></div>
 <h6 id="步骤4验证安装">步骤4：验证安装</h6>
-<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a><span class="co"># 测试BCC工具</span></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true"></a><span class="fu">sudo</span> /usr/share/bcc/tools/execsnoop</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a><span class="co"># 测试BCC工具</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a><span class="fu">sudo</span> /usr/share/bcc/tools/execsnoop</span></code></pre></div>
 <h5 id="创建并运行自己的bcc程序">创建并运行自己的BCC程序</h5>
-<div class="sourceCode" id="cb29"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="co"># 文件名: test_bcc.py</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a><span class="im">from</span> bcc <span class="im">import</span> BPF</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a></span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a><span class="co"># 定义BPF程序</span></span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true"></a>program <span class="op">=</span> <span class="st">&quot;&quot;&quot;</span></span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true"></a><span class="st">int hello(void *ctx) {</span></span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true"></a><span class="st">    bpf_trace_printk(&quot;Hello, BCC!</span><span class="ch">\\</span><span class="st">n&quot;);</span></span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true"></a><span class="st">    return 0;</span></span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true"></a><span class="st">}</span></span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true"></a><span class="st">&quot;&quot;&quot;</span></span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true"></a></span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true"></a><span class="co"># 加载BPF程序</span></span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true"></a>b <span class="op">=</span> BPF(text<span class="op">=</span>program)</span>
-<span id="cb29-15"><a href="#cb29-15" aria-hidden="true"></a>b.attach_kprobe(event<span class="op">=</span>b.get_syscall_fnname(<span class="st">&quot;clone&quot;</span>), fn_name<span class="op">=</span><span class="st">&quot;hello&quot;</span>)</span>
-<span id="cb29-16"><a href="#cb29-16" aria-hidden="true"></a></span>
-<span id="cb29-17"><a href="#cb29-17" aria-hidden="true"></a><span class="co"># 打印头部</span></span>
-<span id="cb29-18"><a href="#cb29-18" aria-hidden="true"></a><span class="bu">print</span>(<span class="st">&quot;正在跟踪clone()系统调用...&quot;</span>)</span>
-<span id="cb29-19"><a href="#cb29-19" aria-hidden="true"></a><span class="bu">print</span>(<span class="st">&quot;按Ctrl+C退出&quot;</span>)</span>
-<span id="cb29-20"><a href="#cb29-20" aria-hidden="true"></a></span>
-<span id="cb29-21"><a href="#cb29-21" aria-hidden="true"></a><span class="co"># 读取并打印trace输出</span></span>
-<span id="cb29-22"><a href="#cb29-22" aria-hidden="true"></a><span class="cf">try</span>:</span>
-<span id="cb29-23"><a href="#cb29-23" aria-hidden="true"></a>    b.trace_print()</span>
-<span id="cb29-24"><a href="#cb29-24" aria-hidden="true"></a><span class="cf">except</span> <span class="pp">KeyboardInterrupt</span>:</span>
-<span id="cb29-25"><a href="#cb29-25" aria-hidden="true"></a>    <span class="cf">pass</span></span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="co"># 文件名: test_bcc.py</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a><span class="im">from</span> bcc <span class="im">import</span> BPF</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a><span class="co"># 定义BPF程序</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true"></a>program <span class="op">=</span> <span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true"></a><span class="st">int hello(void *ctx) {</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true"></a><span class="st">    bpf_trace_printk(&quot;Hello, BCC!</span><span class="ch">\\</span><span class="st">n&quot;);</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true"></a><span class="st">    return 0;</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true"></a><span class="st">}</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true"></a><span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true"></a></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true"></a><span class="co"># 加载BPF程序</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true"></a>b <span class="op">=</span> BPF(text<span class="op">=</span>program)</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true"></a>b.attach_kprobe(event<span class="op">=</span>b.get_syscall_fnname(<span class="st">&quot;clone&quot;</span>), fn_name<span class="op">=</span><span class="st">&quot;hello&quot;</span>)</span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true"></a></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true"></a><span class="co"># 打印头部</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true"></a><span class="bu">print</span>(<span class="st">&quot;正在跟踪clone()系统调用...&quot;</span>)</span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true"></a><span class="bu">print</span>(<span class="st">&quot;按Ctrl+C退出&quot;</span>)</span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true"></a></span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true"></a><span class="co"># 读取并打印trace输出</span></span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true"></a><span class="cf">try</span>:</span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true"></a>    b.trace_print()</span>
+<span id="cb30-24"><a href="#cb30-24" aria-hidden="true"></a><span class="cf">except</span> <span class="pp">KeyboardInterrupt</span>:</span>
+<span id="cb30-25"><a href="#cb30-25" aria-hidden="true"></a>    <span class="cf">pass</span></span></code></pre></div>
 <p>运行此脚本：</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="fu">chmod</span> +x test_bcc.py</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="fu">sudo</span> ./test_bcc.py</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="fu">chmod</span> +x test_bcc.py</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a><span class="fu">sudo</span> ./test_bcc.py</span></code></pre></div>
 <h5 id="常用bcc工具">常用BCC工具</h5>
 <p>BCC安装后提供了许多强大的工具，包括：</p>
 <ul>
@@ -506,166 +510,165 @@ df -hT | grep nfs4
 # localhost:/nfs_share nfs4   503G   41G  437G    9% /mnt/nfs_test
 
 # 写操作
-# dd if=/dev/urandom of=/mnt/nfs_test/large_file.dat bs=1M count=10 status=progress</code></pre>
+ dd if=/dev/urandom of=/mnt/nfs_test/large_file.dat bs=1M count=10 status=progress</code></pre>
 <h4 id="nfs_latency测试">1.nfs_latency测试</h4>
-<p>用bpf获取rpc执行时间戳，计算函数执行时间这个代码是记录每调用一次rpc，就记录调用的rpc时间。代码具体用到了hashmap去存储每个进程号、当前时间戳。用数组去记录进程的pid和对应的耗时时间。</p>
-<h5> 原始代码</h5>
-<div class="sourceCode" id="cb33"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a>nfs.bpf.c</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a><span class="co">// SPDX-License-Identifier: GPL-2.0</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;vmlinux.h&quot;</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/bpf_helpers.h&gt;</span></span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/bpf_tracing.h&gt;</span></span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true"></a></span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true"></a><span class="dt">char</span> LICENSE[] SEC(<span class="st">&quot;license&quot;</span>) = <span class="st">&quot;GPL&quot;</span>;</span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true"></a></span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true"></a>    u32 pid;       <span class="co">//pid进程</span></span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true"></a>    u64 delta_ns;   <span class="co">//耗时时间</span></span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>];   <span class="co">//进程名</span></span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true"></a>};</span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true"></a></span>
-<span id="cb33-15"><a href="#cb33-15" aria-hidden="true"></a><span class="kw">struct</span> {</span>
-<span id="cb33-16"><a href="#cb33-16" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_HASH); <span class="co">//指定类型是BPF_MAP_TYPE_HASH ----哈希表</span></span>
-<span id="cb33-17"><a href="#cb33-17" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">4096</span>);          <span class="co">//最大key数量=4096</span></span>
-<span id="cb33-18"><a href="#cb33-18" aria-hidden="true"></a>    __type(key, u64);       </span>
-<span id="cb33-19"><a href="#cb33-19" aria-hidden="true"></a>    __type(value, u64);</span>
-<span id="cb33-20"><a href="#cb33-20" aria-hidden="true"></a>} start SEC(<span class="st">&quot;.maps&quot;</span>);  <span class="co">//SEC是指定将这个结构体放在BPF的.maps段中，在BPF中，段是一种组织代码和数据的方式</span></span>
-<span id="cb33-21"><a href="#cb33-21" aria-hidden="true"></a></span>
-<span id="cb33-22"><a href="#cb33-22" aria-hidden="true"></a><span class="kw">struct</span> {</span>
-<span id="cb33-23"><a href="#cb33-23" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
-<span id="cb33-24"><a href="#cb33-24" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span>
-<span id="cb33-25"><a href="#cb33-25" aria-hidden="true"></a></span>
-<span id="cb33-26"><a href="#cb33-26" aria-hidden="true"></a>SEC(<span class="st">&quot;kprobe/rpc_call_start&quot;</span>)   <span class="co">//表示这个 BPF 程序会被加载到内核中，并在每次rpc_call_start内核函数被调用时触发执行，也就是rpc_start开始执行时触发</span></span>
-<span id="cb33-27"><a href="#cb33-27" aria-hidden="true"></a><span class="dt">int</span> BPF_KPROBE(handle_rpc_start)  <span class="co">//BPF_KPROBE是一个宏用于定义一个 kprobe 类型的 BPF 程序</span></span>
-<span id="cb33-28"><a href="#cb33-28" aria-hidden="true"></a>{</span>
-<span id="cb33-29"><a href="#cb33-29" aria-hidden="true"></a>    u64 tid = bpf_get_current_pid_tgid();           <span class="co">//获取当前PID和TGID</span></span>
-<span id="cb33-30"><a href="#cb33-30" aria-hidden="true"></a>    u64 ts = bpf_ktime_get_ns();                <span class="co">//获取当前的时间戳</span></span>
-<span id="cb33-31"><a href="#cb33-31" aria-hidden="true"></a>    bpf_map_update_elem(&amp;start, &amp;tid, &amp;ts, BPF_ANY); <span class="co">//向start哈希表里面更新数据，PF_ANY 表示如果键已存在，则更新值；如果键不存在，则插入新键值对</span></span>
-<span id="cb33-32"><a href="#cb33-32" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb33-33"><a href="#cb33-33" aria-hidden="true"></a>}</span>
-<span id="cb33-34"><a href="#cb33-34" aria-hidden="true"></a></span>
-<span id="cb33-35"><a href="#cb33-35" aria-hidden="true"></a>SEC(<span class="st">&quot;kretprobe/rpc_call_done&quot;</span>)</span>
-<span id="cb33-36"><a href="#cb33-36" aria-hidden="true"></a><span class="dt">int</span> BPF_KRETPROBE(handle_rpc_done)</span>
-<span id="cb33-37"><a href="#cb33-37" aria-hidden="true"></a>{</span>
-<span id="cb33-38"><a href="#cb33-38" aria-hidden="true"></a>    u64 tid = bpf_get_current_pid_tgid();</span>
-<span id="cb33-39"><a href="#cb33-39" aria-hidden="true"></a>    u64 *tsp = bpf_map_lookup_elem(&amp;start, &amp;tid);</span>
-<span id="cb33-40"><a href="#cb33-40" aria-hidden="true"></a>    <span class="cf">if</span> (!tsp)</span>
-<span id="cb33-41"><a href="#cb33-41" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb33-42"><a href="#cb33-42" aria-hidden="true"></a></span>
-<span id="cb33-43"><a href="#cb33-43" aria-hidden="true"></a>    u64 delta = bpf_ktime_get_ns() - *tsp;   <span class="co">//当前时间戳与hashmap中的时间戳进行计算，得到执行时间。</span></span>
-<span id="cb33-44"><a href="#cb33-44" aria-hidden="true"></a>    bpf_map_delete_elem(&amp;start, &amp;tid);</span>
-<span id="cb33-45"><a href="#cb33-45" aria-hidden="true"></a></span>
-<span id="cb33-46"><a href="#cb33-46" aria-hidden="true"></a>    <span class="kw">struct</span> event e = {};</span>
-<span id="cb33-47"><a href="#cb33-47" aria-hidden="true"></a>    e.pid = tid &gt;&gt; <span class="dv">32</span>;</span>
-<span id="cb33-48"><a href="#cb33-48" aria-hidden="true"></a>    e.delta_ns = delta;             </span>
-<span id="cb33-49"><a href="#cb33-49" aria-hidden="true"></a>    bpf_get_current_comm(&amp;e.comm, <span class="kw">sizeof</span>(e.comm));  <span class="co">//获取数据存储到event结构体里面</span></span>
-<span id="cb33-50"><a href="#cb33-50" aria-hidden="true"></a></span>
-<span id="cb33-51"><a href="#cb33-51" aria-hidden="true"></a>    bpf_perf_event_output(ctx, &amp;events, BPF_F_CURRENT_CPU, &amp;e, <span class="kw">sizeof</span>(e)); <span class="co">//</span></span>
-<span id="cb33-52"><a href="#cb33-52" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb33-53"><a href="#cb33-53" aria-hidden="true"></a>}</span>
-<span id="cb33-54"><a href="#cb33-54" aria-hidden="true"></a>nfs.c</span>
-<span id="cb33-55"><a href="#cb33-55" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb33-56"><a href="#cb33-56" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
-<span id="cb33-57"><a href="#cb33-57" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;signal.h&gt;</span></span>
-<span id="cb33-58"><a href="#cb33-58" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/libbpf.h&gt;</span></span>
-<span id="cb33-59"><a href="#cb33-59" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;nfs.skel.h&quot;</span></span>
-<span id="cb33-60"><a href="#cb33-60" aria-hidden="true"></a></span>
-<span id="cb33-61"><a href="#cb33-61" aria-hidden="true"></a><span class="dt">static</span> <span class="dt">volatile</span> <span class="dt">bool</span> exiting = false;</span>
-<span id="cb33-62"><a href="#cb33-62" aria-hidden="true"></a></span>
-<span id="cb33-63"><a href="#cb33-63" aria-hidden="true"></a><span class="co">//用户态</span></span>
-<span id="cb33-64"><a href="#cb33-64" aria-hidden="true"></a><span class="dt">void</span> handle_event(<span class="dt">void</span> *ctx, <span class="dt">int</span> cpu, <span class="dt">void</span> *data, __u32 size) <span class="co">//BPF 程序输出性能事件时，这个函数会被调用。</span></span>
-<span id="cb33-65"><a href="#cb33-65" aria-hidden="true"></a>{</span>
-<span id="cb33-66"><a href="#cb33-66" aria-hidden="true"></a>    <span class="kw">struct</span> event *e = data;</span>
-<span id="cb33-67"><a href="#cb33-67" aria-hidden="true"></a>    printf(<span class="st">&quot;PID %d (%s): %.2f ms</span><span class="sc">\n</span><span class="st">&quot;</span>, e-&gt;pid, e-&gt;comm, e-&gt;delta_ns / <span class="fl">1e6</span>);</span>
-<span id="cb33-68"><a href="#cb33-68" aria-hidden="true"></a>}</span>
-<span id="cb33-69"><a href="#cb33-69" aria-hidden="true"></a></span>
-<span id="cb33-70"><a href="#cb33-70" aria-hidden="true"></a><span class="dt">void</span> handle_lost(<span class="dt">void</span> *ctx, <span class="dt">int</span> cpu, __u64 lost) <span class="co">//当有事件数据丢失时，这个函数会被调用</span></span>
-<span id="cb33-71"><a href="#cb33-71" aria-hidden="true"></a>{</span>
-<span id="cb33-72"><a href="#cb33-72" aria-hidden="true"></a>    fprintf(stderr, <span class="st">&quot;Lost %llu events on CPU %d</span><span class="sc">\n</span><span class="st">&quot;</span>, lost, cpu);</span>
-<span id="cb33-73"><a href="#cb33-73" aria-hidden="true"></a>}</span>
-<span id="cb33-74"><a href="#cb33-74" aria-hidden="true"></a></span>
-<span id="cb33-75"><a href="#cb33-75" aria-hidden="true"></a><span class="dt">void</span> sig_handler(<span class="dt">int</span> sig)</span>
-<span id="cb33-76"><a href="#cb33-76" aria-hidden="true"></a>{</span>
-<span id="cb33-77"><a href="#cb33-77" aria-hidden="true"></a>    exiting = true;</span>
-<span id="cb33-78"><a href="#cb33-78" aria-hidden="true"></a>}</span>
-<span id="cb33-79"><a href="#cb33-79" aria-hidden="true"></a></span>
-<span id="cb33-80"><a href="#cb33-80" aria-hidden="true"></a><span class="dt">int</span> main()</span>
-<span id="cb33-81"><a href="#cb33-81" aria-hidden="true"></a>{</span>
-<span id="cb33-82"><a href="#cb33-82" aria-hidden="true"></a>    <span class="kw">struct</span> nfs_bpf *skel;</span>
-<span id="cb33-83"><a href="#cb33-83" aria-hidden="true"></a>    <span class="dt">int</span> err;</span>
-<span id="cb33-84"><a href="#cb33-84" aria-hidden="true"></a></span>
-<span id="cb33-85"><a href="#cb33-85" aria-hidden="true"></a>    signal(SIGINT, sig_handler);</span>
-<span id="cb33-86"><a href="#cb33-86" aria-hidden="true"></a>    signal(SIGTERM, sig_handler); <span class="co">//注册信号处理程序，以便在收到 SIGINT 或 SIGTERM 时调用 sig_handler，</span></span>
-<span id="cb33-87"><a href="#cb33-87" aria-hidden="true"></a></span>
-<span id="cb33-88"><a href="#cb33-88" aria-hidden="true"></a>    skel = nfs_bpf__open();</span>
-<span id="cb33-89"><a href="#cb33-89" aria-hidden="true"></a>    <span class="cf">if</span> (!skel) {</span>
-<span id="cb33-90"><a href="#cb33-90" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to open skeleton</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
-<span id="cb33-91"><a href="#cb33-91" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
-<span id="cb33-92"><a href="#cb33-92" aria-hidden="true"></a>    }</span>
-<span id="cb33-93"><a href="#cb33-93" aria-hidden="true"></a></span>
-<span id="cb33-94"><a href="#cb33-94" aria-hidden="true"></a>    err = nfs_bpf__load(skel);</span>
-<span id="cb33-95"><a href="#cb33-95" aria-hidden="true"></a>    <span class="cf">if</span> (err) {</span>
-<span id="cb33-96"><a href="#cb33-96" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to load skeleton</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
-<span id="cb33-97"><a href="#cb33-97" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
-<span id="cb33-98"><a href="#cb33-98" aria-hidden="true"></a>    }</span>
-<span id="cb33-99"><a href="#cb33-99" aria-hidden="true"></a></span>
-<span id="cb33-100"><a href="#cb33-100" aria-hidden="true"></a>    err = nfs_bpf__attach(skel);    <span class="co">//将 BPF 程序附加到内核中的 kprobe 和 kretprobe 点</span></span>
-<span id="cb33-101"><a href="#cb33-101" aria-hidden="true"></a>    <span class="cf">if</span> (err) {</span>
-<span id="cb33-102"><a href="#cb33-102" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to attach</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
-<span id="cb33-103"><a href="#cb33-103" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
-<span id="cb33-104"><a href="#cb33-104" aria-hidden="true"></a>    }</span>
-<span id="cb33-105"><a href="#cb33-105" aria-hidden="true"></a></span>
-<span id="cb33-106"><a href="#cb33-106" aria-hidden="true"></a>    printf(<span class="st">&quot;Tracing NFS client RPC latency... Ctrl+C to exit</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
-<span id="cb33-107"><a href="#cb33-107" aria-hidden="true"></a></span>
-<span id="cb33-108"><a href="#cb33-108" aria-hidden="true"></a>    <span class="kw">struct</span> perf_buffer *pb = NULL;</span>
-<span id="cb33-109"><a href="#cb33-109" aria-hidden="true"></a>    pb = perf_buffer__new(bpf_map__fd(skel-&gt;maps.events), <span class="dv">8</span>,</span>
-<span id="cb33-110"><a href="#cb33-110" aria-hidden="true"></a>                          handle_event, handle_lost, NULL, NULL);  <span class="co">//创建缓冲区来接收程序输出的事件数据</span></span>
-<span id="cb33-111"><a href="#cb33-111" aria-hidden="true"></a>    <span class="cf">if</span> (!pb) {</span>
-<span id="cb33-112"><a href="#cb33-112" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to open perf buffer</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
-<span id="cb33-113"><a href="#cb33-113" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
-<span id="cb33-114"><a href="#cb33-114" aria-hidden="true"></a>    }</span>
-<span id="cb33-115"><a href="#cb33-115" aria-hidden="true"></a></span>
-<span id="cb33-116"><a href="#cb33-116" aria-hidden="true"></a>    <span class="cf">while</span> (!exiting)</span>
-<span id="cb33-117"><a href="#cb33-117" aria-hidden="true"></a>        perf_buffer__poll(pb, <span class="dv">100</span>);  <span class="co">//轮询缓冲区，等待事件数据的到来， poll轮询可以快速响应。</span></span>
-<span id="cb33-118"><a href="#cb33-118" aria-hidden="true"></a></span>
-<span id="cb33-119"><a href="#cb33-119" aria-hidden="true"></a>    perf_buffer__free(pb);</span>
-<span id="cb33-120"><a href="#cb33-120" aria-hidden="true"></a>    nfs_bpf__destroy(skel);</span>
-<span id="cb33-121"><a href="#cb33-121" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb33-122"><a href="#cb33-122" aria-hidden="true"></a>}</span></code></pre></div>
+<p>用bpf获取rpc执行时间戳，计算函数执行时间这个代码是记录每调用一次rpc，就记录调用的rpc时间。代码具体用到了hashmap去存储每个进程号、当前时间戳。用数组去记录进程的pid和对应的耗时时间。 ##### 原始代码</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a>nfs.bpf.c</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true"></a><span class="co">// SPDX-License-Identifier: GPL-2.0</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;vmlinux.h&quot;</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/bpf_helpers.h&gt;</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/bpf_tracing.h&gt;</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true"></a></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true"></a><span class="dt">char</span> LICENSE[] SEC(<span class="st">&quot;license&quot;</span>) = <span class="st">&quot;GPL&quot;</span>;</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true"></a></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true"></a>    u32 pid;       <span class="co">//pid进程</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true"></a>    u64 delta_ns;   <span class="co">//耗时时间</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>];   <span class="co">//进程名</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true"></a>};</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true"></a></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true"></a><span class="kw">struct</span> {</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_HASH); <span class="co">//指定类型是BPF_MAP_TYPE_HASH ----哈希表</span></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">4096</span>);          <span class="co">//最大key数量=4096</span></span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true"></a>    __type(key, u64);       </span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true"></a>    __type(value, u64);</span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true"></a>} start SEC(<span class="st">&quot;.maps&quot;</span>);  <span class="co">//SEC是指定将这个结构体放在BPF的.maps段中，在BPF中，段是一种组织代码和数据的方式</span></span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true"></a></span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true"></a><span class="kw">struct</span> {</span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true"></a></span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true"></a>SEC(<span class="st">&quot;kprobe/rpc_call_start&quot;</span>)   <span class="co">//表示这个 BPF 程序会被加载到内核中，并在每次rpc_call_start内核函数被调用时触发执行，也就是rpc_start开始执行时触发</span></span>
+<span id="cb34-27"><a href="#cb34-27" aria-hidden="true"></a><span class="dt">int</span> BPF_KPROBE(handle_rpc_start)  <span class="co">//BPF_KPROBE是一个宏用于定义一个 kprobe 类型的 BPF 程序</span></span>
+<span id="cb34-28"><a href="#cb34-28" aria-hidden="true"></a>{</span>
+<span id="cb34-29"><a href="#cb34-29" aria-hidden="true"></a>    u64 tid = bpf_get_current_pid_tgid();           <span class="co">//获取当前PID和TGID</span></span>
+<span id="cb34-30"><a href="#cb34-30" aria-hidden="true"></a>    u64 ts = bpf_ktime_get_ns();                <span class="co">//获取当前的时间戳</span></span>
+<span id="cb34-31"><a href="#cb34-31" aria-hidden="true"></a>    bpf_map_update_elem(&amp;start, &amp;tid, &amp;ts, BPF_ANY); <span class="co">//向start哈希表里面更新数据，PF_ANY 表示如果键已存在，则更新值；如果键不存在，则插入新键值对</span></span>
+<span id="cb34-32"><a href="#cb34-32" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb34-33"><a href="#cb34-33" aria-hidden="true"></a>}</span>
+<span id="cb34-34"><a href="#cb34-34" aria-hidden="true"></a></span>
+<span id="cb34-35"><a href="#cb34-35" aria-hidden="true"></a>SEC(<span class="st">&quot;kretprobe/rpc_call_done&quot;</span>)</span>
+<span id="cb34-36"><a href="#cb34-36" aria-hidden="true"></a><span class="dt">int</span> BPF_KRETPROBE(handle_rpc_done)</span>
+<span id="cb34-37"><a href="#cb34-37" aria-hidden="true"></a>{</span>
+<span id="cb34-38"><a href="#cb34-38" aria-hidden="true"></a>    u64 tid = bpf_get_current_pid_tgid();</span>
+<span id="cb34-39"><a href="#cb34-39" aria-hidden="true"></a>    u64 *tsp = bpf_map_lookup_elem(&amp;start, &amp;tid);</span>
+<span id="cb34-40"><a href="#cb34-40" aria-hidden="true"></a>    <span class="cf">if</span> (!tsp)</span>
+<span id="cb34-41"><a href="#cb34-41" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb34-42"><a href="#cb34-42" aria-hidden="true"></a></span>
+<span id="cb34-43"><a href="#cb34-43" aria-hidden="true"></a>    u64 delta = bpf_ktime_get_ns() - *tsp;   <span class="co">//当前时间戳与hashmap中的时间戳进行计算，得到执行时间。</span></span>
+<span id="cb34-44"><a href="#cb34-44" aria-hidden="true"></a>    bpf_map_delete_elem(&amp;start, &amp;tid);</span>
+<span id="cb34-45"><a href="#cb34-45" aria-hidden="true"></a></span>
+<span id="cb34-46"><a href="#cb34-46" aria-hidden="true"></a>    <span class="kw">struct</span> event e = {};</span>
+<span id="cb34-47"><a href="#cb34-47" aria-hidden="true"></a>    e.pid = tid &gt;&gt; <span class="dv">32</span>;</span>
+<span id="cb34-48"><a href="#cb34-48" aria-hidden="true"></a>    e.delta_ns = delta;             </span>
+<span id="cb34-49"><a href="#cb34-49" aria-hidden="true"></a>    bpf_get_current_comm(&amp;e.comm, <span class="kw">sizeof</span>(e.comm));  <span class="co">//获取数据存储到event结构体里面</span></span>
+<span id="cb34-50"><a href="#cb34-50" aria-hidden="true"></a></span>
+<span id="cb34-51"><a href="#cb34-51" aria-hidden="true"></a>    bpf_perf_event_output(ctx, &amp;events, BPF_F_CURRENT_CPU, &amp;e, <span class="kw">sizeof</span>(e)); <span class="co">//</span></span>
+<span id="cb34-52"><a href="#cb34-52" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb34-53"><a href="#cb34-53" aria-hidden="true"></a>}</span>
+<span id="cb34-54"><a href="#cb34-54" aria-hidden="true"></a>nfs.c</span>
+<span id="cb34-55"><a href="#cb34-55" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb34-56"><a href="#cb34-56" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb34-57"><a href="#cb34-57" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;signal.h&gt;</span></span>
+<span id="cb34-58"><a href="#cb34-58" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/libbpf.h&gt;</span></span>
+<span id="cb34-59"><a href="#cb34-59" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;nfs.skel.h&quot;</span></span>
+<span id="cb34-60"><a href="#cb34-60" aria-hidden="true"></a></span>
+<span id="cb34-61"><a href="#cb34-61" aria-hidden="true"></a><span class="dt">static</span> <span class="dt">volatile</span> <span class="dt">bool</span> exiting = false;</span>
+<span id="cb34-62"><a href="#cb34-62" aria-hidden="true"></a></span>
+<span id="cb34-63"><a href="#cb34-63" aria-hidden="true"></a><span class="co">//用户态</span></span>
+<span id="cb34-64"><a href="#cb34-64" aria-hidden="true"></a><span class="dt">void</span> handle_event(<span class="dt">void</span> *ctx, <span class="dt">int</span> cpu, <span class="dt">void</span> *data, __u32 size) <span class="co">//BPF 程序输出性能事件时，这个函数会被调用。</span></span>
+<span id="cb34-65"><a href="#cb34-65" aria-hidden="true"></a>{</span>
+<span id="cb34-66"><a href="#cb34-66" aria-hidden="true"></a>    <span class="kw">struct</span> event *e = data;</span>
+<span id="cb34-67"><a href="#cb34-67" aria-hidden="true"></a>    printf(<span class="st">&quot;PID %d (%s): %.2f ms</span><span class="sc">\n</span><span class="st">&quot;</span>, e-&gt;pid, e-&gt;comm, e-&gt;delta_ns / <span class="fl">1e6</span>);</span>
+<span id="cb34-68"><a href="#cb34-68" aria-hidden="true"></a>}</span>
+<span id="cb34-69"><a href="#cb34-69" aria-hidden="true"></a></span>
+<span id="cb34-70"><a href="#cb34-70" aria-hidden="true"></a><span class="dt">void</span> handle_lost(<span class="dt">void</span> *ctx, <span class="dt">int</span> cpu, __u64 lost) <span class="co">//当有事件数据丢失时，这个函数会被调用</span></span>
+<span id="cb34-71"><a href="#cb34-71" aria-hidden="true"></a>{</span>
+<span id="cb34-72"><a href="#cb34-72" aria-hidden="true"></a>    fprintf(stderr, <span class="st">&quot;Lost %llu events on CPU %d</span><span class="sc">\n</span><span class="st">&quot;</span>, lost, cpu);</span>
+<span id="cb34-73"><a href="#cb34-73" aria-hidden="true"></a>}</span>
+<span id="cb34-74"><a href="#cb34-74" aria-hidden="true"></a></span>
+<span id="cb34-75"><a href="#cb34-75" aria-hidden="true"></a><span class="dt">void</span> sig_handler(<span class="dt">int</span> sig)</span>
+<span id="cb34-76"><a href="#cb34-76" aria-hidden="true"></a>{</span>
+<span id="cb34-77"><a href="#cb34-77" aria-hidden="true"></a>    exiting = true;</span>
+<span id="cb34-78"><a href="#cb34-78" aria-hidden="true"></a>}</span>
+<span id="cb34-79"><a href="#cb34-79" aria-hidden="true"></a></span>
+<span id="cb34-80"><a href="#cb34-80" aria-hidden="true"></a><span class="dt">int</span> main()</span>
+<span id="cb34-81"><a href="#cb34-81" aria-hidden="true"></a>{</span>
+<span id="cb34-82"><a href="#cb34-82" aria-hidden="true"></a>    <span class="kw">struct</span> nfs_bpf *skel;</span>
+<span id="cb34-83"><a href="#cb34-83" aria-hidden="true"></a>    <span class="dt">int</span> err;</span>
+<span id="cb34-84"><a href="#cb34-84" aria-hidden="true"></a></span>
+<span id="cb34-85"><a href="#cb34-85" aria-hidden="true"></a>    signal(SIGINT, sig_handler);</span>
+<span id="cb34-86"><a href="#cb34-86" aria-hidden="true"></a>    signal(SIGTERM, sig_handler); <span class="co">//注册信号处理程序，以便在收到 SIGINT 或 SIGTERM 时调用 sig_handler，</span></span>
+<span id="cb34-87"><a href="#cb34-87" aria-hidden="true"></a></span>
+<span id="cb34-88"><a href="#cb34-88" aria-hidden="true"></a>    skel = nfs_bpf__open();</span>
+<span id="cb34-89"><a href="#cb34-89" aria-hidden="true"></a>    <span class="cf">if</span> (!skel) {</span>
+<span id="cb34-90"><a href="#cb34-90" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to open skeleton</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb34-91"><a href="#cb34-91" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb34-92"><a href="#cb34-92" aria-hidden="true"></a>    }</span>
+<span id="cb34-93"><a href="#cb34-93" aria-hidden="true"></a></span>
+<span id="cb34-94"><a href="#cb34-94" aria-hidden="true"></a>    err = nfs_bpf__load(skel);</span>
+<span id="cb34-95"><a href="#cb34-95" aria-hidden="true"></a>    <span class="cf">if</span> (err) {</span>
+<span id="cb34-96"><a href="#cb34-96" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to load skeleton</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb34-97"><a href="#cb34-97" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb34-98"><a href="#cb34-98" aria-hidden="true"></a>    }</span>
+<span id="cb34-99"><a href="#cb34-99" aria-hidden="true"></a></span>
+<span id="cb34-100"><a href="#cb34-100" aria-hidden="true"></a>    err = nfs_bpf__attach(skel);    <span class="co">//将 BPF 程序附加到内核中的 kprobe 和 kretprobe 点</span></span>
+<span id="cb34-101"><a href="#cb34-101" aria-hidden="true"></a>    <span class="cf">if</span> (err) {</span>
+<span id="cb34-102"><a href="#cb34-102" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to attach</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb34-103"><a href="#cb34-103" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb34-104"><a href="#cb34-104" aria-hidden="true"></a>    }</span>
+<span id="cb34-105"><a href="#cb34-105" aria-hidden="true"></a></span>
+<span id="cb34-106"><a href="#cb34-106" aria-hidden="true"></a>    printf(<span class="st">&quot;Tracing NFS client RPC latency... Ctrl+C to exit</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb34-107"><a href="#cb34-107" aria-hidden="true"></a></span>
+<span id="cb34-108"><a href="#cb34-108" aria-hidden="true"></a>    <span class="kw">struct</span> perf_buffer *pb = NULL;</span>
+<span id="cb34-109"><a href="#cb34-109" aria-hidden="true"></a>    pb = perf_buffer__new(bpf_map__fd(skel-&gt;maps.events), <span class="dv">8</span>,</span>
+<span id="cb34-110"><a href="#cb34-110" aria-hidden="true"></a>                          handle_event, handle_lost, NULL, NULL);  <span class="co">//创建缓冲区来接收程序输出的事件数据</span></span>
+<span id="cb34-111"><a href="#cb34-111" aria-hidden="true"></a>    <span class="cf">if</span> (!pb) {</span>
+<span id="cb34-112"><a href="#cb34-112" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to open perf buffer</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb34-113"><a href="#cb34-113" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb34-114"><a href="#cb34-114" aria-hidden="true"></a>    }</span>
+<span id="cb34-115"><a href="#cb34-115" aria-hidden="true"></a></span>
+<span id="cb34-116"><a href="#cb34-116" aria-hidden="true"></a>    <span class="cf">while</span> (!exiting)</span>
+<span id="cb34-117"><a href="#cb34-117" aria-hidden="true"></a>        perf_buffer__poll(pb, <span class="dv">100</span>);  <span class="co">//轮询缓冲区，等待事件数据的到来， poll轮询可以快速响应。</span></span>
+<span id="cb34-118"><a href="#cb34-118" aria-hidden="true"></a></span>
+<span id="cb34-119"><a href="#cb34-119" aria-hidden="true"></a>    perf_buffer__free(pb);</span>
+<span id="cb34-120"><a href="#cb34-120" aria-hidden="true"></a>    nfs_bpf__destroy(skel);</span>
+<span id="cb34-121"><a href="#cb34-121" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb34-122"><a href="#cb34-122" aria-hidden="true"></a>}</span></code></pre></div>
 <h5 id="修改部分">修改部分</h5>
 <h6 id="error-当前目录下没有-vmlinux.h-文件这个文件在-nfs.bpf.c-中被引用">（1）error: 当前目录下没有 vmlinux.h 文件，这个文件在 nfs.bpf.c 中被引用</h6>
 <p><code>sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c &gt; vmlinux.h</code> 这条命令它从运行中的 Linux 内核中提取类型信息，并将其转换为 C 语言头文件格式</p>
 <h6 id="error-struct_event没有在nfs.c定义">（2）error: struct_event没有在nfs.c定义</h6>
-<div class="sourceCode" id="cb34"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true"></a>    __u32 pid;       <span class="co">// 进程 ID</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true"></a>    __u64 delta_ns;  <span class="co">// 耗时时间</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>]; <span class="co">// 进程名</span></span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true"></a>};</span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true"></a>    __u32 pid;       <span class="co">// 进程 ID</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true"></a>    __u64 delta_ns;  <span class="co">// 耗时时间</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>]; <span class="co">// 进程名</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true"></a>};</span></code></pre></div>
 <p>加入到nfs.c中。</p>
 <h6 id="perf_buffer__new-函数调用的参数数量不正确我们使用的参数是-6-个但函数定义只接受-3-个参数">（3）perf_buffer__new() 函数调用的参数数量不正确，我们使用的参数是 6 个，但函数定义只接受 3 个参数</h6>
 <p>那么我们来看一下函数正确的参数：</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a>perf_buffer__new(<span class="dt">int</span> map_fd, <span class="dt">size_t</span> page_cnt,</span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true"></a>                 <span class="dt">const</span> <span class="kw">struct</span> perf_buffer_opts *opts);</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true"></a>perf_buffer__new(<span class="dt">int</span> map_fd, <span class="dt">size_t</span> page_cnt,</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true"></a>                 <span class="dt">const</span> <span class="kw">struct</span> perf_buffer_opts *opts);</span></code></pre></div>
 <p>来看一下perf_buffer_opts结构体</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true"></a><span class="kw">struct</span> perf_buffer_opts {</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true"></a>        <span class="co">/* if specified, sample_cb is called for each sample */</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true"></a>        perf_buffer_sample_fn sample_cb;</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true"></a>        <span class="co">/* if specified, lost_cb is called for each batch of lost samples */</span></span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true"></a>        perf_buffer_lost_fn lost_cb;</span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true"></a>        <span class="co">/* ctx is provided to sample_cb and lost_cb */</span></span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true"></a>        <span class="dt">void</span> *ctx;</span>
-<span id="cb36-8"><a href="#cb36-8" aria-hidden="true"></a>};</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a><span class="kw">struct</span> perf_buffer_opts {</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true"></a>        <span class="co">/* if specified, sample_cb is called for each sample */</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true"></a>        perf_buffer_sample_fn sample_cb;</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true"></a>        <span class="co">/* if specified, lost_cb is called for each batch of lost samples */</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true"></a>        perf_buffer_lost_fn lost_cb;</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true"></a>        <span class="co">/* ctx is provided to sample_cb and lost_cb */</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true"></a>        <span class="dt">void</span> *ctx;</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true"></a>};</span></code></pre></div>
 <p>其实就可以看出，调用的API函数已经更新了，只有三个参数，新版本的API，是把事件回调、丢失事件回调、用户上下文放到结构体里面，然后进行结构体指针传参。</p>
 <h6 id="内核中有-rpc_call_start-函数但没有-rpc_call_done-函数导致程序.nfs无法加载">（4）内核中有 rpc_call_start 函数，但没有 rpc_call_done 函数。导致程序.nfs无法加载</h6>
 <p>同样可能是内核版本不同，将 rpc_call_done 改为 rpc_task_call_done</p>
 <h6 id="map-events-创建失败的问题">（5）map ‘events’ 创建失败的问题</h6>
 <p>map ‘events’: failed to create: Invalid argument 从这句提示可以看出 events的结构体定义不对，map定义，添加更多特定参数以满足内核要求：</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a><span class="kw">struct</span> {</span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true"></a>    __uint(key_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true"></a>    __uint(value_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">128</span>);</span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true"></a><span class="kw">struct</span> {</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true"></a>    __uint(key_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true"></a>    __uint(value_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">128</span>);</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span></code></pre></div>
 <h6 id="无法找到-rpc_task_call_done-函数进行-kretprobe">（6）无法找到 rpc_task_call_done 函数进行 kretprobe</h6>
 <p><code>sudo ls -la /sys/kernel/debug/tracing/events/sunrpc/</code> 输入指令后发现了 /sys/kernel/debug/tracing/events/sunrpc/rpc_task_call_done，这表明我们可以使用 tracepoint 而不是 kprobe,因此修改。</p>
 <h6 id="由此可以看出大部分都是版本问题">（7）由此可以看出大部分都是版本问题</h6>
@@ -673,20 +676,21 @@ df -hT | grep nfs4
 <li>我的libbpf版本是0.5.0， ubuntu的内核版本是6.8.0-59。</li>
 <li>perf_buffer API 变化，使用结构体传参。</li>
 <li>kprobe 到 tracepoint 的迁移、旧版本: 使用 kprobe/kretprobe 跟踪特定函数，新版本: 使用 tracepoint 跟踪标准化的事件点</li>
-<li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries </li>
+<li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries</li>
 </ol>
-<h5>最后通过nfs挂载测试</h5>
-<h6>本地挂载 NFS 共享</h6>
-<pre><code># 创建挂载点
-sudo mkdir -p /mnt/nfs                
+<h5 id="最后通过nfs挂载测试">最后通过nfs挂载测试</h5>
+<h6 id="本地挂载-nfs-共享-1">本地挂载 NFS 共享</h6>
+<pre><code>             
 # 挂载本地共享 (使用NFSv4协议)
-sudo mount -t nfs -o vers=4.1 localhost:/nfs_share /mnt/nfs                
+sudo mount -t nfs -o vers=4.1 localhost:/s_test /mnt                
 # 验证挂载
 df -hT | grep nfs4
 # 应输出类似：
-# localhost:/nfs_share nfs4   503G   41G  437G    9% /mnt/nfs                
+# localhost:/s_test 526802432 43963904 456005120    9% /mnt            
 # 写操作
-dd if=/dev/urandom of=/mnt/nfs_share bs=1M count=10 status=progress</code></pre>
+cd /mnt
+touch file
+dd if=/dev/urandom of=/mnt/file bs=1M count=10 status=progress</code></pre>
 <h6 id="运行脚本文件">运行脚本文件</h6>
 <pre><code>sudo make
 sudo ./nfs
@@ -714,6 +718,8 @@ PID 14807 (ls): 49.01 ms</code></pre>
 <li>客户端：<code>nfs_file_write</code>, <code>nfs_writepages</code>, <code>rpc_call_sync</code></li>
 <li>服务端：<code>nfsd_proc_write</code>, <code>vfs_writev</code></li>
 </ul>
+<h3 id="十二linux内核源码解读">十二、Linux内核源码解读</h3>
+<h4 id="linux内核源码解读"><a href="dingpenglong.com/Linux_kernel_CodeStudy">Linux内核源码解读</a></h4>
 <h3 id="遇到的常见问题的小tips">遇到的常见问题的小Tips</h3>
 <h4 id="虚拟机卡在了boot-form-hard-disk阶段">1. 虚拟机卡在了Boot form Hard Disk阶段</h4>
 <p>这种情况只能重装虚拟机系统<br />
@@ -751,5 +757,6 @@ PID 14807 (ls): 49.01 ms</code></pre>
 </ol></li>
 </ul>
 <h2 id="待办理">待办理</h2>
+<p>pandoc PersonStudyRecord.md -o linux-style.html -s –toc –css=linux-style.css</p>
 </body>
 </html>
