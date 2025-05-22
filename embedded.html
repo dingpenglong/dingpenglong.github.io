@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>embedded</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <link rel="stylesheet" href="theme.css" />
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#嵌入式-stm32rtoslinux-开发">嵌入式 STM32、RTOS、Linux 开发</a>
+<ul>
+<li><a href="#目录">目录</a></li>
+<li><a href="#泵浦激光器同步控制">泵浦激光器同步控制</a>
+<ul>
+<li><a href="#功能实现">功能实现</a></li>
+</ul></li>
+<li><a href="#nm-泵浦激光器项目">940nm 泵浦激光器项目</a>
+<ul>
+<li><a href="#smbus通信">SMBUS通信</a></li>
+<li><a href="#技术栈">技术栈</a></li>
+<li><a href="#硬件组成">硬件组成</a></li>
+<li><a href="#芯片通信及问题">芯片通信及问题</a></li>
+<li><a href="#pid-算法">PID 算法</a></li>
+</ul></li>
+<li><a href="#智能车载终端项目">智能车载终端项目</a>
+<ul>
+<li><a href="#技术栈-1">技术栈</a></li>
+<li><a href="#功能设计">功能设计</a></li>
+<li><a href="#天气界面">天气界面</a></li>
+<li><a href="#语音识别界面">语音识别界面</a></li>
+<li><a href="#驱动设计">驱动设计</a></li>
+</ul></li>
+<li><a href="#基于线程池的并发服务器">基于线程池的并发服务器</a>
+<ul>
+<li><a href="#技术栈-2">技术栈</a></li>
+<li><a href="#原理">原理</a></li>
+<li><a href="#socket-通信">Socket 通信</a></li>
+</ul></li>
+<li><a href="#基于空谱结合的卷积神经网络高光谱图像分类">基于空谱结合的卷积神经网络高光谱图像分类</a>
+<ul>
+<li><a href="#技术栈-3">技术栈</a></li>
+<li><a href="#算法步骤">算法步骤</a></li>
+</ul></li>
+<li><a href="#美赛-m-奖项目介绍">美赛 M 奖项目介绍</a>
+<ul>
+<li><a href="#技术栈-4">技术栈</a></li>
+<li><a href="#项目内容">项目内容</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="嵌入式-stm32rtoslinux-开发">嵌入式 STM32、RTOS、Linux 开发</h1>
+<h2 id="目录">目录</h2>
+<ol type="1">
+<li><a href="#泵浦激光器同步控制">泵浦激光器同步控制</a></li>
+<li><a href="#940nm泵浦激光器项目">940nm 泵浦激光器项目</a></li>
+<li><a href="#智能车载终端项目QT设计">智能车载终端项目 QT 设计</a></li>
+<li><a href="#基于线程池的并发服务器">基于线程池的并发服务器</a></li>
+<li><a href="#基于空谱结合的卷积神经网络高光谱图像分类">基于空谱结合的卷积神经网络高光谱图像分类</a></li>
+<li><a href="#美赛M奖项目介绍">美赛 M 奖项目介绍</a></li>
+</ol>
+<h2 id="泵浦激光器同步控制">泵浦激光器同步控制</h2>
+<p>这个项目是我在一家公司里面实现的，所以大部分代码不能开源出来，不够有些细节还是可以讨论。 ### 技术栈</p>
+<ul>
+<li><strong>硬件</strong> ：泵浦激光器、STM32 微控制器、串口通信模块、光电检测电路 OPT4001</li>
+<li><strong>软件</strong> ：嵌入式 C 语言、串口通信协议、环形缓冲区数据结构</li>
+<li><strong>通信协议</strong> ：自定义通信协议，包含帧头（4 字节）、数据长度、数据地址位、数据位、校验位，波特率 9600，16 进制收发</li>
+</ul>
+<h3 id="功能实现">功能实现</h3>
+<ul>
+<li><strong>功能制作</strong> ：实现了查询实时电流、查询当前最大电流、查询设置电流及设置电流等功能。依据泵浦的通信协议，通过 <code>SetTxMsg</code> 构造发送命令，利用 <code>SendMsg</code> 将命令打包成字节流经串口发送，再经 <code>ProcessUartResponse</code> 解析接收数据。接收数据采用环形缓冲区，串口中断时将数据写入缓冲区，另创建读取缓冲区处理函数读取数据。</li>
+<li><strong>通信协议</strong> ：波特率 9600，16 进制收发，含帧头（4 字节）、数据长度、数据地址位、数据位和校验位。</li>
+<li><strong>光电检测电路</strong> ：制作光电检测电路 OPT4001。提高灵敏度的方法：屏蔽外界光噪声，加滤波电路减参考电压噪声，采用前置放大器增信号分辨率，在软件上用滑动窗口平均滤波。放大器输入阻抗高、输出阻抗小。</li>
+</ul>
+<h2 id="nm-泵浦激光器项目">940nm 泵浦激光器项目</h2>
+<p>这个项目从方案调研、、芯片选型和硬件的制作、还有系统的设计都是我自己查阅资料和文献得来的，所以有问题可以邮箱联系我，或者可以看我GitHub上的开源代码。</p>
+<p><a href="https://github.com/dingpenglong/dingpenglong.github.io">项目地址</a></p>
+<h3 id="smbus通信">SMBUS通信</h3>
+<p>SMBUS通信并非一种常见的通信方式，因此需要查阅SMBUS通信的源码，这里我是看的ST公司的源码文档，里面详细记录了SMBUS通信。 SMBUS通信是什么？SMBus（System Management Bus）是由Intel于1995年推出的两线制串行通信总线，专为系统管理任务（如电源控制、温度监控等）设计，其基于I2C协议但针对可靠性和管理功能进行了优化。物理层采用开漏设计的SMBCLK（时钟线）和SMBDATA（数据线），需外接上拉电阻（通常至3.3V或5V），并遵循严格的电压阈值（如VIL=0.8V, VIH=2.1V）以增强抗噪能力，标准速率范围为10 kHz至100 kHz。协议层通过强制超时机制（如35ms无响应自动复位）、PEC校验（数据包错误检查）和预定义命令集（如0x44读取温度、0x14控制风扇）提升可靠性，同时支持扩展功能如SMBALERT#中断信号和主机通知协议，允许从设备主动上报事件。相较于I2C，SMBus在电气规范、超时限制及校验机制上更为严格，但速率通常较低（I2C可达5 MHz）。其广泛应用于笔记本电脑电池管理、服务器散热控制及嵌入式系统硬件监测等场景，开发时需注意上拉电阻匹配、协议合规性及工具调试，成为高可靠系统管理的核心通信方案</p>
+<p><a href="https://www.stmcu.com.cn/Designresource/detail/application_note/706433">ST官方手册</a></p>
+<h3 id="技术栈">技术栈</h3>
+<ul>
+<li><strong>硬件</strong> ：MCU 控制板、泵浦驱动板、ADS1220、TPS546D24A、DRB8412、二极管、电流防护保险丝、EMI 滤波器</li>
+<li><strong>软件</strong> ：嵌入式 C 语言、FreeRTOS 操作系统、SPI 通信、SMBUS 通信、I2C 通信、PID 算法、MATLAB 系统函数辨别工具箱</li>
+<li><strong>通信</strong> ：SPI、SMBUS、I2C 通信协议</li>
+</ul>
+<h3 id="硬件组成">硬件组成</h3>
+<ul>
+<li><strong>MCU 控制板</strong> ：三个串口分别解析上位机命令、PID 参数设置和 PID 曲线，预留串口屏拓展；有风扇控制接口（PWM 输出、PWM 捕获、GPIO 控制风扇关断引脚），其他接口用于 FPC 排线连接功率板。</li>
+<li><strong>功率板</strong> ：设二极管防反接、电流防护保险丝、EMI 滤波，搭载 ADS1220、TPS546D24A、drv8412 芯片，实现恒温、恒流驱动。采用四层板设计，顶层底层走线，第二层走 PGND，第三层走电源，分离 PGND 和 AGND 以优化散热。</li>
+</ul>
+<h3 id="芯片通信及问题">芯片通信及问题</h3>
+<ul>
+<li><strong>ADS1220</strong> ：SPI 通信，写读取数据函数需等 DRDY 信号才能采集数据，但通道转化过程易现数据错误。</li>
+<li><strong>TPS546D24A</strong> ：SMBUS 通信，因资料少致读取电流不准，靠 offset、gain 寄存器设读取电流偏移量。其寄存器多，配置复杂，存在从机地址不对、输出电压前需设 SCALE_LOOP 寄存器等问题，通信时需用 SMBUS 检错函数，且封装诸多检错函数。</li>
+<li><strong>DRV8412</strong> ：I2C 通信，配置 PH/EN 模式和 PWM 模式。</li>
+</ul>
+<h3 id="pid-算法">PID 算法</h3>
+<p>增加积分限幅、输出限幅，配置缓上升调节以保安全，可设步长、斜率速度。自整定 PID 用 ZN 法获震荡周期算 PID ，自适应 PID 根据误差大小引入不同调节项。借助 MATLAB 系统函数辨别工具箱获 PID 控制器系统函数及 P、I、D 参数。比例项快速响应误差，积分项消除稳态误差，微分项抑制振荡。 <strong>其实PID有很多高级的用法，但是我觉得最适合工程的PID才是最好的，模糊控制、神经网络等等都可以结合PID</strong></p>
+<h2 id="智能车载终端项目">智能车载终端项目</h2>
+<p>这个项目需要用到一个IMX6ULL开发板，正点原子和韦东山的都可以，然后买一个usb摄像头，就可以了。</p>
+<p><a href="https://gitcode.com/open-source-toolkit/0f937/?utm_source=tools_gitcode&amp;index=top&amp;type=card&amp;webUrl&amp;isLogin=1">项目地址</a></p>
+<h3 id="技术栈-1">技术栈</h3>
+<ul>
+<li><strong>软件</strong> ：QT 开发框架、QMediaPlayer 类、QVideoWidget 类、QNetworkAccessManager 类、QAudioRecorder 类、QAudioEncoderSettings 类</li>
+<li><strong>硬件</strong> ：USB 摄像头、AP3216 光传感器、DHT11 温湿度传感器、GPS Eco 模块、WM8960 音频编解码芯片</li>
+<li><strong>通信</strong> ：V4L2 API、I2C 通信、串口通信、HTTP 网络请求</li>
+</ul>
+<h3 id="功能设计">功能设计</h3>
+<ul>
+<li><strong>音乐播放器</strong> ：用 <code>QMediaPlayer</code> 类，通过 <code>stateChanged(QMediaPlayer::State state)</code> 判断状态实现播放、暂停、停止，需提前知晓路径。</li>
+<li><strong>视频播放器</strong> ：同用 <code>QMediaPlayer</code> 类，但需 <code>setVideoOutput(QVideoWidget*)</code> 设置视频输出。</li>
+<li><strong>倒车界面</strong> ：定时器（500ms）实时读取 AP3216 光传感器距离信息，传递到 QString 上显示。</li>
+<li><strong>USB 相机</strong> ：经 <code>yuv_to_jpeg</code> 转格式，<code>V4l2_open()</code> 函数打开摄像头设备，配置 MJPG、分辨率，申请内核缓冲区并 mmap 映射到用户空间，<code>Vide_Show()</code> 定时器（30ms）读帧数据显示在 QLabel 上，按钮槽函数实现拍照、保存及跳转相册界面。</li>
+</ul>
+<h3 id="天气界面">天气界面</h3>
+<p>用 IP 地址获取天气信息，调用中华万年历 API（数据与中国天气网一致、JSON 格式、查询方便），<code>QNetworkAccessManager</code> 发送网络请求，解析 JSON 数据，定时器（1 小时）更新天气数据。</p>
+<h3 id="语音识别界面">语音识别界面</h3>
+<p>申请语音识别账号，QT 开发录音功能，创建 <code>QAudioRecorder</code>，用 <code>QAudioEncoderSettings</code> 设音频参数，调用 <code>record()、pause()、stop()</code> 函数录音，录音数据上传服务端识别。</p>
+<h3 id="驱动设计">驱动设计</h3>
+<ul>
+<li><strong>音频驱动模块</strong> ：采用 WM8960 芯片，I2S 接口配置。修改内核使能驱动，移植 alsa-lib 和 alsa-utils 源码，实现录音、播放功能。</li>
+<li><strong>AP3216 距离读取</strong> ：在 I2C1 节点加设备子节点，编写驱动，用 <code>i2c_transfer</code> 传输。</li>
+<li><strong>DHT11 芯片驱动</strong> ：数据格式为 8 位温度整数 + 8 位小数 + 8 位湿度整数 + 8 位小数 + 8 位校验和，引脚读取可选查询、中断、内核自带驱动方式，流程包括启动、等待就绪、读数据、验证、拷贝。</li>
+<li><strong>GPS 定位</strong> ：Eco 模块串口通信，支持 NAME 协议，解析 GPS 数据（如 RMC、GGA、VTG 等），用 <code>strsplit</code> 分割字符串写入结构体。</li>
+<li><strong>USB 摄像头驱动</strong> ：用内核及 USB 驱动，修改配置及 LCD、QT 环境，需改进程 PID 号。</li>
+</ul>
+<h2 id="基于线程池的并发服务器">基于线程池的并发服务器</h2>
+<p>开源项目，b站随便找一个就可以，这个主要是让我熟悉操作系统的一些条件变量、自旋锁和socket套接字概念的。</p>
+<h3 id="技术栈-2">技术栈</h3>
+<ul>
+<li><strong>软件</strong> ：C/C++ 语言、线程池算法、Socket 编程</li>
+<li><strong>通信</strong> ：TCP/IP 协议、Socket 通信</li>
+</ul>
+<h3 id="原理">原理</h3>
+<ol type="1">
+<li><strong>任务队列</strong> ：存储待处理任务，生产者线程（调用线程池函数的线程）往队列添加任务，已处理任务从队列删。</li>
+<li><strong>工作线程</strong> ：作为任务队列消费者，持续读取任务队列。</li>
+<li><strong>管理者线程</strong> ：唯一，周期性检测任务队列数量及工作线程忙状态，任务多时创建新线程，任务少时销毁线程。</li>
+</ol>
+<h3 id="socket-通信">Socket 通信</h3>
+<p>服务器创建 socket 描述符，<code>bind</code> 绑定 IP 端口，<code>listen</code> 监听，<code>accept</code> 连接客户端，实现通信。</p>
+<h2 id="基于空谱结合的卷积神经网络高光谱图像分类">基于空谱结合的卷积神经网络高光谱图像分类</h2>
+<p>这个项目是我结合实验室的一个成像模型的预训练，就是需要通过实验室特有的成像模型获取数据，然后对数据进行处理分类。大家有时间可以去看看关联成像，这部分也是我实验室的一个研究方向，但是这个跟嵌入式没啥关系，当作一个拓展吧。</p>
+<h3 id="技术栈-3">技术栈</h3>
+<ul>
+<li><strong>软件</strong> ：Python 语言、TensorFlow 或 PyTorch 深度学习框架</li>
+<li><strong>算法</strong> ：卷积神经网络（CNN）、支持向量机(SVM)、随机森林、光谱降维、空间特征提取、全局特征融合、分类与优化算法</li>
+</ul>
+<h3 id="算法步骤">算法步骤</h3>
+<p>输入数据为尺寸 526×345×111 的光谱图像，设计轻量化卷积神经网络：</p>
+<ol type="1">
+<li><strong>光谱降维</strong> ：用 1×1 卷积将 111 通道压缩至 32 通道，去冗余降复杂度。</li>
+<li><strong>空间特征提取</strong> ：堆叠多个 3×3 卷积块，后接最大池化层，网络加深时缩小空间尺寸（345×526→10×16），通道数翻倍（32→64→128→256→512），平衡信息损失与语义表达。</li>
+<li><strong>全局特征融合</strong> ：以全局平均池化（GAP）替代全连接层，压缩特征图至 512 维向量，防参数爆炸。</li>
+<li><strong>分类与优化</strong> ：经 Dropout 和 Softmax 输出概率，用批量归一化（BatchNorm）加速训练防过拟合。</li>
+</ol>
+<h2 id="美赛-m-奖项目介绍">美赛 M 奖项目介绍</h2>
+<p>这个比赛离我很久远了，很多内容都想不起来了，但是还是去翻翻往年题目去作了一些总结，为什么我要写这个呢，因为某菊厂给我免笔试就是因为这个，哈哈哈是不是很值得？菊厂的笔试还是很难的，所以大家有时间要多比赛。</p>
+<h3 id="技术栈-4">技术栈</h3>
+<ul>
+<li><strong>软件</strong> ：Maltab语言、数据挖掘与机器学习算法库</li>
+<li><strong>算法</strong> ：K-means 聚类算法、模拟退火算法、轮廓系数评估指标</li>
+</ul>
+<h3 id="项目内容">项目内容</h3>
+<p>以经纬度为输入，用 K-means 聚类算法划成 8 区域，参考火势强度作权重，轮廓系数评指标，输出中心坐标、火点数量、总火势强度。设计单位区域无人机需求数公式，指标含火势总量、无人机灭火能力、紧急系数、火势扩散速度。用模拟退火算法求全局最优分配，随机分配无人机，满足总数量约束，目标函数为灭火时间 + 权重因子 × 未覆盖惩罚，引入交叉验证评聚类模型。</p>
+</body>
+</html>
