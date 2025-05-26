@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>Linux内核开发学习笔记</title>
+  <title>linux_kernel</title>
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -275,8 +275,9 @@ git push origin master #推送到远程仓库</code></pre>
 <p>听这个名字就知道，之前一直用这个软件去登陆steam商店，偶然发现还能加速GitHub，免费且流畅</p>
 <h4 id="tmux终端复用">3.Tmux终端复用</h4>
 <pre><code>tmux new -s &lt;name&gt;  #创建名为 &lt;name&gt; 的新会话
-Ctrl + B D      #退出当前会话（会话在后台运行）
-tmux ls         #显示所有会话
+Ctrl + B D      #退出当前会话
+tmux det
+tmux ls         #显示所有会话tm
 tmux attach -t &lt;name&gt;   #重新连接到指定会话
 Ctrl + B C      #新建窗口
 Ctrl + B N/P        #切换下一个/上一个窗口
@@ -497,227 +498,7 @@ cat /mnt/file</code></pre>
 <h5 id="用户态">1.1 用户态</h5>
 <pre><code># 待办理</code></pre>
 <h3 id="十一linux-内核实战">十一、Linux 内核实战</h3>
-<h4 id="本地挂载-nfs-共享">本地挂载 NFS 共享</h4>
-<pre><code># 创建挂载点
-sudo mkdir -p /mnt/nfs
-
-# 挂载本地共享 (使用NFSv4协议)
-sudo mount -t nfs -o vers=4.1 localhost:/nfs_share /mnt/nfs_test
-
-# 验证挂载
-df -hT | grep nfs4
-# 应输出类似：
-# localhost:/nfs_share nfs4   503G   41G  437G    9% /mnt/nfs_test
-
-# 写操作
- dd if=/dev/urandom of=/mnt/nfs_test/large_file.dat bs=1M count=10 status=progress</code></pre>
-<h4 id="nfs_latency测试">1.nfs_latency测试</h4>
-<p>用bpf获取rpc执行时间戳，计算函数执行时间这个代码是记录每调用一次rpc，就记录调用的rpc时间。代码具体用到了hashmap去存储每个进程号、当前时间戳。用数组去记录进程的pid和对应的耗时时间。 ##### 原始代码</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a>nfs.bpf.c</span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true"></a><span class="co">// SPDX-License-Identifier: GPL-2.0</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;vmlinux.h&quot;</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/bpf_helpers.h&gt;</span></span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/bpf_tracing.h&gt;</span></span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true"></a></span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true"></a><span class="dt">char</span> LICENSE[] SEC(<span class="st">&quot;license&quot;</span>) = <span class="st">&quot;GPL&quot;</span>;</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true"></a></span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true"></a>    u32 pid;       <span class="co">//pid进程</span></span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true"></a>    u64 delta_ns;   <span class="co">//耗时时间</span></span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>];   <span class="co">//进程名</span></span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true"></a>};</span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true"></a></span>
-<span id="cb34-15"><a href="#cb34-15" aria-hidden="true"></a><span class="kw">struct</span> {</span>
-<span id="cb34-16"><a href="#cb34-16" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_HASH); <span class="co">//指定类型是BPF_MAP_TYPE_HASH ----哈希表</span></span>
-<span id="cb34-17"><a href="#cb34-17" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">4096</span>);          <span class="co">//最大key数量=4096</span></span>
-<span id="cb34-18"><a href="#cb34-18" aria-hidden="true"></a>    __type(key, u64);       </span>
-<span id="cb34-19"><a href="#cb34-19" aria-hidden="true"></a>    __type(value, u64);</span>
-<span id="cb34-20"><a href="#cb34-20" aria-hidden="true"></a>} start SEC(<span class="st">&quot;.maps&quot;</span>);  <span class="co">//SEC是指定将这个结构体放在BPF的.maps段中，在BPF中，段是一种组织代码和数据的方式</span></span>
-<span id="cb34-21"><a href="#cb34-21" aria-hidden="true"></a></span>
-<span id="cb34-22"><a href="#cb34-22" aria-hidden="true"></a><span class="kw">struct</span> {</span>
-<span id="cb34-23"><a href="#cb34-23" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
-<span id="cb34-24"><a href="#cb34-24" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span>
-<span id="cb34-25"><a href="#cb34-25" aria-hidden="true"></a></span>
-<span id="cb34-26"><a href="#cb34-26" aria-hidden="true"></a>SEC(<span class="st">&quot;kprobe/rpc_call_start&quot;</span>)   <span class="co">//表示这个 BPF 程序会被加载到内核中，并在每次rpc_call_start内核函数被调用时触发执行，也就是rpc_start开始执行时触发</span></span>
-<span id="cb34-27"><a href="#cb34-27" aria-hidden="true"></a><span class="dt">int</span> BPF_KPROBE(handle_rpc_start)  <span class="co">//BPF_KPROBE是一个宏用于定义一个 kprobe 类型的 BPF 程序</span></span>
-<span id="cb34-28"><a href="#cb34-28" aria-hidden="true"></a>{</span>
-<span id="cb34-29"><a href="#cb34-29" aria-hidden="true"></a>    u64 tid = bpf_get_current_pid_tgid();           <span class="co">//获取当前PID和TGID</span></span>
-<span id="cb34-30"><a href="#cb34-30" aria-hidden="true"></a>    u64 ts = bpf_ktime_get_ns();                <span class="co">//获取当前的时间戳</span></span>
-<span id="cb34-31"><a href="#cb34-31" aria-hidden="true"></a>    bpf_map_update_elem(&amp;start, &amp;tid, &amp;ts, BPF_ANY); <span class="co">//向start哈希表里面更新数据，PF_ANY 表示如果键已存在，则更新值；如果键不存在，则插入新键值对</span></span>
-<span id="cb34-32"><a href="#cb34-32" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb34-33"><a href="#cb34-33" aria-hidden="true"></a>}</span>
-<span id="cb34-34"><a href="#cb34-34" aria-hidden="true"></a></span>
-<span id="cb34-35"><a href="#cb34-35" aria-hidden="true"></a>SEC(<span class="st">&quot;kretprobe/rpc_call_done&quot;</span>)</span>
-<span id="cb34-36"><a href="#cb34-36" aria-hidden="true"></a><span class="dt">int</span> BPF_KRETPROBE(handle_rpc_done)</span>
-<span id="cb34-37"><a href="#cb34-37" aria-hidden="true"></a>{</span>
-<span id="cb34-38"><a href="#cb34-38" aria-hidden="true"></a>    u64 tid = bpf_get_current_pid_tgid();</span>
-<span id="cb34-39"><a href="#cb34-39" aria-hidden="true"></a>    u64 *tsp = bpf_map_lookup_elem(&amp;start, &amp;tid);</span>
-<span id="cb34-40"><a href="#cb34-40" aria-hidden="true"></a>    <span class="cf">if</span> (!tsp)</span>
-<span id="cb34-41"><a href="#cb34-41" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb34-42"><a href="#cb34-42" aria-hidden="true"></a></span>
-<span id="cb34-43"><a href="#cb34-43" aria-hidden="true"></a>    u64 delta = bpf_ktime_get_ns() - *tsp;   <span class="co">//当前时间戳与hashmap中的时间戳进行计算，得到执行时间。</span></span>
-<span id="cb34-44"><a href="#cb34-44" aria-hidden="true"></a>    bpf_map_delete_elem(&amp;start, &amp;tid);</span>
-<span id="cb34-45"><a href="#cb34-45" aria-hidden="true"></a></span>
-<span id="cb34-46"><a href="#cb34-46" aria-hidden="true"></a>    <span class="kw">struct</span> event e = {};</span>
-<span id="cb34-47"><a href="#cb34-47" aria-hidden="true"></a>    e.pid = tid &gt;&gt; <span class="dv">32</span>;</span>
-<span id="cb34-48"><a href="#cb34-48" aria-hidden="true"></a>    e.delta_ns = delta;             </span>
-<span id="cb34-49"><a href="#cb34-49" aria-hidden="true"></a>    bpf_get_current_comm(&amp;e.comm, <span class="kw">sizeof</span>(e.comm));  <span class="co">//获取数据存储到event结构体里面</span></span>
-<span id="cb34-50"><a href="#cb34-50" aria-hidden="true"></a></span>
-<span id="cb34-51"><a href="#cb34-51" aria-hidden="true"></a>    bpf_perf_event_output(ctx, &amp;events, BPF_F_CURRENT_CPU, &amp;e, <span class="kw">sizeof</span>(e)); <span class="co">//</span></span>
-<span id="cb34-52"><a href="#cb34-52" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb34-53"><a href="#cb34-53" aria-hidden="true"></a>}</span>
-<span id="cb34-54"><a href="#cb34-54" aria-hidden="true"></a>nfs.c</span>
-<span id="cb34-55"><a href="#cb34-55" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb34-56"><a href="#cb34-56" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
-<span id="cb34-57"><a href="#cb34-57" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;signal.h&gt;</span></span>
-<span id="cb34-58"><a href="#cb34-58" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/libbpf.h&gt;</span></span>
-<span id="cb34-59"><a href="#cb34-59" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;nfs.skel.h&quot;</span></span>
-<span id="cb34-60"><a href="#cb34-60" aria-hidden="true"></a></span>
-<span id="cb34-61"><a href="#cb34-61" aria-hidden="true"></a><span class="dt">static</span> <span class="dt">volatile</span> <span class="dt">bool</span> exiting = false;</span>
-<span id="cb34-62"><a href="#cb34-62" aria-hidden="true"></a></span>
-<span id="cb34-63"><a href="#cb34-63" aria-hidden="true"></a><span class="co">//用户态</span></span>
-<span id="cb34-64"><a href="#cb34-64" aria-hidden="true"></a><span class="dt">void</span> handle_event(<span class="dt">void</span> *ctx, <span class="dt">int</span> cpu, <span class="dt">void</span> *data, __u32 size) <span class="co">//BPF 程序输出性能事件时，这个函数会被调用。</span></span>
-<span id="cb34-65"><a href="#cb34-65" aria-hidden="true"></a>{</span>
-<span id="cb34-66"><a href="#cb34-66" aria-hidden="true"></a>    <span class="kw">struct</span> event *e = data;</span>
-<span id="cb34-67"><a href="#cb34-67" aria-hidden="true"></a>    printf(<span class="st">&quot;PID %d (%s): %.2f ms</span><span class="sc">\n</span><span class="st">&quot;</span>, e-&gt;pid, e-&gt;comm, e-&gt;delta_ns / <span class="fl">1e6</span>);</span>
-<span id="cb34-68"><a href="#cb34-68" aria-hidden="true"></a>}</span>
-<span id="cb34-69"><a href="#cb34-69" aria-hidden="true"></a></span>
-<span id="cb34-70"><a href="#cb34-70" aria-hidden="true"></a><span class="dt">void</span> handle_lost(<span class="dt">void</span> *ctx, <span class="dt">int</span> cpu, __u64 lost) <span class="co">//当有事件数据丢失时，这个函数会被调用</span></span>
-<span id="cb34-71"><a href="#cb34-71" aria-hidden="true"></a>{</span>
-<span id="cb34-72"><a href="#cb34-72" aria-hidden="true"></a>    fprintf(stderr, <span class="st">&quot;Lost %llu events on CPU %d</span><span class="sc">\n</span><span class="st">&quot;</span>, lost, cpu);</span>
-<span id="cb34-73"><a href="#cb34-73" aria-hidden="true"></a>}</span>
-<span id="cb34-74"><a href="#cb34-74" aria-hidden="true"></a></span>
-<span id="cb34-75"><a href="#cb34-75" aria-hidden="true"></a><span class="dt">void</span> sig_handler(<span class="dt">int</span> sig)</span>
-<span id="cb34-76"><a href="#cb34-76" aria-hidden="true"></a>{</span>
-<span id="cb34-77"><a href="#cb34-77" aria-hidden="true"></a>    exiting = true;</span>
-<span id="cb34-78"><a href="#cb34-78" aria-hidden="true"></a>}</span>
-<span id="cb34-79"><a href="#cb34-79" aria-hidden="true"></a></span>
-<span id="cb34-80"><a href="#cb34-80" aria-hidden="true"></a><span class="dt">int</span> main()</span>
-<span id="cb34-81"><a href="#cb34-81" aria-hidden="true"></a>{</span>
-<span id="cb34-82"><a href="#cb34-82" aria-hidden="true"></a>    <span class="kw">struct</span> nfs_bpf *skel;</span>
-<span id="cb34-83"><a href="#cb34-83" aria-hidden="true"></a>    <span class="dt">int</span> err;</span>
-<span id="cb34-84"><a href="#cb34-84" aria-hidden="true"></a></span>
-<span id="cb34-85"><a href="#cb34-85" aria-hidden="true"></a>    signal(SIGINT, sig_handler);</span>
-<span id="cb34-86"><a href="#cb34-86" aria-hidden="true"></a>    signal(SIGTERM, sig_handler); <span class="co">//注册信号处理程序，以便在收到 SIGINT 或 SIGTERM 时调用 sig_handler，</span></span>
-<span id="cb34-87"><a href="#cb34-87" aria-hidden="true"></a></span>
-<span id="cb34-88"><a href="#cb34-88" aria-hidden="true"></a>    skel = nfs_bpf__open();</span>
-<span id="cb34-89"><a href="#cb34-89" aria-hidden="true"></a>    <span class="cf">if</span> (!skel) {</span>
-<span id="cb34-90"><a href="#cb34-90" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to open skeleton</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
-<span id="cb34-91"><a href="#cb34-91" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
-<span id="cb34-92"><a href="#cb34-92" aria-hidden="true"></a>    }</span>
-<span id="cb34-93"><a href="#cb34-93" aria-hidden="true"></a></span>
-<span id="cb34-94"><a href="#cb34-94" aria-hidden="true"></a>    err = nfs_bpf__load(skel);</span>
-<span id="cb34-95"><a href="#cb34-95" aria-hidden="true"></a>    <span class="cf">if</span> (err) {</span>
-<span id="cb34-96"><a href="#cb34-96" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to load skeleton</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
-<span id="cb34-97"><a href="#cb34-97" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
-<span id="cb34-98"><a href="#cb34-98" aria-hidden="true"></a>    }</span>
-<span id="cb34-99"><a href="#cb34-99" aria-hidden="true"></a></span>
-<span id="cb34-100"><a href="#cb34-100" aria-hidden="true"></a>    err = nfs_bpf__attach(skel);    <span class="co">//将 BPF 程序附加到内核中的 kprobe 和 kretprobe 点</span></span>
-<span id="cb34-101"><a href="#cb34-101" aria-hidden="true"></a>    <span class="cf">if</span> (err) {</span>
-<span id="cb34-102"><a href="#cb34-102" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to attach</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
-<span id="cb34-103"><a href="#cb34-103" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
-<span id="cb34-104"><a href="#cb34-104" aria-hidden="true"></a>    }</span>
-<span id="cb34-105"><a href="#cb34-105" aria-hidden="true"></a></span>
-<span id="cb34-106"><a href="#cb34-106" aria-hidden="true"></a>    printf(<span class="st">&quot;Tracing NFS client RPC latency... Ctrl+C to exit</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
-<span id="cb34-107"><a href="#cb34-107" aria-hidden="true"></a></span>
-<span id="cb34-108"><a href="#cb34-108" aria-hidden="true"></a>    <span class="kw">struct</span> perf_buffer *pb = NULL;</span>
-<span id="cb34-109"><a href="#cb34-109" aria-hidden="true"></a>    pb = perf_buffer__new(bpf_map__fd(skel-&gt;maps.events), <span class="dv">8</span>,</span>
-<span id="cb34-110"><a href="#cb34-110" aria-hidden="true"></a>                          handle_event, handle_lost, NULL, NULL);  <span class="co">//创建缓冲区来接收程序输出的事件数据</span></span>
-<span id="cb34-111"><a href="#cb34-111" aria-hidden="true"></a>    <span class="cf">if</span> (!pb) {</span>
-<span id="cb34-112"><a href="#cb34-112" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to open perf buffer</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
-<span id="cb34-113"><a href="#cb34-113" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
-<span id="cb34-114"><a href="#cb34-114" aria-hidden="true"></a>    }</span>
-<span id="cb34-115"><a href="#cb34-115" aria-hidden="true"></a></span>
-<span id="cb34-116"><a href="#cb34-116" aria-hidden="true"></a>    <span class="cf">while</span> (!exiting)</span>
-<span id="cb34-117"><a href="#cb34-117" aria-hidden="true"></a>        perf_buffer__poll(pb, <span class="dv">100</span>);  <span class="co">//轮询缓冲区，等待事件数据的到来， poll轮询可以快速响应。</span></span>
-<span id="cb34-118"><a href="#cb34-118" aria-hidden="true"></a></span>
-<span id="cb34-119"><a href="#cb34-119" aria-hidden="true"></a>    perf_buffer__free(pb);</span>
-<span id="cb34-120"><a href="#cb34-120" aria-hidden="true"></a>    nfs_bpf__destroy(skel);</span>
-<span id="cb34-121"><a href="#cb34-121" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb34-122"><a href="#cb34-122" aria-hidden="true"></a>}</span></code></pre></div>
-<h5 id="修改部分">修改部分</h5>
-<h6 id="error-当前目录下没有-vmlinux.h-文件这个文件在-nfs.bpf.c-中被引用">（1）error: 当前目录下没有 vmlinux.h 文件，这个文件在 nfs.bpf.c 中被引用</h6>
-<p><code>sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c &gt; vmlinux.h</code> 这条命令它从运行中的 Linux 内核中提取类型信息，并将其转换为 C 语言头文件格式</p>
-<h6 id="error-struct_event没有在nfs.c定义">（2）error: struct_event没有在nfs.c定义</h6>
-<div class="sourceCode" id="cb35"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true"></a>    __u32 pid;       <span class="co">// 进程 ID</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true"></a>    __u64 delta_ns;  <span class="co">// 耗时时间</span></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>]; <span class="co">// 进程名</span></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true"></a>};</span></code></pre></div>
-<p>加入到nfs.c中。</p>
-<h6 id="perf_buffer__new-函数调用的参数数量不正确我们使用的参数是-6-个但函数定义只接受-3-个参数">（3）perf_buffer__new() 函数调用的参数数量不正确，我们使用的参数是 6 个，但函数定义只接受 3 个参数</h6>
-<p>那么我们来看一下函数正确的参数：</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true"></a>perf_buffer__new(<span class="dt">int</span> map_fd, <span class="dt">size_t</span> page_cnt,</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true"></a>                 <span class="dt">const</span> <span class="kw">struct</span> perf_buffer_opts *opts);</span></code></pre></div>
-<p>来看一下perf_buffer_opts结构体</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a><span class="kw">struct</span> perf_buffer_opts {</span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true"></a>        <span class="co">/* if specified, sample_cb is called for each sample */</span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true"></a>        perf_buffer_sample_fn sample_cb;</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true"></a>        <span class="co">/* if specified, lost_cb is called for each batch of lost samples */</span></span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true"></a>        perf_buffer_lost_fn lost_cb;</span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true"></a>        <span class="co">/* ctx is provided to sample_cb and lost_cb */</span></span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true"></a>        <span class="dt">void</span> *ctx;</span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true"></a>};</span></code></pre></div>
-<p>其实就可以看出，调用的API函数已经更新了，只有三个参数，新版本的API，是把事件回调、丢失事件回调、用户上下文放到结构体里面，然后进行结构体指针传参。</p>
-<h6 id="内核中有-rpc_call_start-函数但没有-rpc_call_done-函数导致程序.nfs无法加载">（4）内核中有 rpc_call_start 函数，但没有 rpc_call_done 函数。导致程序.nfs无法加载</h6>
-<p>同样可能是内核版本不同，将 rpc_call_done 改为 rpc_task_call_done</p>
-<h6 id="map-events-创建失败的问题">（5）map ‘events’ 创建失败的问题</h6>
-<p>map ‘events’: failed to create: Invalid argument 从这句提示可以看出 events的结构体定义不对，map定义，添加更多特定参数以满足内核要求：</p>
-<div class="sourceCode" id="cb38"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true"></a><span class="kw">struct</span> {</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true"></a>    __uint(key_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true"></a>    __uint(value_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">128</span>);</span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span></code></pre></div>
-<h6 id="无法找到-rpc_task_call_done-函数进行-kretprobe">（6）无法找到 rpc_task_call_done 函数进行 kretprobe</h6>
-<p><code>sudo ls -la /sys/kernel/debug/tracing/events/sunrpc/</code> 输入指令后发现了 /sys/kernel/debug/tracing/events/sunrpc/rpc_task_call_done，这表明我们可以使用 tracepoint 而不是 kprobe,因此修改。</p>
-<h6 id="由此可以看出大部分都是版本问题">（7）由此可以看出大部分都是版本问题</h6>
-<ol type="1">
-<li>我的libbpf版本是0.5.0， ubuntu的内核版本是6.8.0-59。</li>
-<li>perf_buffer API 变化，使用结构体传参。</li>
-<li>kprobe 到 tracepoint 的迁移、旧版本: 使用 kprobe/kretprobe 跟踪特定函数，新版本: 使用 tracepoint 跟踪标准化的事件点</li>
-<li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries</li>
-</ol>
-<h5 id="最后通过nfs挂载测试">最后通过nfs挂载测试</h5>
-<h6 id="本地挂载-nfs-共享-1">本地挂载 NFS 共享</h6>
-<pre><code>             
-# 挂载本地共享 (使用NFSv4协议)
-sudo mount -t nfs -o vers=4.1 localhost:/s_test /mnt                
-# 验证挂载
-df -hT | grep nfs4
-# 应输出类似：
-# localhost:/s_test 526802432 43963904 456005120    9% /mnt            
-# 写操作
-cd /mnt
-touch file
-dd if=/dev/urandom of=/mnt/file bs=1M count=10 status=progress</code></pre>
-<h6 id="运行脚本文件">运行脚本文件</h6>
-<pre><code>sudo make
-sudo ./nfs
-#先运行./nfs 自去进行写操作
-#输出结果如下：
-Tracing NFS client RPC latency... Ctrl+C to exit
-PID 14807 (ls): 49.01 ms</code></pre>
-<h4 id="针对nfs读写慢编写bt脚本">2.针对nfs读写慢，编写bt脚本</h4>
-<h5 id="nfs-写操作核心函数简化版">NFS 写操作核心函数（简化版）</h5>
-<h5 id="客户端流程">客户端流程</h5>
-<ol type="1">
-<li>用户发起写操作<br />
-<code>write()</code> → <code>vfs_write()</code> → <code>nfs_file_write()</code></li>
-<li>数据缓存与提交<br />
-<code>nfs_write_begin()</code> → 页缓存操作 → <code>nfs_write_end()</code></li>
-<li>RPC 网络通信 <code>nfs_initiate_write()</code> → <code>rpc_call_sync()</code> → NFSv3 <code>WRITE</code> / NFSv4 <code>COMPOUND</code></li>
-</ol>
-<h5 id="服务端流程">服务端流程</h5>
-<ol type="1">
-<li>接收请求 <code>nfsd_dispatch()</code> → <code>nfsd3_proc_write()</code> (NFSv3) / <code>nfsd4_proc_write()</code> (NFSv4)</li>
-<li>写入存储 <code>nfsd_vfs_write()</code> → <code>vfs_writev()</code></li>
-</ol>
-<h5 id="关键函数">关键函数</h5>
-<ul>
-<li>客户端：<code>nfs_file_write</code>, <code>nfs_writepages</code>, <code>rpc_call_sync</code></li>
-<li>服务端：<code>nfsd_proc_write</code>, <code>vfs_writev</code></li>
-</ul>
+<h4 id="nfs问题分析"><a href="https://dingpenglong.com/linux_nfs_problem">nfs问题分析</a></h4>
 <h3 id="十二linux内核源码解读">十二、Linux内核源码解读</h3>
 <h4 id="linux内核源码解读"><a href="https://dingpenglong.com/linux_kernel_codestudy">Linux内核源码解读</a></h4>
 <h3 id="遇到的常见问题的小tips">遇到的常见问题的小Tips</h3>
@@ -755,6 +536,15 @@ PID 14807 (ls): 49.01 ms</code></pre>
 <li><ol start="3" type="1">
 <li>卸载模块：<code>sudo rmmod your_module</code></li>
 </ol></li>
+</ul>
+<h4 id="遇到无法卸载挂载文件">5.遇到无法卸载挂载文件？</h4>
+<ul>
+<li><p>有时候umount挂载文件会出现’device is busy’的问题</p></li>
+<li><p>可以使用以下命令查看使用挂载点的进程: <code>lsof +D &lt;挂载点&gt;</code> <code>fuser -m &lt;挂载点&gt;</code> 找到进程号后，就可以使用<code>kill -SIGKILL &lt;进程号&gt;</code> 杀死进程</p></li>
+</ul>
+<h4 id="mount-使用nfs3.0版本无法挂载的问题">6.mount 使用nfs3.0版本无法挂载的问题？</h4>
+<ul>
+<li>需要使用绝对路径 <code>mount -t nfs -o vers=3 ${server_ip}:/tmp/s_test /mnt</code></li>
 </ul>
 <h2 id="待办理">待办理</h2>
 <p>pandoc PersonStudyRecord.md -o linux-style.html -s –toc –css=linux-style.css</p>
