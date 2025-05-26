@@ -262,7 +262,9 @@ git fetch       #仅拉取远程仓库更新，不自动合并    git fetch --al
 git reset       #回退提交   --soft（保留修改）、--hard（丢弃修改）
 git diff        #查看工作区与暂存区的差异   git diff HEAD（比较最新提交）
 git commit      #提交暂存区的修改   -m &quot;message&quot;（添加提交信息）
-git revert &lt;commit&gt; #撤销指定提交（生成新提交）  git revert HEAD（撤销最新提交）</code></pre>
+git revert &lt;commit&gt; #撤销指定提交（生成新提交）  git revert HEAD（撤销最新提交）
+git rm &lt;file&gt;  删除本地和远程的文件
+git rm --cached  &lt;file&gt; 删除远程的文件，保留本地</code></pre>
 <p><strong>GIT使用流程</strong>:</p>
 <pre><code>git init(如果要上传本地仓库)
 git clone https:...   #克隆git上的代码
@@ -498,7 +500,7 @@ cat /mnt/file</code></pre>
 <h5 id="用户态">1.1 用户态</h5>
 <pre><code># 待办理</code></pre>
 <h3 id="十一linux-内核实战">十一、Linux 内核实战</h3>
-<h4 id="nfs问题分析"><a href="https://dingpenglong.com/linux_nfs_problem">nfs问题分析</a></h4>
+<h4 id="nfs问题分析"><a href="https://dingpenglong.com/linux_kernel_nfs_problem">nfs问题分析</a></h4>
 <h3 id="十二linux内核源码解读">十二、Linux内核源码解读</h3>
 <h4 id="linux内核源码解读"><a href="https://dingpenglong.com/linux_kernel_codestudy">Linux内核源码解读</a></h4>
 <h3 id="遇到的常见问题的小tips">遇到的常见问题的小Tips</h3>
