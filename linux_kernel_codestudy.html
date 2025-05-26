@@ -22,22 +22,16 @@
 <ul>
 <li><a href="#通过qemu运行一个最小系统">通过qemu运行一个最小系统</a>
 <ul>
-<li><a href="#下载linux内核源码和busybox源码">1. 下载linux内核源码和busybox源码</a></li>
-<li><a href="#通过qemu启动内核">2. 通过qemu启动内核</a></li>
-<li><a href="#内核源码各个目录的解读">3. 内核源码各个目录的解读</a></li>
-<li><a href="#驱动与设备">驱动与设备</a></li>
-<li><a href="#文件系统与网络">文件系统与网络</a></li>
-<li><a href="#工具与辅助模块">工具与辅助模块</a></li>
-<li><a href="#安全与虚拟化">安全与虚拟化</a></li>
-<li><a href="#文档与示例">文档与示例</a></li>
-<li><a href="#其他重要目录">其他重要目录</a></li>
+<li><a href="#一下载linux内核源码和busybox源码">一、下载linux内核源码和busybox源码</a></li>
+<li><a href="#二通过qemu启动内核">二、通过qemu启动内核</a></li>
+<li><a href="#三内核源码各个目录的解读">三、内核源码各个目录的解读</a></li>
 </ul></li>
 </ul></li>
 </ul>
 </nav>
 <h1 id="linux内核源码解读">Linux内核源码解读</h1>
 <h2 id="通过qemu运行一个最小系统">通过qemu运行一个最小系统</h2>
-<h3 id="下载linux内核源码和busybox源码">1. 下载linux内核源码和busybox源码</h3>
+<h3 id="一下载linux内核源码和busybox源码">一、下载linux内核源码和busybox源码</h3>
 <p>我下载的版本是Linux内核4.9.229版本 <a href="https://mirrors.edge.kernel.org/pub/linux/kernel/">linux源码下载地址</a> 我下载的busybos源码版本是1.36.1版本 <a href="https://busybox.net/downloads/">busybox源码下载地址</a></p>
 <pre><code># 下载最新稳定版（如 1.36.1）
 wget https://busybox.net/downloads/busybox-1.36.1.tar.bz2
@@ -47,11 +41,11 @@ make menuconfig #可以根据需求做一些特定的修改
 make 
 make install</code></pre>
 <p>make install 后我们的busybox的内容是不完整的，可以去修改busybox的配置。 参考b站 <code>简说linux</code> <a href="https://space.bilibili.com/646178510/lists?sid=375089&amp;spm_id_from=333.788.0.0">b站视频链接</a> 将源码编译后用qemu运行。</p>
-<h3 id="通过qemu启动内核">2. 通过qemu启动内核</h3>
+<h3 id="二通过qemu启动内核">二、通过qemu启动内核</h3>
 <p>qemu启动脚本：<code>vim start.sh</code></p>
 <pre><code>qemu-system-x86_64 -kernel ./linux-4.9.229/arch/x86_64/boot/bzImage  -initrd ./busybox-1.36.1/rootfs.img.gz  -app
 end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
-<h3 id="内核源码各个目录的解读">3. 内核源码各个目录的解读</h3>
+<h3 id="三内核源码各个目录的解读">三、内核源码各个目录的解读</h3>
 <h4 id="核心功能目录">核心功能目录</h4>
 <ol type="1">
 <li><strong><code>arch</code></strong>
@@ -74,7 +68,7 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <li><strong>早期用户空间初始化</strong>（如<code>initramfs</code>）。</li>
 </ul></li>
 </ol>
-<h3 id="驱动与设备">驱动与设备</h3>
+<h4 id="驱动与设备">驱动与设备</h4>
 <ol type="1">
 <li><strong><code>drivers</code></strong>
 <ul>
@@ -86,7 +80,7 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <li><strong>块设备层</strong>：I/O调度算法（<code>deadline-iosched.c</code>）、通用块设备驱动。</li>
 </ul></li>
 </ol>
-<h3 id="文件系统与网络">文件系统与网络</h3>
+<h4 id="文件系统与网络">文件系统与网络</h4>
 <ol type="1">
 <li><strong><code>fs</code></strong>
 <ul>
@@ -99,7 +93,7 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <li><strong>协议实现</strong>：<code>ethernet/</code>、<code>wireless/</code>、<code>mac80211/</code>等。</li>
 </ul></li>
 </ol>
-<h3 id="工具与辅助模块">工具与辅助模块</h3>
+<h4 id="工具与辅助模块">工具与辅助模块</h4>
 <ol type="1">
 <li><strong><code>lib</code></strong>
 <ul>
@@ -114,7 +108,7 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <li><strong>用户态工具</strong>：性能分析工具（如<code>perf/</code>）、调试工具。</li>
 </ul></li>
 </ol>
-<h3 id="安全与虚拟化">安全与虚拟化</h3>
+<h4 id="安全与虚拟化">安全与虚拟化</h4>
 <ol type="1">
 <li><strong><code>security</code></strong>
 <ul>
@@ -125,7 +119,7 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <li><strong>虚拟化支持</strong>：KVM（Kernel-based Virtual Machine）相关代码。</li>
 </ul></li>
 </ol>
-<h3 id="文档与示例">文档与示例</h3>
+<h4 id="文档与示例">文档与示例</h4>
 <ol type="1">
 <li><strong><code>Documentation</code></strong>
 <ul>
@@ -136,7 +130,7 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <li><strong>示例代码</strong>：内核模块、BPF程序等示例。</li>
 </ul></li>
 </ol>
-<h3 id="其他重要目录">其他重要目录</h3>
+<h4 id="其他重要目录">其他重要目录</h4>
 <ul>
 <li><strong><code>include</code></strong>：内核头文件（分为架构相关头文件<code>asm/</code>和通用头文件<code>linux/</code>）。</li>
 <li><strong><code>ipc</code></strong>：进程间通信机制（如共享内存、信号量、消息队列）。</li>
