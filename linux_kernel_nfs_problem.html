@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>linux_kernel_nfs_problem</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="theme.css" />
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#nfs问题分析">nfs问题分析</a>
+<ul>
+<li><a href="#本地挂载-nfs-共享">本地挂载 NFS 共享</a>
+<ul>
+<li><a href="#nfs_latency测试和修改">1.nfs_latency测试和修改</a></li>
+<li><a href="#定位nfs写数据时间慢的问题">2.定位NFS写数据时间慢的问题</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="nfs问题分析">nfs问题分析</h1>
+<h2 id="本地挂载-nfs-共享">本地挂载 NFS 共享</h2>
+<pre><code># 创建挂载点
+sudo mkdir -p /tmp/s_test
+
+# 挂载本地共享 (使用NFSv4协议)
+sudo mount -t nfs -o vers=4.1 localhost:/s_test /mnt
+
+# 验证挂载
+df -hT | grep nfs4
+# 应输出类似：
+# localhost:/nfs_share nfs4   503G   41G  437G    9% /mnt
+
+# 写操作
+ dd if=/dev/urandom of=/mnt/nfs_test/large_file.dat bs=1M count=10 status=progress</code></pre>
+<h3 id="nfs_latency测试和修改">1.nfs_latency测试和修改</h3>
+<p>用bpf获取rpc执行时间戳，计算函数执行时间这个代码是记录每调用一次rpc，就记录调用的rpc时间。代码具体用到了hashmap去存储每个进程号、当前时间戳。用数组去记录进程的pid和对应的耗时时间。</p>
+<h4 id="原始代码">原始代码</h4>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>nfs.bpf.c</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="co">// SPDX-License-Identifier: GPL-2.0</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;vmlinux.h&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/bpf_helpers.h&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/bpf_tracing.h&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="dt">char</span> LICENSE[] SEC(<span class="st">&quot;license&quot;</span>) = <span class="st">&quot;GPL&quot;</span>;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a>    u32 pid;       <span class="co">//pid进程</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a>    u64 delta_ns;   <span class="co">//耗时时间</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>];   <span class="co">//进程名</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a>};</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a><span class="kw">struct</span> {</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_HASH); <span class="co">//指定类型是BPF_MAP_TYPE_HASH ----哈希表</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">4096</span>);          <span class="co">//最大key数量=4096</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true"></a>    __type(key, u64);       </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true"></a>    __type(value, u64);</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true"></a>} start SEC(<span class="st">&quot;.maps&quot;</span>);  <span class="co">//SEC是指定将这个结构体放在BPF的.maps段中，在BPF中，段是一种组织代码和数据的方式</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true"></a><span class="kw">struct</span> {</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true"></a>SEC(<span class="st">&quot;kprobe/rpc_call_start&quot;</span>)   <span class="co">//表示这个 BPF 程序会被加载到内核中，并在每次rpc_call_start内核函数被调用时触发执行，也就是rpc_start开始执行时触发</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true"></a><span class="dt">int</span> BPF_KPROBE(handle_rpc_start)  <span class="co">//BPF_KPROBE是一个宏用于定义一个 kprobe 类型的 BPF 程序</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true"></a>{</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true"></a>    u64 tid = bpf_get_current_pid_tgid();           <span class="co">//获取当前PID和TGID</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true"></a>    u64 ts = bpf_ktime_get_ns();                <span class="co">//获取当前的时间戳</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true"></a>    bpf_map_update_elem(&amp;start, &amp;tid, &amp;ts, BPF_ANY); <span class="co">//向start哈希表里面更新数据，PF_ANY 表示如果键已存在，则更新值；如果键不存在，则插入新键值对</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true"></a>}</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true"></a>SEC(<span class="st">&quot;kretprobe/rpc_call_done&quot;</span>)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true"></a><span class="dt">int</span> BPF_KRETPROBE(handle_rpc_done)</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true"></a>{</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true"></a>    u64 tid = bpf_get_current_pid_tgid();</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true"></a>    u64 *tsp = bpf_map_lookup_elem(&amp;start, &amp;tid);</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true"></a>    <span class="cf">if</span> (!tsp)</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true"></a>    u64 delta = bpf_ktime_get_ns() - *tsp;   <span class="co">//当前时间戳与hashmap中的时间戳进行计算，得到执行时间。</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true"></a>    bpf_map_delete_elem(&amp;start, &amp;tid);</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true"></a>    <span class="kw">struct</span> event e = {};</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true"></a>    e.pid = tid &gt;&gt; <span class="dv">32</span>;</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true"></a>    e.delta_ns = delta;             </span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true"></a>    bpf_get_current_comm(&amp;e.comm, <span class="kw">sizeof</span>(e.comm));  <span class="co">//获取数据存储到event结构体里面</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true"></a>    bpf_perf_event_output(ctx, &amp;events, BPF_F_CURRENT_CPU, &amp;e, <span class="kw">sizeof</span>(e)); <span class="co">//</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true"></a>}</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true"></a>nfs.c</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;signal.h&gt;</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;bpf/libbpf.h&gt;</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;nfs.skel.h&quot;</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true"></a></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true"></a><span class="dt">static</span> <span class="dt">volatile</span> <span class="dt">bool</span> exiting = false;</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true"></a></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true"></a><span class="co">//用户态</span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true"></a><span class="dt">void</span> handle_event(<span class="dt">void</span> *ctx, <span class="dt">int</span> cpu, <span class="dt">void</span> *data, __u32 size) <span class="co">//BPF 程序输出性能事件时，这个函数会被调用。</span></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true"></a>{</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true"></a>    <span class="kw">struct</span> event *e = data;</span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true"></a>    printf(<span class="st">&quot;PID %d (%s): %.2f ms</span><span class="sc">\n</span><span class="st">&quot;</span>, e-&gt;pid, e-&gt;comm, e-&gt;delta_ns / <span class="fl">1e6</span>);</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true"></a>}</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true"></a></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true"></a><span class="dt">void</span> handle_lost(<span class="dt">void</span> *ctx, <span class="dt">int</span> cpu, __u64 lost) <span class="co">//当有事件数据丢失时，这个函数会被调用</span></span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true"></a>{</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true"></a>    fprintf(stderr, <span class="st">&quot;Lost %llu events on CPU %d</span><span class="sc">\n</span><span class="st">&quot;</span>, lost, cpu);</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true"></a>}</span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true"></a></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true"></a><span class="dt">void</span> sig_handler(<span class="dt">int</span> sig)</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true"></a>{</span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true"></a>    exiting = true;</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true"></a>}</span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true"></a></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true"></a><span class="dt">int</span> main()</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true"></a>{</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true"></a>    <span class="kw">struct</span> nfs_bpf *skel;</span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true"></a>    <span class="dt">int</span> err;</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true"></a></span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true"></a>    signal(SIGINT, sig_handler);</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true"></a>    signal(SIGTERM, sig_handler); <span class="co">//注册信号处理程序，以便在收到 SIGINT 或 SIGTERM 时调用 sig_handler，</span></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true"></a></span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true"></a>    skel = nfs_bpf__open();</span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true"></a>    <span class="cf">if</span> (!skel) {</span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to open skeleton</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true"></a>    }</span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true"></a></span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true"></a>    err = nfs_bpf__load(skel);</span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true"></a>    <span class="cf">if</span> (err) {</span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to load skeleton</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true"></a>    }</span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true"></a></span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true"></a>    err = nfs_bpf__attach(skel);    <span class="co">//将 BPF 程序附加到内核中的 kprobe 和 kretprobe 点</span></span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true"></a>    <span class="cf">if</span> (err) {</span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to attach</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true"></a>    }</span>
+<span id="cb2-105"><a href="#cb2-105" aria-hidden="true"></a></span>
+<span id="cb2-106"><a href="#cb2-106" aria-hidden="true"></a>    printf(<span class="st">&quot;Tracing NFS client RPC latency... Ctrl+C to exit</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb2-107"><a href="#cb2-107" aria-hidden="true"></a></span>
+<span id="cb2-108"><a href="#cb2-108" aria-hidden="true"></a>    <span class="kw">struct</span> perf_buffer *pb = NULL;</span>
+<span id="cb2-109"><a href="#cb2-109" aria-hidden="true"></a>    pb = perf_buffer__new(bpf_map__fd(skel-&gt;maps.events), <span class="dv">8</span>,</span>
+<span id="cb2-110"><a href="#cb2-110" aria-hidden="true"></a>                          handle_event, handle_lost, NULL, NULL);  <span class="co">//创建缓冲区来接收程序输出的事件数据</span></span>
+<span id="cb2-111"><a href="#cb2-111" aria-hidden="true"></a>    <span class="cf">if</span> (!pb) {</span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true"></a>        fprintf(stderr, <span class="st">&quot;Failed to open perf buffer</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb2-114"><a href="#cb2-114" aria-hidden="true"></a>    }</span>
+<span id="cb2-115"><a href="#cb2-115" aria-hidden="true"></a></span>
+<span id="cb2-116"><a href="#cb2-116" aria-hidden="true"></a>    <span class="cf">while</span> (!exiting)</span>
+<span id="cb2-117"><a href="#cb2-117" aria-hidden="true"></a>        perf_buffer__poll(pb, <span class="dv">100</span>);  <span class="co">//轮询缓冲区，等待事件数据的到来， poll轮询可以快速响应。</span></span>
+<span id="cb2-118"><a href="#cb2-118" aria-hidden="true"></a></span>
+<span id="cb2-119"><a href="#cb2-119" aria-hidden="true"></a>    perf_buffer__free(pb);</span>
+<span id="cb2-120"><a href="#cb2-120" aria-hidden="true"></a>    nfs_bpf__destroy(skel);</span>
+<span id="cb2-121"><a href="#cb2-121" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb2-122"><a href="#cb2-122" aria-hidden="true"></a>}</span></code></pre></div>
+<h4 id="修改部分">修改部分</h4>
+<h5 id="error-当前目录下没有-vmlinux.h-文件这个文件在-nfs.bpf.c-中被引用">（1）error: 当前目录下没有 vmlinux.h 文件，这个文件在 nfs.bpf.c 中被引用</h5>
+<p><code>sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c &gt; vmlinux.h</code> 这条命令它从运行中的 Linux 内核中提取类型信息，并将其转换为 C 语言头文件格式</p>
+<h5 id="error-struct_event没有在nfs.c定义">（2）error: struct_event没有在nfs.c定义</h5>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>    __u32 pid;       <span class="co">// 进程 ID</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>    __u64 delta_ns;  <span class="co">// 耗时时间</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>]; <span class="co">// 进程名</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>};</span></code></pre></div>
+<p>加入到nfs.c中。</p>
+<h5 id="perf_buffer__new-函数调用的参数数量不正确我们使用的参数是-6-个但函数定义只接受-3-个参数">（3）perf_buffer__new() 函数调用的参数数量不正确，我们使用的参数是 6 个，但函数定义只接受 3 个参数</h5>
+<p>那么我们来看一下函数正确的参数：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>perf_buffer__new(<span class="dt">int</span> map_fd, <span class="dt">size_t</span> page_cnt,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>                 <span class="dt">const</span> <span class="kw">struct</span> perf_buffer_opts *opts);</span></code></pre></div>
+<p>来看一下perf_buffer_opts结构体</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">struct</span> perf_buffer_opts {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>        <span class="co">/* if specified, sample_cb is called for each sample */</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>        perf_buffer_sample_fn sample_cb;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>        <span class="co">/* if specified, lost_cb is called for each batch of lost samples */</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>        perf_buffer_lost_fn lost_cb;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>        <span class="co">/* ctx is provided to sample_cb and lost_cb */</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>        <span class="dt">void</span> *ctx;</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>};</span></code></pre></div>
+<p>其实就可以看出，调用的API函数已经更新了，只有三个参数，新版本的API，是把事件回调、丢失事件回调、用户上下文放到结构体里面，然后进行结构体指针传参。</p>
+<h5 id="内核中有-rpc_call_start-函数但没有-rpc_call_done-函数导致程序.nfs无法加载">（4）内核中有 rpc_call_start 函数，但没有 rpc_call_done 函数。导致程序.nfs无法加载</h5>
+<p>同样可能是内核版本不同，将 rpc_call_done 改为 rpc_task_call_done</p>
+<h5 id="map-events-创建失败的问题">（5）map ‘events’ 创建失败的问题</h5>
+<p>map ‘events’: failed to create: Invalid argument 从这句提示可以看出 events的结构体定义不对，map定义，添加更多特定参数以满足内核要求：</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="kw">struct</span> {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a>    __uint(key_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>    __uint(value_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">128</span>);</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span></code></pre></div>
+<h5 id="无法找到-rpc_task_call_done-函数进行-kretprobe">（6）无法找到 rpc_task_call_done 函数进行 kretprobe</h5>
+<p><code>sudo ls -la /sys/kernel/debug/tracing/events/sunrpc/</code> 输入指令后发现了 /sys/kernel/debug/tracing/events/sunrpc/rpc_task_call_done，这表明我们可以使用 tracepoint 而不是 kprobe,因此修改。</p>
+<h5 id="由此可以看出大部分都是版本问题">（7）由此可以看出大部分都是版本问题</h5>
+<ol type="1">
+<li>我的libbpf版本是0.5.0， ubuntu的内核版本是6.8.0-59。</li>
+<li>perf_buffer API 变化，使用结构体传参。</li>
+<li>kprobe 到 tracepoint 的迁移、旧版本: 使用 kprobe/kretprobe 跟踪特定函数，新版本: 使用 tracepoint 跟踪标准化的事件点</li>
+<li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries</li>
+</ol>
+<h4 id="最后通过nfs挂载测试">最后通过nfs挂载测试</h4>
+<h5 id="本地挂载-nfs-共享-1">本地挂载 NFS 共享</h5>
+<pre><code>             
+# 挂载本地共享 (使用NFSv4协议)
+sudo mount -t nfs -o vers=4.1 localhost:/s_test /mnt                
+# 验证挂载
+df -hT | grep nfs4
+# 应输出类似：
+# localhost:/s_test 526802432 43963904 456005120    9% /mnt            
+# 写操作
+cd /mnt
+touch file
+dd if=/dev/urandom of=/mnt/file bs=1M count=10 status=progress</code></pre>
+<h5 id="运行脚本文件">运行脚本文件</h5>
+<pre><code>sudo make
+sudo ./nfs
+#先运行./nfs 自去进行写操作
+#输出结果如下：
+Tracing NFS client RPC latency... Ctrl+C to exit
+PID 14807 (ls): 49.01 ms
+</code></pre>
+<h3 id="定位nfs写数据时间慢的问题">2.定位NFS写数据时间慢的问题</h3>
+<h4 id="nfs-写操作核心函数简化版">NFS 写操作核心函数（简化版）</h4>
+<h4 id="客户端流程">客户端流程</h4>
+<ol type="1">
+<li>用户发起写操作<br />
+<code>write()</code> → <code>vfs_write()</code> → <code>nfs_file_write()</code></li>
+<li>数据缓存与提交<br />
+<code>nfs_write_begin()</code> → 页缓存操作 → <code>nfs_write_end()</code></li>
+<li>RPC 网络通信 <code>nfs_initiate_write()</code> → <code>rpc_call_sync()</code> → NFSv3 <code>WRITE</code> / NFSv4 <code>COMPOUND</code></li>
+</ol>
+<h4 id="关键函数">关键函数</h4>
+<ul>
+<li>客户端：<code>nfs_file_write</code>, <code>nfs_writepages</code>, <code>rpc_call_sync</code></li>
+<li>服务端：<code>nfsd_proc_write</code>, <code>vfs_writev</code> 这里我们需要关注的主要是客户端的<code>nfs_file_write</code>和<code>rpc_call_sync</code>函数，首先需要确定每一笔写入的操作，然后需要知道每一笔写入操作的时间，将XID、file_name、time都打印出来。</li>
+</ul>
+<h4 id="nfs_write.bt脚本代码">nfs_write.bt脚本代码</h4>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/fs.h&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/types.h&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/uio.h&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>BEGIN {</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a>    printf(<span class="st">&quot;Tracing nfs_file_write execution time... Hit Ctrl-C to end.</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a>}</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a>kprobe:nfs_file_write</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a>{</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true"></a>    $iocb = (<span class="kw">struct</span> kiocb *)arg0;</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true"></a>    $file = $iocb-&gt;ki_filp;</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true"></a>    $dentry = $file-&gt;f_path.dentry;</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true"></a>    $from = (<span class="kw">struct</span> iov_iter *)arg1;</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true"></a>    </span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true"></a>    </span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true"></a>    @filename_ptr[tid] = $dentry-&gt;d_name.name;  <span class="co">// 存储文件名指针</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true"></a>    @inode[tid] = $file-&gt;f_inode-&gt;i_ino;        <span class="co">// 存储 inode</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true"></a>    @write_offset = $iocb-&gt;ki_pos;</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true"></a>    @write_length = $from-&gt;count;</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true"></a>    @start_time[tid] = nsecs;                   <span class="co">// 记录起始时间</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true"></a>    printf(<span class="st">&quot;%s, name:%s, inode:%d, len:%d, offset:%d, time:%llu</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true"></a>    probe,str($dentry-&gt;d_name.name),$file-&gt;f_inode-&gt;i_ino,@write_length,@write_offset,nsecs);</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true"></a>}</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true"></a></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true"></a>kretprobe:nfs_file_write</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true"></a>{</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true"></a>    $duration = nsecs - @start_time[tid];</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true"></a>    $name_ptr = @filename_ptr[tid];</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true"></a>    $ino = @inode[tid];</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true"></a>    </span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true"></a>    printf(<span class="st">&quot;nfs_file_write - File: %-20s Inode: %-8lu Duration: %-12d ns</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true"></a>        str($name_ptr), $ino, $duration);</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true"></a></span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true"></a>    delete(@filename_ptr[tid]);</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true"></a>    delete(@inode[tid]);</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true"></a>    delete(@start_time[tid]);</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true"></a>}</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true"></a></span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true"></a>END {</span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true"></a>    clear(@filename_ptr);</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true"></a>    clear(@inode);</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true"></a>    clear(@start_time);</span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true"></a>}</span></code></pre></div>
+<p>根据客户要求脚本修改说明： - 1. 需要将文件的输出时间做一个修改，需要区分单位，也就是将ns的时间单位转换成s、ms、us、ns的时间单位。 - 2. 需要给nfs写入脚本增加几个函数探针，经分析，nfs_write函数可以会调用RPC层，所以可以在RPC层加入探针，从而定位写数据慢的问题。 - 3. 判断task-&gt;tk_msg.rpc_proc-&gt;p_proc是否是NFS3PROC_WRITE，过滤掉非写操作的文件。 - 4.将原来处理时间的shell脚本中的date变为使用scale，设置scale为9,保留计算到ns的时间戳。 - 5. 该版本输出的XID是网络字节序，对应抓包的XID。</p>
+<p>NFS 的写操作本质上是 客户端与服务器之间的 RPC（Remote Procedure Call）通信过程。当你在客户端调用 nfs_file_write 时，NFS 客户端会将操作封装为 RPC 请求，通过 TCP/IP 网络发送到服务器，服务器处理后再返回响应。整个过程涉及多个阶段，任何一个阶段的延迟都可能导致整体写入性能下降。</p>
+<p>需要统计4.19内核上同步写操作各个阶段所花的时间，nfsv3挂载选项:</p>
+<p><code>(rw,relatime,sync,vers=3,rsize=262144,wsize=262144,namlen=255,acregmin=0,acregmax=0,acdirmin=0,acdirmax=0,hard,noac,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=xx.xx.xx.xx,mountvers=3,mountport=2050,mountproto=tcp,local_lock=none,addr=xx.xx.xx.xx)</code></p>
+<p>通过man nfs查看sync挂载选项的解释:</p>
+<p>NFS 客户端对 sync 挂载选项的处理方式与某些其他文件系统不同（参见 mount(8) 中对通用 sync 与 async 挂载选项的描述）。如果既未指定 sync，也未指定 async（或显式指定了 async），NFS 客户端会将应用程序的写入操作延迟发送到服务器，直到发生以下任一情况：</p>
+<p>系统内存压力迫使内核回收内存资源。</p>
+<p>应用程序通过 sync(2)、msync(2) 或 fsync(3) 显式刷新文件数据。</p>
+<p>应用程序通过 close(2) 关闭文件。</p>
+<p>文件通过 fcntl(2) 加锁或解锁。</p>
+<p>换言之，在正常情况下，应用程序写入的数据可能不会立即出现在托管该文件的服务器上。</p>
+<p>如果在挂载点上指定了 sync 选项，则对该挂载点上的文件进行任何写操作的系统调用都会在返回用户空间之前，将数据刷新到服务器。这能在多个客户端之间提供更强的一致性保障，但会显著降低性能。</p>
+<p>应用程序也可使用 O_SYNC 打开标志，在不使用 sync 挂载选项的情况下，对单个文件的写操作强制立即发送到服务器。</p>
+<h4 id="代码分析">代码分析</h4>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a>write</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>  ksys_write</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>    vfs_write</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>      __vfs_write</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>        new_sync_write</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a>          nfs_file_write</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a>            generic_write_sync <span class="co">// 同步写执行到这里</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a>              vfs_fsync_range</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a>                nfs_file_fsync <span class="co">// file-&gt;f_op-&gt;fsync</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a>                  filemap_write_and_wait_range</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true"></a>                    __filemap_fdatawrite_range</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true"></a>                      do_writepages</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true"></a>                        nfs_writepages</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true"></a>                          nfs_pageio_complete</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true"></a>                            nfs_pageio_doio</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true"></a>                              nfs_generic_pg_pgios</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true"></a>                                nfs_initiate_pgio</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true"></a>                                  .rpc_message = &amp;msg,</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true"></a>                                  .flags = RPC_TASK_ASYNC <span class="co">// 异步rpc</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true"></a>                                  nfs_initiate_write <span class="co">// hdr-&gt;rw_ops-&gt;rw_initiate</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true"></a>                                    nfs3_proc_write_setup</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true"></a>                                      msg-&gt;rpc_proc = &amp;nfs3_procedures[NFS3PROC_WRITE]</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true"></a>                                  rpc_run_task</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true"></a>                                    rpc_new_task</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true"></a>                                      rpc_init_task</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true"></a>                                    rpc_task_set_rpc_message <span class="co">// 设置tk_msg的值，NFS3PROC_WRITE和task关联上了</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true"></a>                                    rpc_call_start</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true"></a>                                      task-&gt;tk_action = call_start</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true"></a>                                    rpc_execute</span></code></pre></div>
+<p>对函数进行修改后，最后运行脚本<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/guiyang_fixed/bpftrace%20nfs_write.bt">bpftrace nfs_write.bt</a>,然后用nfs挂载文件，进行nfs的写入，脚本会打印出如下类似的信息：</p>
+<pre><code>Attaching 12 probes...
+Tracing nfs_file_write execution time... Hit Ctrl-C to end.
+kprobe:nfs_file_write, name:file                 inode:1250     len:6      offset:0        time:31677896338628      
+nfs_file_write - File: file                 Inode: 1250     Duration: 0 s 0 ms 92 μs 403 ns
+rpc_execute START - XID:0x00000000 OP:WRITE        time:31677896538052      
+rpc_execute END   - XID:0x00000000 Duration: 0 s 0 ms 45 μs 530 ns
+call_start    - XID:0x00000000 Proc:8    time:31677896671234      
+call_start    - XID:0x00000000 Duration: 0 s 0 ms 27 μs 541 ns
+call_transmit - XID:0x35a74192 time:31677896735194      
+call_transmit - XID:0x35a74192 Duration: 0 s 0 ms 204 μs 464 ns
+call_decode   - XID:0x35a74192 time:31677897333813      
+call_decode   - XID:0x35a74192 Duration: 0 s 0 ms 77 μs 683 ns</code></pre>
+<p>上述部分打印的信息，就可以看到RPC层的XID、OP；文件的inode 、长度、偏移量，以及调用时间。 - RPC的XID：事务唯一标识符，用于关联同一 RPC 请求的所有事件 - RPC的OP：RPC 操作类型，区分不同操作类型的性能特征</p>
+<p>然后运行<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/guiyang_fixed/trace_nfs_write.sh">trace_nfs_write.sh</a>就可以将time数据转换成我们可读的时间戳。与wireshark的XID进行时间对比。</p>
+</body>
+</html>
