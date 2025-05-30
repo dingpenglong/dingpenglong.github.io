@@ -82,10 +82,20 @@
 <ul>
 <li><a href="#nfs问题分析">nfs问题分析</a>
 <ul>
-<li><a href="#本地挂载-nfs-共享">本地挂载 NFS 共享</a>
+<li><a href="#本地挂载-nfs-共享">本地挂载 NFS 共享</a></li>
+<li><a href="#nfs_latency测试和修改">1.nfs_latency测试和修改</a>
 <ul>
-<li><a href="#nfs_latency测试和修改">1.nfs_latency测试和修改</a></li>
-<li><a href="#定位nfs写数据时间慢的问题">2.定位NFS写数据时间慢的问题</a></li>
+<li><a href="#原始代码">原始代码</a></li>
+<li><a href="#修改部分">修改部分</a></li>
+<li><a href="#最后通过nfs挂载测试">最后通过nfs挂载测试</a></li>
+</ul></li>
+<li><a href="#定位nfs写数据时间慢的问题">2.定位NFS写数据时间慢的问题</a>
+<ul>
+<li><a href="#nfs-写操作核心函数简化版">NFS 写操作核心函数（简化版）</a></li>
+<li><a href="#客户端流程">客户端流程</a></li>
+<li><a href="#关键函数">关键函数</a></li>
+<li><a href="#nfs_write.bt脚本代码">nfs_write.bt脚本代码</a></li>
+<li><a href="#代码分析">代码分析</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -105,9 +115,9 @@ df -hT | grep nfs4
 
 # 写操作
  dd if=/dev/urandom of=/mnt/nfs_test/large_file.dat bs=1M count=10 status=progress</code></pre>
-<h3 id="nfs_latency测试和修改">1.nfs_latency测试和修改</h3>
+<h2 id="nfs_latency测试和修改">1.nfs_latency测试和修改</h2>
 <p>用bpf获取rpc执行时间戳，计算函数执行时间这个代码是记录每调用一次rpc，就记录调用的rpc时间。代码具体用到了hashmap去存储每个进程号、当前时间戳。用数组去记录进程的pid和对应的耗时时间。</p>
-<h4 id="原始代码">原始代码</h4>
+<h3 id="原始代码">原始代码</h3>
 <div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>nfs.bpf.c</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="co">// SPDX-License-Identifier: GPL-2.0</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&quot;vmlinux.h&quot;</span></span>
@@ -230,17 +240,17 @@ df -hT | grep nfs4
 <span id="cb2-120"><a href="#cb2-120" aria-hidden="true"></a>    nfs_bpf__destroy(skel);</span>
 <span id="cb2-121"><a href="#cb2-121" aria-hidden="true"></a>    <span class="cf">return</span> <span class="dv">0</span>;</span>
 <span id="cb2-122"><a href="#cb2-122" aria-hidden="true"></a>}</span></code></pre></div>
-<h4 id="修改部分">修改部分</h4>
-<h5 id="error-当前目录下没有-vmlinux.h-文件这个文件在-nfs.bpf.c-中被引用">（1）error: 当前目录下没有 vmlinux.h 文件，这个文件在 nfs.bpf.c 中被引用</h5>
+<h3 id="修改部分">修改部分</h3>
+<h4 id="error-当前目录下没有-vmlinux.h-文件这个文件在-nfs.bpf.c-中被引用">（1）error: 当前目录下没有 vmlinux.h 文件，这个文件在 nfs.bpf.c 中被引用</h4>
 <p><code>sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c &gt; vmlinux.h</code> 这条命令它从运行中的 Linux 内核中提取类型信息，并将其转换为 C 语言头文件格式</p>
-<h5 id="error-struct_event没有在nfs.c定义">（2）error: struct_event没有在nfs.c定义</h5>
+<h4 id="error-struct_event没有在nfs.c定义">（2）error: struct_event没有在nfs.c定义</h4>
 <div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">struct</span> event {</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>    __u32 pid;       <span class="co">// 进程 ID</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>    __u64 delta_ns;  <span class="co">// 耗时时间</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>    <span class="dt">char</span> comm[<span class="dv">16</span>]; <span class="co">// 进程名</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>};</span></code></pre></div>
 <p>加入到nfs.c中。</p>
-<h5 id="perf_buffer__new-函数调用的参数数量不正确我们使用的参数是-6-个但函数定义只接受-3-个参数">（3）perf_buffer__new() 函数调用的参数数量不正确，我们使用的参数是 6 个，但函数定义只接受 3 个参数</h5>
+<h4 id="perf_buffer__new-函数调用的参数数量不正确我们使用的参数是-6-个但函数定义只接受-3-个参数">（3）perf_buffer__new() 函数调用的参数数量不正确，我们使用的参数是 6 个，但函数定义只接受 3 个参数</h4>
 <p>那么我们来看一下函数正确的参数：</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>perf_buffer__new(<span class="dt">int</span> map_fd, <span class="dt">size_t</span> page_cnt,</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>                 <span class="dt">const</span> <span class="kw">struct</span> perf_buffer_opts *opts);</span></code></pre></div>
@@ -254,9 +264,9 @@ df -hT | grep nfs4
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>        <span class="dt">void</span> *ctx;</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>};</span></code></pre></div>
 <p>其实就可以看出，调用的API函数已经更新了，只有三个参数，新版本的API，是把事件回调、丢失事件回调、用户上下文放到结构体里面，然后进行结构体指针传参。</p>
-<h5 id="内核中有-rpc_call_start-函数但没有-rpc_call_done-函数导致程序.nfs无法加载">（4）内核中有 rpc_call_start 函数，但没有 rpc_call_done 函数。导致程序.nfs无法加载</h5>
+<h4 id="内核中有-rpc_call_start-函数但没有-rpc_call_done-函数导致程序.nfs无法加载">（4）内核中有 rpc_call_start 函数，但没有 rpc_call_done 函数。导致程序.nfs无法加载</h4>
 <p>同样可能是内核版本不同，将 rpc_call_done 改为 rpc_task_call_done</p>
-<h5 id="map-events-创建失败的问题">（5）map ‘events’ 创建失败的问题</h5>
+<h4 id="map-events-创建失败的问题">（5）map ‘events’ 创建失败的问题</h4>
 <p>map ‘events’: failed to create: Invalid argument 从这句提示可以看出 events的结构体定义不对，map定义，添加更多特定参数以满足内核要求：</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="kw">struct</span> {</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);  <span class="co">//数组</span></span>
@@ -264,17 +274,17 @@ df -hT | grep nfs4
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>    __uint(value_size, <span class="kw">sizeof</span>(<span class="dt">int</span>));</span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a>    __uint(max_entries, <span class="dv">128</span>);</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a>} events SEC(<span class="st">&quot;.maps&quot;</span>);</span></code></pre></div>
-<h5 id="无法找到-rpc_task_call_done-函数进行-kretprobe">（6）无法找到 rpc_task_call_done 函数进行 kretprobe</h5>
+<h4 id="无法找到-rpc_task_call_done-函数进行-kretprobe">（6）无法找到 rpc_task_call_done 函数进行 kretprobe</h4>
 <p><code>sudo ls -la /sys/kernel/debug/tracing/events/sunrpc/</code> 输入指令后发现了 /sys/kernel/debug/tracing/events/sunrpc/rpc_task_call_done，这表明我们可以使用 tracepoint 而不是 kprobe,因此修改。</p>
-<h5 id="由此可以看出大部分都是版本问题">（7）由此可以看出大部分都是版本问题</h5>
+<h4 id="由此可以看出大部分都是版本问题">（7）由此可以看出大部分都是版本问题</h4>
 <ol type="1">
 <li>我的libbpf版本是0.5.0， ubuntu的内核版本是6.8.0-59。</li>
 <li>perf_buffer API 变化，使用结构体传参。</li>
 <li>kprobe 到 tracepoint 的迁移、旧版本: 使用 kprobe/kretprobe 跟踪特定函数，新版本: 使用 tracepoint 跟踪标准化的事件点</li>
 <li>Map 定义的完整性要求,旧版本: 最小化定义可能足够,新版本: 需要更完整的定义，包括 key_size, value_size, max_entries</li>
 </ol>
-<h4 id="最后通过nfs挂载测试">最后通过nfs挂载测试</h4>
-<h5 id="本地挂载-nfs-共享-1">本地挂载 NFS 共享</h5>
+<h3 id="最后通过nfs挂载测试">最后通过nfs挂载测试</h3>
+<h4 id="本地挂载-nfs-共享-1">本地挂载 NFS 共享</h4>
 <pre><code>             
 # 挂载本地共享 (使用NFSv4协议)
 sudo mount -t nfs -o vers=4.1 localhost:/s_test /mnt                
@@ -286,7 +296,7 @@ df -hT | grep nfs4
 cd /mnt
 touch file
 dd if=/dev/urandom of=/mnt/file bs=1M count=10 status=progress</code></pre>
-<h5 id="运行脚本文件">运行脚本文件</h5>
+<h4 id="运行脚本文件">运行脚本文件</h4>
 <pre><code>sudo make
 sudo ./nfs
 #先运行./nfs 自去进行写操作
@@ -294,9 +304,9 @@ sudo ./nfs
 Tracing NFS client RPC latency... Ctrl+C to exit
 PID 14807 (ls): 49.01 ms
 </code></pre>
-<h3 id="定位nfs写数据时间慢的问题">2.定位NFS写数据时间慢的问题</h3>
-<h4 id="nfs-写操作核心函数简化版">NFS 写操作核心函数（简化版）</h4>
-<h4 id="客户端流程">客户端流程</h4>
+<h2 id="定位nfs写数据时间慢的问题">2.定位NFS写数据时间慢的问题</h2>
+<h3 id="nfs-写操作核心函数简化版">NFS 写操作核心函数（简化版）</h3>
+<h3 id="客户端流程">客户端流程</h3>
 <ol type="1">
 <li>用户发起写操作<br />
 <code>write()</code> → <code>vfs_write()</code> → <code>nfs_file_write()</code></li>
@@ -304,12 +314,12 @@ PID 14807 (ls): 49.01 ms
 <code>nfs_write_begin()</code> → 页缓存操作 → <code>nfs_write_end()</code></li>
 <li>RPC 网络通信 <code>nfs_initiate_write()</code> → <code>rpc_call_sync()</code> → NFSv3 <code>WRITE</code> / NFSv4 <code>COMPOUND</code></li>
 </ol>
-<h4 id="关键函数">关键函数</h4>
+<h3 id="关键函数">关键函数</h3>
 <ul>
 <li>客户端：<code>nfs_file_write</code>, <code>nfs_writepages</code>, <code>rpc_call_sync</code></li>
 <li>服务端：<code>nfsd_proc_write</code>, <code>vfs_writev</code> 这里我们需要关注的主要是客户端的<code>nfs_file_write</code>和<code>rpc_call_sync</code>函数，首先需要确定每一笔写入的操作，然后需要知道每一笔写入操作的时间，将XID、file_name、time都打印出来。</li>
 </ul>
-<h4 id="nfs_write.bt脚本代码">nfs_write.bt脚本代码</h4>
+<h3 id="nfs_write.bt脚本代码">nfs_write.bt脚本代码</h3>
 <div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/fs.h&gt;</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/types.h&gt;</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/uio.h&gt;</span></span>
@@ -353,7 +363,6 @@ PID 14807 (ls): 49.01 ms
 <span id="cb9-41"><a href="#cb9-41" aria-hidden="true"></a>    clear(@inode);</span>
 <span id="cb9-42"><a href="#cb9-42" aria-hidden="true"></a>    clear(@start_time);</span>
 <span id="cb9-43"><a href="#cb9-43" aria-hidden="true"></a>}</span></code></pre></div>
-<p>根据客户要求脚本修改说明： - 1. 需要将文件的输出时间做一个修改，需要区分单位，也就是将ns的时间单位转换成s、ms、us、ns的时间单位。 - 2. 需要给nfs写入脚本增加几个函数探针，经分析，nfs_write函数可以会调用RPC层，所以可以在RPC层加入探针，从而定位写数据慢的问题。 - 3. 判断task-&gt;tk_msg.rpc_proc-&gt;p_proc是否是NFS3PROC_WRITE，过滤掉非写操作的文件。 - 4.将原来处理时间的shell脚本中的date变为使用scale，设置scale为9,保留计算到ns的时间戳。 - 5. 该版本输出的XID是网络字节序，对应抓包的XID。</p>
 <p>NFS 的写操作本质上是 客户端与服务器之间的 RPC（Remote Procedure Call）通信过程。当你在客户端调用 nfs_file_write 时，NFS 客户端会将操作封装为 RPC 请求，通过 TCP/IP 网络发送到服务器，服务器处理后再返回响应。整个过程涉及多个阶段，任何一个阶段的延迟都可能导致整体写入性能下降。</p>
 <p>需要统计4.19内核上同步写操作各个阶段所花的时间，nfsv3挂载选项:</p>
 <p><code>(rw,relatime,sync,vers=3,rsize=262144,wsize=262144,namlen=255,acregmin=0,acregmax=0,acdirmin=0,acdirmax=0,hard,noac,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=xx.xx.xx.xx,mountvers=3,mountport=2050,mountproto=tcp,local_lock=none,addr=xx.xx.xx.xx)</code></p>
@@ -366,7 +375,7 @@ PID 14807 (ls): 49.01 ms
 <p>换言之，在正常情况下，应用程序写入的数据可能不会立即出现在托管该文件的服务器上。</p>
 <p>如果在挂载点上指定了 sync 选项，则对该挂载点上的文件进行任何写操作的系统调用都会在返回用户空间之前，将数据刷新到服务器。这能在多个客户端之间提供更强的一致性保障，但会显著降低性能。</p>
 <p>应用程序也可使用 O_SYNC 打开标志，在不使用 sync 挂载选项的情况下，对单个文件的写操作强制立即发送到服务器。</p>
-<h4 id="代码分析">代码分析</h4>
+<h3 id="代码分析">代码分析</h3>
 <div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a>write</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>  ksys_write</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>    vfs_write</span>
@@ -396,20 +405,36 @@ PID 14807 (ls): 49.01 ms
 <span id="cb10-27"><a href="#cb10-27" aria-hidden="true"></a>                                    rpc_call_start</span>
 <span id="cb10-28"><a href="#cb10-28" aria-hidden="true"></a>                                      task-&gt;tk_action = call_start</span>
 <span id="cb10-29"><a href="#cb10-29" aria-hidden="true"></a>                                    rpc_execute</span></code></pre></div>
-<p>对函数进行修改后，最后运行脚本<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/guiyang_fixed/bpftrace%20nfs_write.bt">bpftrace nfs_write.bt</a>,然后用nfs挂载文件，进行nfs的写入，脚本会打印出如下类似的信息：</p>
-<pre><code>Attaching 12 probes...
+<p>经过抓包数据和bpftrace脚本抓到的数据可以看出： 脚本日志：</p>
+<pre><code>call_transmit - XID:0x73c5ab03 time:39040626141191407
+call_decode   - XID:0x73c5ab03 time:39040626245578910  
+kprobe:nfs_file_write, name:monitor-175.20.2.166-19001.log inode:1660069184 len:354    offset:122904   time:39040626040269279   
+rpc_execute START - XID:0x00000000 OP:WRITE        time:39040626141159025 </code></pre>
+<p>计算得到耗时时间</p>
+<pre><code>call_transmit -&gt; call_decode : 104ms
+nfs_file_write -&gt; rpc_execute : 100ms</code></pre>
+<p>然后通过抓包日志：</p>
+<p>可以看出XID为0x73c5ab03这个文件需要100ms去调用getattr。</p>
+<p>耗时请求高是因为需要先调去nfs_file_write中的getattr，去获取文件属性，然后继续去查看nfs_file_write的调用栈:</p>
+<pre><code>nfs_file_write
+  -&gt;nfs_revalidate_file_size
+    -&gt;__nfs_revalidate_inode
+      -&gt;NFS_PROTO(inode)-&gt;getattr //这里调用了getattr
+  -&gt;nfs_revalidate_mapping
+    -&gt;__nfs_revalidate_inode
+      -&gt;-&gt;NFS_PROTO(inode)-&gt;getattr //这里调用了getattr</code></pre>
+<p>对函数进行修改后，最后运行脚本<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/stat-nfsv3-sync-write-time/nfs_write_fixed.bt">bpftrace nfs_write.bt</a>,然后用nfs挂载文件，进行nfs的写入，脚本会打印出如下类似的信息：</p>
+<pre><code>Attaching 6 probes...
 Tracing nfs_file_write execution time... Hit Ctrl-C to end.
-kprobe:nfs_file_write, name:file                 inode:1250     len:6      offset:0        time:31677896338628      
-nfs_file_write - File: file                 Inode: 1250     Duration: 0 s 0 ms 92 μs 403 ns
-rpc_execute START - XID:0x00000000 OP:WRITE        time:31677896538052      
-rpc_execute END   - XID:0x00000000 Duration: 0 s 0 ms 45 μs 530 ns
-call_start    - XID:0x00000000 Proc:8    time:31677896671234      
-call_start    - XID:0x00000000 Duration: 0 s 0 ms 27 μs 541 ns
-call_transmit - XID:0x35a74192 time:31677896735194      
-call_transmit - XID:0x35a74192 Duration: 0 s 0 ms 204 μs 464 ns
-call_decode   - XID:0x35a74192 time:31677897333813      
-call_decode   - XID:0x35a74192 Duration: 0 s 0 ms 77 μs 683 ns</code></pre>
+call_transmit start - XID:0x5ab664b4 OP:GETATTR      time:16174027123242      
+call_transmit start - XID:0x5ab664b4 OP:GETATTR      time:16174027857242      
+call_transmit start - XID:0x5bb664b4 OP:SETATTR      time:16174027998833      
+call_transmit start - XID:0x5bb664b4 OP:SETATTR      time:16174028716389      
+kprobe:nfs_file_write, name:file                 inode:1364     len:5      offset:0        time:16174028849098      
+call_transmit start - XID:0x5cb664b4 OP:WRITE        time:16174028956811      
+call_transmit start - XID:0x5cb664b4 OP:WRITE        time:16174029578071      
+kretprobe:nfs_file_write, name:file                 inode:1364     len:5      offset:0        time:16174029774955       Duration: 0 s 0 ms 922 μs 160 ns</code></pre>
 <p>上述部分打印的信息，就可以看到RPC层的XID、OP；文件的inode 、长度、偏移量，以及调用时间。 - RPC的XID：事务唯一标识符，用于关联同一 RPC 请求的所有事件 - RPC的OP：RPC 操作类型，区分不同操作类型的性能特征</p>
-<p>然后运行<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/guiyang_fixed/trace_nfs_write.sh">trace_nfs_write.sh</a>就可以将time数据转换成我们可读的时间戳。与wireshark的XID进行时间对比。</p>
+<p>然后运行<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/stat-nfsv3-sync-write-time/trace_nfs_write_fixed.sh">trace_nfs_write.sh</a>就可以将time数据转换成我们可读的时间戳。与wireshark的XID进行时间对比。</p>
 </body>
 </html>
