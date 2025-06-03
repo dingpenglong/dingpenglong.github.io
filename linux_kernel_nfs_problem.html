@@ -89,11 +89,8 @@
 <li><a href="#修改部分">修改部分</a></li>
 <li><a href="#最后通过nfs挂载测试">最后通过nfs挂载测试</a></li>
 </ul></li>
-<li><a href="#定位nfs写数据时间慢的问题">2.定位NFS写数据时间慢的问题</a>
+<li><a href="#定位nfs同步写数据时间慢的问题">2.定位NFS同步写数据时间慢的问题</a>
 <ul>
-<li><a href="#nfs-写操作核心函数简化版">NFS 写操作核心函数（简化版）</a></li>
-<li><a href="#客户端流程">客户端流程</a></li>
-<li><a href="#关键函数">关键函数</a></li>
 <li><a href="#nfs_write.bt脚本代码">nfs_write.bt脚本代码</a></li>
 <li><a href="#代码分析">代码分析</a></li>
 </ul></li>
@@ -304,21 +301,7 @@ sudo ./nfs
 Tracing NFS client RPC latency... Ctrl+C to exit
 PID 14807 (ls): 49.01 ms
 </code></pre>
-<h2 id="定位nfs写数据时间慢的问题">2.定位NFS写数据时间慢的问题</h2>
-<h3 id="nfs-写操作核心函数简化版">NFS 写操作核心函数（简化版）</h3>
-<h3 id="客户端流程">客户端流程</h3>
-<ol type="1">
-<li>用户发起写操作<br />
-<code>write()</code> → <code>vfs_write()</code> → <code>nfs_file_write()</code></li>
-<li>数据缓存与提交<br />
-<code>nfs_write_begin()</code> → 页缓存操作 → <code>nfs_write_end()</code></li>
-<li>RPC 网络通信 <code>nfs_initiate_write()</code> → <code>rpc_call_sync()</code> → NFSv3 <code>WRITE</code> / NFSv4 <code>COMPOUND</code></li>
-</ol>
-<h3 id="关键函数">关键函数</h3>
-<ul>
-<li>客户端：<code>nfs_file_write</code>, <code>nfs_writepages</code>, <code>rpc_call_sync</code></li>
-<li>服务端：<code>nfsd_proc_write</code>, <code>vfs_writev</code> 这里我们需要关注的主要是客户端的<code>nfs_file_write</code>和<code>rpc_call_sync</code>函数，首先需要确定每一笔写入的操作，然后需要知道每一笔写入操作的时间，将XID、file_name、time都打印出来。</li>
-</ul>
+<h2 id="定位nfs同步写数据时间慢的问题">2.定位NFS同步写数据时间慢的问题</h2>
 <h3 id="nfs_write.bt脚本代码">nfs_write.bt脚本代码</h3>
 <div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/fs.h&gt;</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/types.h&gt;</span></span>
@@ -405,36 +388,49 @@ PID 14807 (ls): 49.01 ms
 <span id="cb10-27"><a href="#cb10-27" aria-hidden="true"></a>                                    rpc_call_start</span>
 <span id="cb10-28"><a href="#cb10-28" aria-hidden="true"></a>                                      task-&gt;tk_action = call_start</span>
 <span id="cb10-29"><a href="#cb10-29" aria-hidden="true"></a>                                    rpc_execute</span></code></pre></div>
-<p>经过抓包数据和bpftrace脚本抓到的数据可以看出： 脚本日志：</p>
-<pre><code>call_transmit - XID:0x73c5ab03 time:39040626141191407
-call_decode   - XID:0x73c5ab03 time:39040626245578910  
-kprobe:nfs_file_write, name:monitor-175.20.2.166-19001.log inode:1660069184 len:354    offset:122904   time:39040626040269279   
-rpc_execute START - XID:0x00000000 OP:WRITE        time:39040626141159025 </code></pre>
-<p>计算得到耗时时间</p>
-<pre><code>call_transmit -&gt; call_decode : 104ms
-nfs_file_write -&gt; rpc_execute : 100ms</code></pre>
-<p>然后通过抓包日志：</p>
-<p>可以看出XID为0x73c5ab03这个文件需要100ms去调用getattr。</p>
-<p>耗时请求高是因为需要先调去nfs_file_write中的getattr，去获取文件属性，然后继续去查看nfs_file_write的调用栈:</p>
-<pre><code>nfs_file_write
-  -&gt;nfs_revalidate_file_size
-    -&gt;__nfs_revalidate_inode
-      -&gt;NFS_PROTO(inode)-&gt;getattr //这里调用了getattr
-  -&gt;nfs_revalidate_mapping
-    -&gt;__nfs_revalidate_inode
-      -&gt;-&gt;NFS_PROTO(inode)-&gt;getattr //这里调用了getattr</code></pre>
-<p>对函数进行修改后，最后运行脚本<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/stat-nfsv3-sync-write-time/nfs_write_fixed.bt">bpftrace nfs_write.bt</a>,然后用nfs挂载文件，进行nfs的写入，脚本会打印出如下类似的信息：</p>
-<pre><code>Attaching 6 probes...
-Tracing nfs_file_write execution time... Hit Ctrl-C to end.
-call_transmit start - XID:0x5ab664b4 OP:GETATTR      time:16174027123242      
-call_transmit start - XID:0x5ab664b4 OP:GETATTR      time:16174027857242      
-call_transmit start - XID:0x5bb664b4 OP:SETATTR      time:16174027998833      
-call_transmit start - XID:0x5bb664b4 OP:SETATTR      time:16174028716389      
-kprobe:nfs_file_write, name:file                 inode:1364     len:5      offset:0        time:16174028849098      
-call_transmit start - XID:0x5cb664b4 OP:WRITE        time:16174028956811      
-call_transmit start - XID:0x5cb664b4 OP:WRITE        time:16174029578071      
-kretprobe:nfs_file_write, name:file                 inode:1364     len:5      offset:0        time:16174029774955       Duration: 0 s 0 ms 922 μs 160 ns</code></pre>
+<p>分析代码可知：在使用<code>nfs sync</code>操作的时候，nfs调用rpc层有一个属性是设置结构体<code>msg</code>下的<code>rpc_proc</code>的值，然后再经过<code>rpc_task_set_rpc_message</code>将<code>tk_msg</code>设置，这样在过滤写操作的时候，就可以通过判断<code>tk_msg-&gt;msg-&gt;rpc_proc</code>是否等于<code>NFS3PROC_WRITE</code>,来过滤其他操作，只保留写操作。</p>
+<p>对函数进行修改后，最后运行脚本<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/stat-nfsv3-sync-write-time/nfs_write_fixed.bt">bpftrace nfs_write.bt</a>,然后用nfs挂载文件，进行nfs的写入，脚本会打印出如下类似的信息。下面是两次nfs同步写操作时间慢的打印信息。 然后运行<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/stat-nfsv3-sync-write-time/trace_nfs_write_fixed.sh">trace_nfs_write.sh</a>就可以将time数据转换成我们可读的时间戳。与wireshark的XID进行时间对比。</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="ex">kprobe</span>:nfs_file_write, name:xxxx inode:1697123520 len:354    offset:132777   time:39290423881392412</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xedc0ad03 OP:GETATTR      time:39290423881405002</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xedc0ad03 OP:GETATTR      time:39290423982453372</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xeec0ad03 OP:WRITE        time:39290423982494112</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xeec0ad03 OP:WRITE        time:39290424084932650</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a><span class="ex">nfs_file_write</span> - File: xxxx Inode: 1697123520 Duration: 0 s 203 ms 592 μs 488 ns</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a><span class="ex">kprobe</span>:nfs_file_write, name:xxxx inode:1697123520 len:353    offset:140530   time:39290435940709314</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xfac1ad03 OP:GETATTR      time:39290435940720794</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xfac1ad03 OP:GETATTR      time:39290436041499632</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xfbc1ad03 OP:WRITE        time:39290436041541542</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xfbc1ad03 OP:WRITE        time:39290436149645344</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true"></a><span class="ex">nfs_file_write</span> - File: xxxx Inode: 1697123520 Duration: 0 s 209 ms 7 μs 571 ns</span></code></pre></div>
 <p>上述部分打印的信息，就可以看到RPC层的XID、OP；文件的inode 、长度、偏移量，以及调用时间。 - RPC的XID：事务唯一标识符，用于关联同一 RPC 请求的所有事件 - RPC的OP：RPC 操作类型，区分不同操作类型的性能特征</p>
-<p>然后运行<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/stat-nfsv3-sync-write-time/trace_nfs_write_fixed.sh">trace_nfs_write.sh</a>就可以将time数据转换成我们可读的时间戳。与wireshark的XID进行时间对比。</p>
+<p>计算得到耗时时间</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="ex">call_transmit</span> -<span class="op">&gt;</span> call_decode : 104ms</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a><span class="ex">nfs_file_write</span> -<span class="op">&gt;</span> rpc_execute : 100ms</span></code></pre></div>
+<p>然后通过抓包日志过滤：xid: rpc.xid==0xxxxxxxxx</p>
+<p>可以看出XID为0xeec0ad03这个文件需要100ms去调用getattr。</p>
+<p>耗时请求高是因为需要先调去nfs_file_write中的getattr，去获取文件属性，然后继续去查看nfs_file_write的调用栈:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>nfs_file_write</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a>  nfs_revalidate_file_size</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a>    __nfs_revalidate_inode</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>      NFS_PROTO(inode)-&gt;getattr <span class="co">//这里调用了getattr</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a>  nfs_revalidate_mapping</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a>    __nfs_revalidate_inode</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true"></a>      NFS_PROTO(inode)-&gt;getattr <span class="co">//这里调用了getattr</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true"></a>  generic_write_sync <span class="co">// 同步写执行到这里</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true"></a>    vfs_fsync_range</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true"></a>      nfs_file_fsync <span class="co">// file-&gt;f_op-&gt;fsync</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true"></a>        filemap_write_and_wait_range</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true"></a>          __filemap_fdatawrite_range</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true"></a>            do_writepages</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true"></a>              nfs_writepages</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true"></a>                nfs_pageio_complete</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true"></a>                  nfs_pageio_doio</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true"></a>                    nfs_generic_pg_pgios</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true"></a>                      nfs_initiate_pgio</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true"></a>                        .rpc_message = &amp;msg,</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true"></a>                        .flags = RPC_TASK_ASYNC <span class="co">// 异步rpc</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true"></a>                        nfs_initiate_write <span class="co">// hdr-&gt;rw_ops-&gt;rw_initiate</span></span></code></pre></div>
+<p>根据数据分析得出结论：用户态写文件时间长是由于nfs服务器回复慢导致的。</p>
 </body>
 </html>
