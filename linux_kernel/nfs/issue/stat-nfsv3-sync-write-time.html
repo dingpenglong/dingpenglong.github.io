@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>stat-nfsv3-sync-write-time</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="doc/linux-style.css" />
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#定位nfs同步写数据时间慢的问题">定位NFS同步写数据时间慢的问题</a>
+<ul>
+<li><a href="#nfs_write.bt脚本代码">nfs_write.bt脚本代码</a></li>
+<li><a href="#代码分析">代码分析</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="定位nfs同步写数据时间慢的问题">定位NFS同步写数据时间慢的问题</h1>
+<h2 id="nfs_write.bt脚本代码">nfs_write.bt脚本代码</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/fs.h&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/types.h&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="pp">#include</span><span class="im">&lt;linux/uio.h&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>BEGIN {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>    printf(<span class="st">&quot;Tracing nfs_file_write execution time... Hit Ctrl-C to end.</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>}</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>kprobe:nfs_file_write</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a>{</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>    $iocb = (<span class="kw">struct</span> kiocb *)arg0;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>    $file = $iocb-&gt;ki_filp;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a>    $dentry = $file-&gt;f_path.dentry;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>    $from = (<span class="kw">struct</span> iov_iter *)arg1;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>    </span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a>    </span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>    @filename_ptr[tid] = $dentry-&gt;d_name.name;  <span class="co">// 存储文件名指针</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a>    @inode[tid] = $file-&gt;f_inode-&gt;i_ino;        <span class="co">// 存储 inode</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true"></a>    @write_offset = $iocb-&gt;ki_pos;</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true"></a>    @write_length = $from-&gt;count;</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true"></a>    @start_time[tid] = nsecs;                   <span class="co">// 记录起始时间</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true"></a>    printf(<span class="st">&quot;%s, name:%s, inode:%d, len:%d, offset:%d, time:%llu</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true"></a>    probe,str($dentry-&gt;d_name.name),$file-&gt;f_inode-&gt;i_ino,@write_length,@write_offset,nsecs);</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true"></a>}</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true"></a>kretprobe:nfs_file_write</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true"></a>{</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true"></a>    $duration = nsecs - @start_time[tid];</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true"></a>    $name_ptr = @filename_ptr[tid];</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true"></a>    $ino = @inode[tid];</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true"></a>    </span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true"></a>    printf(<span class="st">&quot;nfs_file_write - File: %-20s Inode: %-8lu Duration: %-12d ns</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true"></a>        str($name_ptr), $ino, $duration);</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true"></a>    delete(@filename_ptr[tid]);</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true"></a>    delete(@inode[tid]);</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true"></a>    delete(@start_time[tid]);</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true"></a>}</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true"></a></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true"></a>END {</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true"></a>    clear(@filename_ptr);</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true"></a>    clear(@inode);</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true"></a>    clear(@start_time);</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true"></a>}</span></code></pre></div>
+<p>NFS 的写操作本质上是 客户端与服务器之间的 RPC（Remote Procedure Call）通信过程。当你在客户端调用 nfs_file_write 时，NFS 客户端会将操作封装为 RPC 请求，通过 TCP/IP 网络发送到服务器，服务器处理后再返回响应。整个过程涉及多个阶段，任何一个阶段的延迟都可能导致整体写入性能下降。</p>
+<p>需要统计4.19内核上同步写操作各个阶段所花的时间，nfsv3挂载选项:</p>
+<p><code>(rw,relatime,sync,vers=3,rsize=262144,wsize=262144,namlen=255,acregmin=0,acregmax=0,acdirmin=0,acdirmax=0,hard,noac,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=xx.xx.xx.xx,mountvers=3,mountport=2050,mountproto=tcp,local_lock=none,addr=xx.xx.xx.xx)</code></p>
+<p>通过man nfs查看sync挂载选项的解释:</p>
+<p>NFS 客户端对 sync 挂载选项的处理方式与某些其他文件系统不同（参见 mount(8) 中对通用 sync 与 async 挂载选项的描述）。如果既未指定 sync，也未指定 async（或显式指定了 async），NFS 客户端会将应用程序的写入操作延迟发送到服务器，直到发生以下任一情况：</p>
+<p>系统内存压力迫使内核回收内存资源。</p>
+<p>应用程序通过 sync(2)、msync(2) 或 fsync(3) 显式刷新文件数据。</p>
+<p>应用程序通过 close(2) 关闭文件。</p>
+<p>文件通过 fcntl(2) 加锁或解锁。</p>
+<p>换言之，在正常情况下，应用程序写入的数据可能不会立即出现在托管该文件的服务器上。</p>
+<p>如果在挂载点上指定了 sync 选项，则对该挂载点上的文件进行任何写操作的系统调用都会在返回用户空间之前，将数据刷新到服务器。这能在多个客户端之间提供更强的一致性保障，但会显著降低性能。</p>
+<p>应用程序也可使用 O_SYNC 打开标志，在不使用 sync 挂载选项的情况下，对单个文件的写操作强制立即发送到服务器。</p>
+<h2 id="代码分析">代码分析</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>write</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>  ksys_write</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>    vfs_write</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>      __vfs_write</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>        new_sync_write</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>          nfs_file_write</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>            generic_write_sync <span class="co">// 同步写执行到这里</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a>              vfs_fsync_range</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a>                nfs_file_fsync <span class="co">// file-&gt;f_op-&gt;fsync</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a>                  filemap_write_and_wait_range</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a>                    __filemap_fdatawrite_range</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a>                      do_writepages</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a>                        nfs_writepages</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a>                          nfs_pageio_complete</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a>                            nfs_pageio_doio</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true"></a>                              nfs_generic_pg_pgios</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true"></a>                                nfs_initiate_pgio</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true"></a>                                  .rpc_message = &amp;msg,</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true"></a>                                  .flags = RPC_TASK_ASYNC <span class="co">// 异步rpc</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true"></a>                                  nfs_initiate_write <span class="co">// hdr-&gt;rw_ops-&gt;rw_initiate</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true"></a>                                    nfs3_proc_write_setup</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true"></a>                                      msg-&gt;rpc_proc = &amp;nfs3_procedures[NFS3PROC_WRITE]</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true"></a>                                  rpc_run_task</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true"></a>                                    rpc_new_task</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true"></a>                                      rpc_init_task</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true"></a>                                    rpc_task_set_rpc_message <span class="co">// 设置tk_msg的值，NFS3PROC_WRITE和task关联上了</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true"></a>                                    rpc_call_start</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true"></a>                                      task-&gt;tk_action = call_start</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true"></a>                                    rpc_execute</span></code></pre></div>
+<p>分析代码可知：在使用<code>nfs sync</code>操作的时候，nfs调用rpc层有一个属性是设置结构体<code>msg</code>下的<code>rpc_proc</code>的值，然后再经过<code>rpc_task_set_rpc_message</code>将<code>tk_msg</code>设置，这样在过滤写操作的时候，就可以通过判断<code>tk_msg-&gt;msg-&gt;rpc_proc</code>是否等于<code>NFS3PROC_WRITE</code>,来过滤其他操作，只保留写操作。</p>
+<p>对函数进行修改后，最后运行脚本<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/stat-nfsv3-sync-write-time/nfs_write_fixed.bt">bpftrace nfs_write.bt</a>,然后用nfs挂载文件，进行nfs的写入，脚本会打印出如下类似的信息。下面是两次nfs同步写操作时间慢的打印信息。 然后运行<a href="https://gitee.com/youcunhua/blog/blob/master/work/nfs/stat-nfsv3-sync-write-time/trace_nfs_write_fixed.sh">trace_nfs_write.sh</a>就可以将time数据转换成我们可读的时间戳。与wireshark的XID进行时间对比。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">kprobe</span>:nfs_file_write, name:xxxx inode:1697123520 len:354    offset:132777   time:39290423881392412</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xedc0ad03 OP:GETATTR      time:39290423881405002</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xedc0ad03 OP:GETATTR      time:39290423982453372</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xeec0ad03 OP:WRITE        time:39290423982494112</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xeec0ad03 OP:WRITE        time:39290424084932650</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="ex">nfs_file_write</span> - File: xxxx Inode: 1697123520 Duration: 0 s 203 ms 592 μs 488 ns</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="ex">kprobe</span>:nfs_file_write, name:xxxx inode:1697123520 len:353    offset:140530   time:39290435940709314</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xfac1ad03 OP:GETATTR      time:39290435940720794</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xfac1ad03 OP:GETATTR      time:39290436041499632</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xfbc1ad03 OP:WRITE        time:39290436041541542</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="ex">call_transmit</span> start - XID:0xfbc1ad03 OP:WRITE        time:39290436149645344</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a><span class="ex">nfs_file_write</span> - File: xxxx Inode: 1697123520 Duration: 0 s 209 ms 7 μs 571 ns</span></code></pre></div>
+<p>上述部分打印的信息，就可以看到RPC层的XID、OP；文件的inode 、长度、偏移量，以及调用时间。 - RPC的XID：事务唯一标识符，用于关联同一 RPC 请求的所有事件 - RPC的OP：RPC 操作类型，区分不同操作类型的性能特征</p>
+<p>计算得到耗时时间</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ex">call_transmit</span> -<span class="op">&gt;</span> call_decode : 104ms</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">nfs_file_write</span> -<span class="op">&gt;</span> rpc_execute : 100ms</span></code></pre></div>
+<p>然后通过抓包日志过滤：xid: rpc.xid==0xxxxxxxxx</p>
+<p>可以看出XID为0xeec0ad03这个文件需要100ms去调用getattr。</p>
+<p>耗时请求高是因为需要先调去nfs_file_write中的getattr，去获取文件属性，然后继续去查看nfs_file_write的调用栈:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>nfs_file_write</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  nfs_revalidate_file_size</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>    __nfs_revalidate_inode</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>      NFS_PROTO(inode)-&gt;getattr <span class="co">//这里调用了getattr</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>  nfs_revalidate_mapping</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>    __nfs_revalidate_inode</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>      NFS_PROTO(inode)-&gt;getattr <span class="co">//这里调用了getattr</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>  generic_write_sync <span class="co">// 同步写执行到这里</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a>    vfs_fsync_range</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a>      nfs_file_fsync <span class="co">// file-&gt;f_op-&gt;fsync</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a>        filemap_write_and_wait_range</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a>          __filemap_fdatawrite_range</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true"></a>            do_writepages</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true"></a>              nfs_writepages</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true"></a>                nfs_pageio_complete</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true"></a>                  nfs_pageio_doio</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true"></a>                    nfs_generic_pg_pgios</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true"></a>                      nfs_initiate_pgio</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true"></a>                        .rpc_message = &amp;msg,</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true"></a>                        .flags = RPC_TASK_ASYNC <span class="co">// 异步rpc</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true"></a>                        nfs_initiate_write <span class="co">// hdr-&gt;rw_ops-&gt;rw_initiate</span></span></code></pre></div>
+<p>根据数据分析得出结论：用户态写文件时间长是由于nfs服务器回复慢导致的。</p>
+</body>
+</html>

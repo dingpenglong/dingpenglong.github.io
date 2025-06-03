@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>leetcode_summary</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="doc/linux-style.css" />
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#力扣算法题解笔记">力扣算法题解笔记</a>
+<ul>
+<li><a href="#三数之和">15. 三数之和</a></li>
+<li><a href="#接雨水">42. 接雨水</a>
+<ul>
+<li><a href="#方法1动态规划">方法1：动态规划</a></li>
+<li><a href="#方法2双指针优化">方法2：双指针优化</a></li>
+</ul></li>
+<li><a href="#无重复字符的最长子串">3. 无重复字符的最长子串</a></li>
+<li><a href="#滑动窗口最大值">239. 滑动窗口最大值</a></li>
+<li><a href="#最小覆盖子串">76. 最小覆盖子串</a></li>
+<li><a href="#缺失的第一个正数">41. 缺失的第一个正数</a></li>
+<li><a href="#旋转图像">48. 旋转图像</a></li>
+<li><a href="#电话号码的字母组合">17. 电话号码的字母组合</a></li>
+<li><a href="#组合总和">39. 组合总和</a></li>
+<li><a href="#单词搜索">79. 单词搜索</a></li>
+<li><a href="#搜索二维矩阵">74. 搜索二维矩阵</a></li>
+<li><a href="#有效的括号">20. 有效的括号</a></li>
+<li><a href="#字符串解码">394. 字符串解码</a></li>
+<li><a href="#每日温度">739. 每日温度</a></li>
+<li><a href="#前k个高频元素">347. 前K个高频元素</a></li>
+<li><a href="#lru缓存">146 LRU缓存</a></li>
+<li><a href="#最长回子串">5 最长回子串</a></li>
+<li><a href="#寻找两个有序数组的中位数">4 寻找两个有序数组的中位数</a></li>
+<li><a href="#两数相加">2两数相加</a></li>
+<li><a href="#快速排序">快速排序</a></li>
+<li><a href="#归并排序">归并排序</a></li>
+<li><a href="#堆排序">堆排序</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="力扣算法题解笔记">力扣算法题解笔记</h1>
+<h2 id="三数之和">15. 三数之和</h2>
+<ul>
+<li><strong>方法</strong>：双指针法</li>
+<li><strong>关键点</strong>：
+<ul>
+<li><code>i</code> 去重：检查 <code>nums[i]</code> 是否与前一个元素相同，避免重复。</li>
+<li>双指针循环：使用 <code>while (j &lt; k)</code> 遍历。</li>
+<li><code>j</code> 和 <code>k</code> 去重：在找到有效三元组后，跳过重复的 <code>j</code> 和 <code>k</code>。</li>
+<li><strong>代码逻辑</strong>：</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="cf">while</span> j &lt; k:</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>  <span class="cf">if</span> sum == <span class="dv">0</span>:</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>  <span class="co">//处理结果并移动j和k</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>  <span class="cf">while</span> j &lt; k and nums[j] == nums[j+<span class="dv">1</span>]: j +=<span class="dv">1</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>  <span class="cf">while</span> j &lt; k and nums[k] == nums[k-<span class="dv">1</span>]: k -=<span class="dv">1</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>  j +=<span class="dv">1</span>; k -=<span class="dv">1</span></span></code></pre></div></li>
+</ul>
+<h2 id="接雨水">42. 接雨水</h2>
+<h3 id="方法1动态规划">方法1：动态规划</h3>
+<ul>
+<li><strong>步骤</strong>：
+<ol type="1">
+<li>预计算左侧最大值数组 <code>ldp</code> 和右侧最大值数组 <code>rdp</code>。</li>
+<li>对每个位置取 <code>min(ldp[i], rdp[i]) - height[i]</code> 累加。</li>
+</ol></li>
+</ul>
+<h3 id="方法2双指针优化">方法2：双指针优化</h3>
+<ul>
+<li><strong>关键点</strong>：
+<ul>
+<li>维护 <code>lmax</code> 和 <code>rmax</code> 分别表示左右遍历时的最大值。</li>
+<li>当 <code>height[left] &lt;= height[right]</code> 时处理左指针，反之处理右指针。</li>
+<li><strong>公式</strong>：<code>ans += (lmax - height[left])</code> 或 <code>ans += (rmax - height[right])</code>。</li>
+</ul></li>
+</ul>
+<h2 id="无重复字符的最长子串">3. 无重复字符的最长子串</h2>
+<ul>
+<li><strong>方法</strong>：滑动窗口（Set实现）</li>
+<li><strong>关键点</strong>：
+<ul>
+<li>使用 <code>set</code> 记录当前窗口字符。</li>
+<li>当遇到重复字符时，移动左指针并删除对应字符，直到无重复。</li>
+<li><strong>注意</strong>：用 <code>while</code> 循环处理重复字符的移除。</li>
+</ul></li>
+</ul>
+<h2 id="滑动窗口最大值">239. 滑动窗口最大值</h2>
+<ul>
+<li><strong>方法</strong>：单调递减双端队列</li>
+<li><strong>步骤</strong>：
+<ol type="1">
+<li>队列保存索引，且队列对应值单调递减。</li>
+<li>窗口滑动时，移除超出窗口范围的队首元素。</li>
+<li>新元素入队前，移除队尾小于它的元素。</li>
+<li>当窗口形成后（<code>i &gt;= k-1</code>），队首即为最大值。</li>
+</ol></li>
+</ul>
+<h2 id="最小覆盖子串">76. 最小覆盖子串</h2>
+<ul>
+<li><strong>方法</strong>：滑动窗口 + 哈希表</li>
+<li><strong>关键点</strong>：
+<ul>
+<li>用数组统计 <code>t</code> 中字符出现次数，维护窗口内字符覆盖状态。</li>
+<li>扩展右指针直到覆盖 <code>t</code>，然后收缩左指针找最小窗口。</li>
+<li><strong>优化</strong>：用 <code>count</code> 变量记录匹配字符数，避免每次检查全表。</li>
+</ul></li>
+</ul>
+<h2 id="缺失的第一个正数">41. 缺失的第一个正数</h2>
+<ul>
+<li><strong>方法</strong>：原地哈希</li>
+<li><strong>步骤</strong>：
+<ol type="1">
+<li>遍历数组，将正整数 <code>nums[i]</code> 交换到索引 <code>nums[i]-1</code> 的位置。</li>
+<li>再次遍历，找到第一个不满足 <code>nums[i] == i+1</code> 的位置。</li>
+<li><strong>边界</strong>：若全匹配，返回 <code>n+1</code>。</li>
+</ol></li>
+</ul>
+<h2 id="旋转图像">48. 旋转图像</h2>
+<ul>
+<li><strong>方法</strong>：数学变换</li>
+<li><strong>步骤</strong>：
+<ol type="1">
+<li><strong>转置矩阵</strong>：交换 <code>matrix[i][j]</code> 与 <code>matrix[j][i]</code>。</li>
+<li><strong>水平翻转每行</strong>：交换 <code>matrix[i][j]</code> 与 <code>matrix[i][n-j-1]</code>。</li>
+</ol></li>
+</ul>
+<h2 id="电话号码的字母组合">17. 电话号码的字母组合</h2>
+<ul>
+<li><strong>方法</strong>：回溯算法</li>
+<li><strong>关键点</strong>：
+<ul>
+<li>递归终止条件：路径长度等于数字串长度。</li>
+<li>遍历当前数字对应的所有字母，回溯选择与撤销。</li>
+<li><strong>参数</strong>：<code>index</code> 表示当前处理的数字位置。</li>
+</ul></li>
+</ul>
+<h2 id="组合总和">39. 组合总和</h2>
+<ul>
+<li><strong>方法</strong>：回溯 + 剪枝</li>
+<li><strong>关键点</strong>：
+<ul>
+<li>允许重复选择元素，递归时 <code>start</code> 参数不变。</li>
+<li>排序后剪枝：若当前候选数大于剩余和，提前终止。</li>
+</ul></li>
+</ul>
+<h2 id="单词搜索">79. 单词搜索</h2>
+<ul>
+<li><strong>方法</strong>：DFS + 回溯</li>
+<li><strong>关键点</strong>：
+<ul>
+<li>终止条件：索引达到单词长度或字符不匹配。</li>
+<li>标记已访问位置，递归后恢复状态。</li>
+<li><strong>注意</strong>：四个方向的DFS需处理越界问题。</li>
+</ul></li>
+</ul>
+<h2 id="搜索二维矩阵">74. 搜索二维矩阵</h2>
+<ul>
+<li><strong>方法</strong>：二分查找</li>
+<li><strong>关键点</strong>：
+<ul>
+<li>将二维矩阵视为一维数组，计算中间元素的坐标：<code>mid_val = matrix[mid//n][mid%n]</code>。</li>
+<li>根据 <code>mid_val</code> 与 <code>target</code> 的关系调整搜索范围。</li>
+</ul></li>
+</ul>
+<h2 id="有效的括号">20. 有效的括号</h2>
+<ul>
+<li><strong>方法</strong>：栈</li>
+<li><strong>关键点</strong>：
+<ul>
+<li>遇到左括号入栈，右括号时检查栈顶是否匹配。</li>
+<li><strong>边界处理</strong>：栈为空时遇到右括号直接返回False。</li>
+</ul></li>
+</ul>
+<h2 id="字符串解码">394. 字符串解码</h2>
+<ul>
+<li><strong>方法</strong>：双栈（数字栈 + 字符串栈）</li>
+<li><strong>步骤</strong>：
+<ol type="1">
+<li>遇到数字时解析完整数值入数字栈。</li>
+<li>遇到 <code>[</code> 时，当前字符串入栈并重置。</li>
+<li>遇到 <code>]</code> 时，弹出数字和字符串，拼接后更新结果。</li>
+</ol></li>
+</ul>
+<h2 id="每日温度">739. 每日温度</h2>
+<ul>
+<li><strong>方法</strong>：单调栈</li>
+<li><strong>关键点</strong>：
+<ul>
+<li>栈保存温度递减的日期索引。</li>
+<li>遍历时若当前温度大于栈顶温度，弹出并计算天数差。</li>
+<li><strong>结果数组</strong>：<code>ans[stack.pop()] = i - idx</code></li>
+</ul></li>
+</ul>
+<h2 id="前k个高频元素">347. 前K个高频元素</h2>
+<ul>
+<li><strong>方法</strong>：最小堆（优先队列）</li>
+<li><strong>步骤</strong>：
+<ol type="1">
+<li>统计频率存入哈希表。</li>
+<li>维护大小为 <code>k</code> 的最小堆，按频率排序。</li>
+<li>遍历哈希表，堆满后弹出较小频率元素。</li>
+</ol></li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>class Solution {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>    <span class="kw">struct</span> myComparison{</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>        <span class="dt">bool</span> operator()(pair&lt;<span class="dt">int</span>,<span class="dt">int</span>&gt;&amp;p1,pair&lt;<span class="dt">int</span>,<span class="dt">int</span>&gt;&amp;p2){</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>            <span class="cf">return</span> p1.second&gt;p2.second;<span class="co">//小顶堆是大于号</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>        }</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>    };</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a>public:</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a>    vector&lt;<span class="dt">int</span>&gt; topKFrequent(vector&lt;<span class="dt">int</span>&gt;&amp; nums, <span class="dt">int</span> k) {</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a>        unordered_map&lt;<span class="dt">int</span>, <span class="dt">int</span>&gt; map;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a>        <span class="cf">for</span>(<span class="dt">int</span> i=<span class="dv">0</span>; i&lt;nums.size(); i++){</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a>            map[nums[i]]++;  </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a>        }</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true"></a>        priority_queue&lt;pair&lt;<span class="dt">int</span>, <span class="dt">int</span>&gt;, vector&lt;pair&lt;<span class="dt">int</span>, <span class="dt">int</span>&gt;&gt;,myComparison&gt; pri_que;</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true"></a>        <span class="cf">for</span>(<span class="dt">auto</span>&amp; it: map){</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true"></a>            pri_que.push(it);</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true"></a>            <span class="cf">if</span>(pri_que.size() &gt;k){</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true"></a>                pri_que.pop();</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true"></a>            }</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true"></a>        }</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true"></a>        vector&lt;<span class="dt">int</span>&gt; res;</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true"></a>        <span class="cf">while</span>(!pri_que.empty()){</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true"></a>            res.emplace_back(pri_que.top().first);</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true"></a>            pri_que.pop();</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true"></a>        }</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true"></a>        <span class="cf">return</span> res;</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true"></a>    }</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true"></a>};</span></code></pre></div>
+<h2 id="lru缓存">146 LRU缓存</h2>
+<ul>
+<li><strong>方法</strong>：双向链表、哈希表</li>
+<li><strong>步骤</strong>:
+<ol type="1">
+<li>设计一个双向链表，实现push_fornt函数、remove_node函数、get_node函数</li>
+<li>push_fornt函数是在链表头部添加一个结点,实现操作如下所示： <code>x-&gt;pre =dummy; x-&gt;next=dummy-&gt;next;x-&gt;pre-&gt;next =x;x-&gt;next-&gt;pre =x;</code></li>
+<li>remove_node函数是删除一个结点，实现如下： <code>x-&gt;pre-&gt;next = x-&gt;next;x-&gt;next-&gt;pre = x-&gt;pre;</code></li>
+<li>get_node函数是获取key对应的节点，同时把该节点移动到链表头部，操作如下所示： <code>用hashmap通过key找到node，先remove结点node，然后再push_front结点</code><br />
+</li>
+<li>LRU的每次Put操作，需要先判断结点是否存在该hashmap中，存在则直接替换key对应的值，不存在则放到链表头部，如果hashmap的大小大于了LRU缓存大小，那么则删除hashmap中对应的key，删除链表中最后一个结点。注<code>用DLinkedNode* back_node = dummy-&gt;pre;</code>获取最后一个结点</li>
+</ol></li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">struct</span> Dlinked {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>    <span class="dt">int</span> key, value;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>    Dlinked *next, *pre;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>    Dlinked(<span class="dt">int</span> _key, <span class="dt">int</span> _value) : key(_key), value(_value), next(nullptr), pre(nullptr) {}</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>};</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>class LRUCache {</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>private:</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a>    <span class="dt">int</span> capacity;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>    Dlinked* dummy;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a>    unordered_map&lt;<span class="dt">int</span>, Dlinked*&gt; key_to_node;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a>    <span class="dt">void</span> remove_node(Dlinked* x) {</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a>        x-&gt;pre-&gt;next = x-&gt;next;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a>        x-&gt;next-&gt;pre = x-&gt;pre;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a>    }</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a>    <span class="dt">void</span> push_front(Dlinked* x) {</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a>        x-&gt;next = dummy-&gt;next;</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a>        x-&gt;pre = dummy;</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true"></a>        x-&gt;pre-&gt;next = x;</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true"></a>        x-&gt;next-&gt;pre = x;</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true"></a>    }</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true"></a>    Dlinked* get_node(<span class="dt">int</span> key) {</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true"></a>        <span class="dt">auto</span> it = key_to_node.find(key);</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true"></a>        <span class="cf">if</span> (it == key_to_node.end()) <span class="cf">return</span> nullptr;</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true"></a>        Dlinked* node = it-&gt;second;</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true"></a>        remove_node(node);</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true"></a>        push_front(node);</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true"></a>        <span class="cf">return</span> node;</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true"></a>    }</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true"></a>public:</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true"></a>    LRUCache(<span class="dt">int</span> capacity) {</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true"></a>        this-&gt;capacity = capacity;</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true"></a>        dummy = new Dlinked(<span class="dv">0</span>, <span class="dv">0</span>);</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true"></a>        dummy-&gt;pre = dummy;</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true"></a>        dummy-&gt;next = dummy;</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true"></a>    }</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true"></a></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true"></a>    <span class="dt">int</span> get(<span class="dt">int</span> key) {</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true"></a>        Dlinked* node = get_node(key);</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true"></a>        <span class="cf">return</span> node ? node-&gt;value : -<span class="dv">1</span>;</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true"></a>    }</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true"></a></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true"></a>    <span class="dt">void</span> put(<span class="dt">int</span> key, <span class="dt">int</span> value) {</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true"></a>        Dlinked* node = get_node(key);</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true"></a>        <span class="cf">if</span> (node) {</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true"></a>            node-&gt;value = value;</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true"></a>            <span class="cf">return</span>;</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true"></a>        }</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true"></a>        node = new Dlinked(key, value);</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true"></a>        key_to_node[key] = node;</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true"></a>        push_front(node);</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true"></a>        <span class="cf">if</span> (key_to_node.size() &gt; capacity) {</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true"></a>            Dlinked* back_node = dummy-&gt;pre;</span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true"></a>            remove_node(back_node);</span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true"></a>            key_to_node.erase(back_node-&gt;key);</span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true"></a>            delete back_node;</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true"></a>        }</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true"></a>    }</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true"></a>};</span></code></pre></div>
+<h2 id="最长回子串">5 最长回子串</h2>
+<ul>
+<li><strong>方法一</strong>：中心拓展法(偶数拓展，奇数拓展)</li>
+<li><strong>步骤</strong>:
+<ol type="1">
+<li>编写一个从中心拓展的回文字符串判断。</li>
+<li>从头遍历，i作为中心点往外拓展，可以以奇数个拓展，也可以以偶数个拓展。</li>
+<li>存储并且比较每次中心的的偶数、奇数拓展长度，返回最长回文子串</li>
+</ol></li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>class Solution {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>private:</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>    pair&lt;<span class="dt">int</span>, <span class="dt">int</span>&gt; expandFromCenter(string s, <span class="dt">int</span> left, <span class="dt">int</span> right){</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>        <span class="cf">while</span>(left&gt;=<span class="dv">0</span> &amp;&amp; right &lt;= s.size() &amp;&amp;s[left] ==  s[right]){</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a>            left--;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a>            right++;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a>        }</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a>        <span class="cf">return</span> {left+<span class="dv">1</span>,right-<span class="dv">1</span>};</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a>    }</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a>public:</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a>    string longestPalindrome(string s) {</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true"></a>        <span class="dt">int</span> start=<span class="dv">0</span>,end=<span class="dv">0</span>;</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true"></a>        <span class="cf">for</span>(<span class="dt">int</span> i =<span class="dv">0</span>; i&lt; s.size(); i++){</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true"></a>            <span class="dt">auto</span>[letf1,right1] = expandFromCenter(s,i,i);</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true"></a>            <span class="dt">auto</span>[letf2,right2] = expandFromCenter(s,i,i+<span class="dv">1</span>);</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true"></a>            <span class="cf">if</span>(right1 -letf1 &gt; end -start) {</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true"></a>                start =letf1;</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true"></a>                end = right1;</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true"></a>            }</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true"></a>            <span class="cf">if</span>(right2 -letf2 &gt; end -start) {</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true"></a>                start =letf2;</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true"></a>                end = right2;</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true"></a>            }</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true"></a>        }</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true"></a>        <span class="cf">return</span> s.substr(start,end-start+<span class="dv">1</span>);</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true"></a>    }</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true"></a></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true"></a>};</span></code></pre></div>
+<ul>
+<li><strong>方法二</strong>：动态规划</li>
+</ul>
+<h2 id="寻找两个有序数组的中位数">4 寻找两个有序数组的中位数</h2>
+<ul>
+<li><strong>方法</strong>：二分法</li>
+<li><strong>步骤</strong>:
+<ol type="1">
+<li>就是要转换成从两个有序数组中找出第k个大的元素。</li>
+<li>需要每次判断A[K/2-1]与B[K/2-1]的值，判断完后就可以舍弃k/2个值，更新k的值。然后再将舍弃后的值进行判断。</li>
+<li>最后如果一个数组为空，说明该数组中的所有元素都被排除，我们可以直接返回另一个数组中第 k 小的元素。如果 k=1，我们只要返回两个数组首元素的最小值即可。</li>
+</ol></li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>class Solution {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>    public:</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>        <span class="dt">int</span> getKthElement(<span class="dt">const</span> vector&lt;<span class="dt">int</span>&gt;&amp; nums1, <span class="dt">const</span> vector&lt;<span class="dt">int</span>&gt;&amp; nums2, <span class="dt">int</span> k) {</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>            <span class="co">/* 主要思路：要找到第 k (k&gt;1) 小的元素，那么就取 pivot1 = nums1[k/2-1] 和 pivot2 = nums2[k/2-1] 进行比较</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a><span class="co">             * 这里的 &quot;/&quot; 表示整除</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a><span class="co">             * nums1 中小于等于 pivot1 的元素有 nums1[0 .. k/2-2] 共计 k/2-1 个</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a><span class="co">             * nums2 中小于等于 pivot2 的元素有 nums2[0 .. k/2-2] 共计 k/2-1 个</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a><span class="co">             * 取 pivot = min(pivot1, pivot2)，两个数组中小于等于 pivot 的元素共计不会超过 (k/2-1) + (k/2-1) &lt;= k-2 个</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a><span class="co">             * 这样 pivot 本身最大也只能是第 k-1 小的元素</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a><span class="co">             * 如果 pivot = pivot1，那么 nums1[0 .. k/2-1] 都不可能是第 k 小的元素。把这些元素全部 &quot;删除&quot;，剩下的作为新的 nums1 数组</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a><span class="co">             * 如果 pivot = pivot2，那么 nums2[0 .. k/2-1] 都不可能是第 k 小的元素。把这些元素全部 &quot;删除&quot;，剩下的作为新的 nums2 数组</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a><span class="co">             * 由于我们 &quot;删除&quot; 了一些元素（这些元素都比第 k 小的元素要小），因此需要修改 k 的值，减去删除的数的个数</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true"></a><span class="co">             */</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true"></a>    </span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true"></a>            <span class="dt">int</span> m = nums1.size();</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true"></a>            <span class="dt">int</span> n = nums2.size();</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true"></a>            <span class="dt">int</span> index1 = <span class="dv">0</span>, index2 = <span class="dv">0</span>;</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true"></a>    </span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true"></a>            <span class="cf">while</span> (true) {</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true"></a>                <span class="co">// 边界情况</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true"></a>                <span class="cf">if</span> (index1 == m) {</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true"></a>                    <span class="cf">return</span> nums2[index2 + k - <span class="dv">1</span>];</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true"></a>                }</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true"></a>                <span class="cf">if</span> (index2 == n) {</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true"></a>                    <span class="cf">return</span> nums1[index1 + k - <span class="dv">1</span>];</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true"></a>                }</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true"></a>                <span class="cf">if</span> (k == <span class="dv">1</span>) {</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true"></a>                    <span class="cf">return</span> min(nums1[index1], nums2[index2]);</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true"></a>                }</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true"></a>    </span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true"></a>                <span class="co">// 正常情况</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true"></a>                <span class="dt">int</span> newIndex1 = min(index1 + k / <span class="dv">2</span> - <span class="dv">1</span>, m - <span class="dv">1</span>);</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true"></a>                <span class="dt">int</span> newIndex2 = min(index2 + k / <span class="dv">2</span> - <span class="dv">1</span>, n - <span class="dv">1</span>);</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true"></a>                <span class="dt">int</span> pivot1 = nums1[newIndex1];</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true"></a>                <span class="dt">int</span> pivot2 = nums2[newIndex2];</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true"></a>                <span class="cf">if</span> (pivot1 &lt;= pivot2) {</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true"></a>                    k -= newIndex1 - index1 + <span class="dv">1</span>;</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true"></a>                    index1 = newIndex1 + <span class="dv">1</span>;</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true"></a>                }</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true"></a>                <span class="cf">else</span> {</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true"></a>                    k -= newIndex2 - index2 + <span class="dv">1</span>;</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true"></a>                    index2 = newIndex2 + <span class="dv">1</span>;</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true"></a>                }</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true"></a>            }</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true"></a>        }</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true"></a>    </span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true"></a>        <span class="dt">double</span> findMedianSortedArrays(vector&lt;<span class="dt">int</span>&gt;&amp; nums1, vector&lt;<span class="dt">int</span>&gt;&amp; nums2) {</span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true"></a>            <span class="dt">int</span> totalLength = nums1.size() + nums2.size();</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true"></a>            <span class="cf">if</span> (totalLength % <span class="dv">2</span> == <span class="dv">1</span>) {</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true"></a>                <span class="cf">return</span> getKthElement(nums1, nums2, (totalLength + <span class="dv">1</span>) / <span class="dv">2</span>);</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true"></a>            }</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true"></a>            <span class="cf">else</span> {</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true"></a>                <span class="cf">return</span> (getKthElement(nums1, nums2, totalLength / <span class="dv">2</span>) + getKthElement(nums1, nums2, totalLength / <span class="dv">2</span> + <span class="dv">1</span>)) / <span class="fl">2.0</span>;</span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true"></a>            }</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true"></a>        }</span></code></pre></div>
+<h2 id="两数相加">2两数相加</h2>
+<ul>
+<li><strong>方法</strong>：链表</li>
+<li><strong>需要注意的点</strong>:
+<ol type="1">
+<li></li>
+</ol></li>
+</ul>
+<h2 id="快速排序">快速排序</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="dt">void</span> quickSort(std::vector&lt;<span class="dt">int</span>&gt;&amp; arr, <span class="dt">int</span> left, <span class="dt">int</span> right) {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>    <span class="cf">if</span> (left &gt;= right) <span class="cf">return</span>;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>    <span class="dt">int</span> pivot = arr[left];</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a>    <span class="dt">int</span> i = left + <span class="dv">1</span>;</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a>    <span class="dt">int</span> j = right;</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a>    <span class="cf">while</span> (i &lt;= j) {</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a>        <span class="cf">while</span> (i &lt;= j &amp;&amp; arr[i] &lt;= pivot) i++;</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a>        <span class="cf">while</span> (i &lt;= j &amp;&amp; arr[j] &gt;= pivot) j--;</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a>        <span class="cf">if</span> (i &lt; j) std::swap(arr[i], arr[j]);</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a>    }</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true"></a>    std::swap(arr[left], arr[j]);</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true"></a>    quickSort(arr, left, j - <span class="dv">1</span>);</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true"></a>    quickSort(arr, j + <span class="dv">1</span>, right);</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true"></a>}</span></code></pre></div>
+<h2 id="归并排序">归并排序</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="dt">void</span> merge(std::vector&lt;<span class="dt">int</span>&gt;&amp; arr, <span class="dt">int</span> left, <span class="dt">int</span> mid, <span class="dt">int</span> right) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>    std::vector&lt;<span class="dt">int</span>&gt; temp(right - left + <span class="dv">1</span>);</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>    <span class="dt">int</span> i = left, j = mid + <span class="dv">1</span>, k = <span class="dv">0</span>;</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a>    <span class="cf">while</span> (i &lt;= mid &amp;&amp; j &lt;= right) {</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a>        <span class="cf">if</span> (arr[i] &lt;= arr[j]) {</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a>            temp[k++] = arr[i++];</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a>        } <span class="cf">else</span> {</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a>            temp[k++] = arr[j++];</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a>        }</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a>    }</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a>    <span class="cf">while</span> (i &lt;= mid) {</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a>        temp[k++] = arr[i++];</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a>    }</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true"></a>    <span class="cf">while</span> (j &lt;= right) {</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true"></a>        temp[k++] = arr[j++];</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true"></a>    }</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true"></a>    <span class="cf">for</span> (i = left, k = <span class="dv">0</span>; i &lt;= right; ++i, ++k) {</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true"></a>        arr[i] = temp[k];</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true"></a>    }</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true"></a>}</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true"></a><span class="dt">void</span> mergeSort(std::vector&lt;<span class="dt">int</span>&gt;&amp; arr, <span class="dt">int</span> left, <span class="dt">int</span> right) {</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true"></a>    <span class="cf">if</span> (left &lt; right) {</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true"></a>        <span class="dt">int</span> mid = left + (right - left) / <span class="dv">2</span>;</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true"></a>        mergeSort(arr, left, mid);</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true"></a>        mergeSort(arr, mid + <span class="dv">1</span>, right);</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true"></a>        merge(arr, left, mid, right);</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true"></a>    }</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true"></a>}</span></code></pre></div>
+<h2 id="堆排序">堆排序</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="dt">void</span> heapify(std::vector&lt;<span class="dt">int</span>&gt;&amp; arr, <span class="dt">int</span> n, <span class="dt">int</span> i) {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>    <span class="dt">int</span> largest = i;</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>    <span class="dt">int</span> left = <span class="dv">2</span> * i + <span class="dv">1</span>;</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a>    <span class="dt">int</span> right = <span class="dv">2</span> * i + <span class="dv">2</span>;</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a>    <span class="cf">if</span> (left &lt; n &amp;&amp; arr[left] &gt; arr[largest]) {</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a>        largest = left;</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a>    }</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a>    <span class="cf">if</span> (right &lt; n &amp;&amp; arr[right] &gt; arr[largest]) {</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a>        largest = right;</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true"></a>    }</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true"></a>    <span class="cf">if</span> (largest != i) {</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true"></a>        std::swap(arr[i], arr[largest]);</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true"></a>        heapify(arr, n, largest);</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true"></a>    }</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true"></a>}</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true"></a></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true"></a><span class="dt">void</span> heapSort(std::vector&lt;<span class="dt">int</span>&gt;&amp; arr) {</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true"></a>    <span class="dt">int</span> n = arr.size();</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true"></a></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true"></a>    <span class="cf">for</span> (<span class="dt">int</span> i = n / <span class="dv">2</span> - <span class="dv">1</span>; i &gt;= <span class="dv">0</span>; i--) {</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true"></a>        heapify(arr, n, i);</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true"></a>    }</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true"></a></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true"></a>    <span class="cf">for</span> (<span class="dt">int</span> i = n - <span class="dv">1</span>; i &gt; <span class="dv">0</span>; i--) {</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true"></a>        std::swap(arr[<span class="dv">0</span>], arr[i]);</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true"></a>        heapify(arr, i, <span class="dv">0</span>);</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true"></a>    }</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true"></a>}</span></code></pre></div>
+</body>
+</html>
