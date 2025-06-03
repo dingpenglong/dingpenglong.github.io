@@ -136,7 +136,9 @@ exit    #退出</code></pre>
 <h5 id="配置内核选项">配置内核选项</h5>
 <p><code>make O=build menuconfig</code></p>
 <h5 id="编译内核镜像">编译内核镜像</h5>
-<p><code>make O=build bzImage -j$(nproc)</code> ##### make内容补充 可以使用<code>make help | less</code>查看<code>make</code>命令的具体内容</p>
+<p><code>make O=build bzImage -j$(nproc)</code></p>
+<h5 id="make内容补充">make内容补充</h5>
+<p>可以使用<code>make help | less</code>查看<code>make</code>命令的具体内容</p>
 <pre><code>#清理环境相关
 make mrproper           #清理环境 彻底清理所有生成文件、配置文件及备份文件（需重新配置内核）
 make distclean          #在 mrproper 基础上，额外删除编辑器备份和补丁文件（完全干净的环境）
@@ -251,6 +253,11 @@ fg      #从后台恢复 Vim
 ?keyword    #向上搜索 keyword
 :%s/old/new/g   #全局替换所有 old 为 new
 :%s/old/new/gc  #替换时逐个确认</code></pre>
+<p>vim还有一个高级的用法就是用vim阅读内核源码，首先需要在根目录下执行<code>ctags -R</code> 这个命令会生成索引文件，<code>ls -l tags</code>查看索引文件</p>
+<pre class="‘"><code>vim中：
+1.ctrl + ] #跳转到函数或者变量的定义
+2. ctrl + o #返回到原来的位置
+3. g ctrl +] #跳转到函数或者变量的定义，这个比第一个多一个选择。</code></pre>
 <h4 id="git版本控制">2.Git版本控制</h4>
 <p><a href="https://www.runoob.com/git/git-tutorial.html">Git菜鸟教程</a></p>
 <pre><code>git init            #在当前目录初始化 Git 仓库
@@ -403,79 +410,79 @@ cat /mnt/file</code></pre>
 <h5 id="方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</h5>
 <p>这是最简单快捷的安装方法，适用于大多数用户。</p>
 <h6 id="步骤1添加bcc-ppa源">步骤1：添加BCC PPA源</h6>
-<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-add-repository ppa:hadret/bpfcc</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-add-repository ppa:hadret/bpfcc</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span></code></pre></div>
 <h6 id="步骤2安装bcc包">步骤2：安装BCC包</h6>
-<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bpfcc-tools python3-bpfcc</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bpfcc-tools python3-bpfcc</span></code></pre></div>
 <h6 id="步骤3验证安装">步骤3：验证安装</h6>
-<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="co"># 列出已安装的BCC工具</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a><span class="fu">find</span> /usr -name <span class="st">&quot;*-bpfcc&quot;</span> -type f <span class="kw">|</span> <span class="fu">sort</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true"></a></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true"></a><span class="co"># 测试运行BCC程序（例如execsnoop）</span></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true"></a><span class="fu">sudo</span> execsnoop-bpfcc -h</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="co"># 列出已安装的BCC工具</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="fu">find</span> /usr -name <span class="st">&quot;*-bpfcc&quot;</span> -type f <span class="kw">|</span> <span class="fu">sort</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a><span class="co"># 测试运行BCC程序（例如execsnoop）</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true"></a><span class="fu">sudo</span> execsnoop-bpfcc -h</span></code></pre></div>
 <h5 id="方法二从源代码编译安装">方法二：从源代码编译安装</h5>
 <p>如果你需要最新版本或自定义构建，可以从源代码安装。</p>
 <h6 id="步骤1安装依赖项">步骤1：安装依赖项</h6>
-<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="co"># 安装基本依赖</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bison build-essential cmake flex git libedit-dev <span class="kw">\</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a>  <span class="ex">libllvm14</span> llvm-14-dev libclang-14-dev python3 zlib1g-dev libelf-dev <span class="kw">\</span></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true"></a>  <span class="ex">libfl-dev</span> python3-pip</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a><span class="co"># 安装其他依赖</span></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y arping clang-14 dh-python libdbus-1-dev libluajit-5.1-dev <span class="kw">\</span></span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true"></a>  <span class="ex">luajit</span> libpcap-dev libpython3-dev libzip-dev python3-netaddr python3-pyroute2</span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true"></a></span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true"></a><span class="co"># 安装内核头文件</span></span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y linux-headers-<span class="va">$(</span><span class="fu">uname</span> -r<span class="va">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="co"># 安装基本依赖</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bison build-essential cmake flex git libedit-dev <span class="kw">\</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a>  <span class="ex">libllvm14</span> llvm-14-dev libclang-14-dev python3 zlib1g-dev libelf-dev <span class="kw">\</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a>  <span class="ex">libfl-dev</span> python3-pip</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true"></a></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true"></a><span class="co"># 安装其他依赖</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y arping clang-14 dh-python libdbus-1-dev libluajit-5.1-dev <span class="kw">\</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true"></a>  <span class="ex">luajit</span> libpcap-dev libpython3-dev libzip-dev python3-netaddr python3-pyroute2</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true"></a></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true"></a><span class="co"># 安装内核头文件</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y linux-headers-<span class="va">$(</span><span class="fu">uname</span> -r<span class="va">)</span></span></code></pre></div>
 <h6 id="步骤2克隆bcc仓库">步骤2：克隆BCC仓库</h6>
-<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="bu">cd</span> ~</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a><span class="fu">git</span> clone https://github.com/iovisor/bcc.git</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a><span class="co"># 如果遇到网络问题，可以使用国内镜像：</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a><span class="co"># git clone https://gitee.com/mirrors/bcc.git</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="bu">cd</span> ~</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a><span class="fu">git</span> clone https://github.com/iovisor/bcc.git</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a><span class="co"># 如果遇到网络问题，可以使用国内镜像：</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a><span class="co"># git clone https://gitee.com/mirrors/bcc.git</span></span></code></pre></div>
 <h6 id="步骤3编译和安装">步骤3：编译和安装</h6>
-<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="fu">mkdir</span> -p ~/bcc/build <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/bcc/build</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a><span class="fu">cmake</span> -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_CMD=python3 ..</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">nproc</span><span class="va">)</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a><span class="fu">sudo</span> make install</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="fu">mkdir</span> -p ~/bcc/build <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/bcc/build</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="fu">cmake</span> -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_CMD=python3 ..</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">nproc</span><span class="va">)</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a><span class="fu">sudo</span> make install</span></code></pre></div>
 <h6 id="步骤4验证安装">步骤4：验证安装</h6>
-<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a></span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a><span class="co"># 测试BCC工具</span></span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a><span class="fu">sudo</span> /usr/share/bcc/tools/execsnoop</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a><span class="co"># 测试BCC工具</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a><span class="fu">sudo</span> /usr/share/bcc/tools/execsnoop</span></code></pre></div>
 <h5 id="创建并运行自己的bcc程序">创建并运行自己的BCC程序</h5>
-<div class="sourceCode" id="cb30"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="co"># 文件名: test_bcc.py</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a><span class="im">from</span> bcc <span class="im">import</span> BPF</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a></span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a><span class="co"># 定义BPF程序</span></span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true"></a>program <span class="op">=</span> <span class="st">&quot;&quot;&quot;</span></span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true"></a><span class="st">int hello(void *ctx) {</span></span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true"></a><span class="st">    bpf_trace_printk(&quot;Hello, BCC!</span><span class="ch">\\</span><span class="st">n&quot;);</span></span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true"></a><span class="st">    return 0;</span></span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true"></a><span class="st">}</span></span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true"></a><span class="st">&quot;&quot;&quot;</span></span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true"></a></span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true"></a><span class="co"># 加载BPF程序</span></span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true"></a>b <span class="op">=</span> BPF(text<span class="op">=</span>program)</span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true"></a>b.attach_kprobe(event<span class="op">=</span>b.get_syscall_fnname(<span class="st">&quot;clone&quot;</span>), fn_name<span class="op">=</span><span class="st">&quot;hello&quot;</span>)</span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true"></a></span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true"></a><span class="co"># 打印头部</span></span>
-<span id="cb30-18"><a href="#cb30-18" aria-hidden="true"></a><span class="bu">print</span>(<span class="st">&quot;正在跟踪clone()系统调用...&quot;</span>)</span>
-<span id="cb30-19"><a href="#cb30-19" aria-hidden="true"></a><span class="bu">print</span>(<span class="st">&quot;按Ctrl+C退出&quot;</span>)</span>
-<span id="cb30-20"><a href="#cb30-20" aria-hidden="true"></a></span>
-<span id="cb30-21"><a href="#cb30-21" aria-hidden="true"></a><span class="co"># 读取并打印trace输出</span></span>
-<span id="cb30-22"><a href="#cb30-22" aria-hidden="true"></a><span class="cf">try</span>:</span>
-<span id="cb30-23"><a href="#cb30-23" aria-hidden="true"></a>    b.trace_print()</span>
-<span id="cb30-24"><a href="#cb30-24" aria-hidden="true"></a><span class="cf">except</span> <span class="pp">KeyboardInterrupt</span>:</span>
-<span id="cb30-25"><a href="#cb30-25" aria-hidden="true"></a>    <span class="cf">pass</span></span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a><span class="co"># 文件名: test_bcc.py</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a><span class="im">from</span> bcc <span class="im">import</span> BPF</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true"></a></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true"></a><span class="co"># 定义BPF程序</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true"></a>program <span class="op">=</span> <span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true"></a><span class="st">int hello(void *ctx) {</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true"></a><span class="st">    bpf_trace_printk(&quot;Hello, BCC!</span><span class="ch">\\</span><span class="st">n&quot;);</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true"></a><span class="st">    return 0;</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true"></a><span class="st">}</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true"></a><span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true"></a></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true"></a><span class="co"># 加载BPF程序</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true"></a>b <span class="op">=</span> BPF(text<span class="op">=</span>program)</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true"></a>b.attach_kprobe(event<span class="op">=</span>b.get_syscall_fnname(<span class="st">&quot;clone&quot;</span>), fn_name<span class="op">=</span><span class="st">&quot;hello&quot;</span>)</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true"></a></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true"></a><span class="co"># 打印头部</span></span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true"></a><span class="bu">print</span>(<span class="st">&quot;正在跟踪clone()系统调用...&quot;</span>)</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true"></a><span class="bu">print</span>(<span class="st">&quot;按Ctrl+C退出&quot;</span>)</span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true"></a></span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true"></a><span class="co"># 读取并打印trace输出</span></span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true"></a><span class="cf">try</span>:</span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true"></a>    b.trace_print()</span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true"></a><span class="cf">except</span> <span class="pp">KeyboardInterrupt</span>:</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true"></a>    <span class="cf">pass</span></span></code></pre></div>
 <p>运行此脚本：</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="fu">chmod</span> +x test_bcc.py</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a><span class="fu">sudo</span> ./test_bcc.py</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true"></a><span class="fu">chmod</span> +x test_bcc.py</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true"></a><span class="fu">sudo</span> ./test_bcc.py</span></code></pre></div>
 <h5 id="常用bcc工具">常用BCC工具</h5>
 <p>BCC安装后提供了许多强大的工具，包括：</p>
 <ul>
