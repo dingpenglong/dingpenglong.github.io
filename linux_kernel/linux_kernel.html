@@ -82,62 +82,90 @@
 <ul>
 <li><a href="#linux-内核开发学习笔记">Linux 内核开发学习笔记</a>
 <ul>
-<li><a href="#目录">目录</a>
+<li><a href="#一远程登录-ssh-服务器流程">一、远程登录 SSH 服务器流程</a>
 <ul>
-<li><a href="#一远程登录-ssh-服务器流程">一、远程登录 SSH 服务器流程</a></li>
-<li><a href="#二内核编译环境">二、内核编译环境</a></li>
-<li><a href="#三使用qemu">三、使用QEMU</a></li>
+<li><a href="#安装-code-server">安装 code-server</a></li>
+<li><a href="#生成代码索引">生成代码索引</a></li>
+</ul></li>
+<li><a href="#二内核编译环境">二、内核编译环境</a>
+<ul>
+<li><a href="#内核编译流程">1.内核编译流程</a></li>
+<li><a href="#模块独立编译">2.模块独立编译</a></li>
+<li><a href="#内核文档编译">3.内核文档编译</a></li>
+</ul></li>
+<li><a href="#三使用qemu">三、使用QEMU</a>
+<ul>
+<li><a href="#服务器端">服务器端</a></li>
+<li><a href="#虚拟机端">虚拟机端</a></li>
+</ul></li>
 <li><a href="#四gdb调试">四、GDB调试</a></li>
-<li><a href="#五个人博客搭建">五、个人博客搭建</a></li>
-<li><a href="#六常用命令速查">六、常用命令速查</a></li>
-<li><a href="#七文件系统">七、文件系统</a></li>
-<li><a href="#八nfs文件系统">八、nfs文件系统</a></li>
-<li><a href="#九bpf">九、BPF</a></li>
-<li><a href="#十smb文件系统">十、SMB文件系统</a></li>
-<li><a href="#十一linux-内核实战">十一、Linux 内核实战</a></li>
+<li><a href="#五个人博客搭建">五、个人博客搭建</a>
+<ul>
+<li><a href="#域名配置流程">域名配置流程</a></li>
+</ul></li>
+<li><a href="#六常用命令速查">六、常用命令速查</a>
+<ul>
+<li><a href="#vim编辑器">1.vim编辑器</a></li>
+<li><a href="#git版本控制">2.Git版本控制</a></li>
+<li><a href="#tmux终端复用">3.Tmux终端复用</a></li>
+<li><a href="#ps进程管理">4.ps进程管理</a></li>
+<li><a href="#sshscp远程连接">5.SSH&amp;SCP远程连接</a></li>
+</ul></li>
+<li><a href="#七文件系统">七、文件系统</a>
+<ul>
+<li><a href="#操作流程">1.操作流程</a></li>
+<li><a href="#基本概念">2.基本概念</a></li>
+<li><a href="#文件数据结构的理解和重点">3.文件数据结构的理解和重点：</a></li>
+</ul></li>
+<li><a href="#八nfs文件系统">八、nfs文件系统</a>
+<ul>
+<li><a href="#nfs环境">1.nfs环境</a></li>
+</ul></li>
+<li><a href="#九bpf">九、BPF</a>
+<ul>
+<li><a href="#在ubuntu-22.04上安装bcc的完整指南">在Ubuntu 22.04上安装BCC的完整指南</a></li>
+</ul></li>
+<li><a href="#十smb文件系统">十、SMB文件系统</a>
+<ul>
+<li><a href="#server搭建">1.Server搭建</a></li>
+</ul></li>
+<li><a href="#十一linux-内核实战">十一、Linux 内核实战</a>
+<ul>
+<li><a href="#nfs问题分析"><span>nfs问题分析</span></a></li>
+</ul></li>
 <li><a href="#十二linux内核源码解读"><span>十二、Linux内核源码解读</span></a></li>
-<li><a href="#遇到的常见问题的小tips">遇到的常见问题的小Tips</a></li>
+<li><a href="#遇到的常见问题的小tips">遇到的常见问题的小Tips</a>
+<ul>
+<li><a href="#虚拟机卡在了boot-form-hard-disk阶段">1. 虚拟机卡在了Boot form Hard Disk阶段</a></li>
+<li><a href="#调试补丁">2. 调试补丁</a></li>
+<li><a href="#git-clone时候failed-to-connect-to-github.com-port-443-after-0-ms-连接被拒绝">3.git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</a></li>
+<li><a href="#编译的.ko文件如何映射到内核文件里面">4.编译的.ko文件，如何映射到内核文件里面？</a></li>
+<li><a href="#遇到无法卸载挂载文件">5.遇到无法卸载挂载文件？</a></li>
+<li><a href="#mount-使用nfs3.0版本无法挂载的问题">6.mount 使用nfs3.0版本无法挂载的问题？</a></li>
 </ul></li>
 <li><a href="#待办理">待办理</a></li>
 </ul></li>
 </ul>
 </nav>
 <h1 id="linux-内核开发学习笔记">Linux 内核开发学习笔记</h1>
-<hr />
-<h2 id="目录">目录</h2>
-<ul>
-<li><a href="#一远程登录-ssh-服务器流程">一、远程登录 SSH 服务器</a></li>
-<li><a href="#二内核编译环境">二、配置编译环境</a></li>
-<li><a href="#三使用qemu">三、使用 QEMU</a></li>
-<li><a href="#四gdb调试">四、GDB 调试</a></li>
-<li><a href="#五个人博客搭建">五、个人博客搭建</a></li>
-<li><a href="#六常用命令速查">六、常用命令速查</a></li>
-<li><a href="#七文件系统">七、文件系统</a></li>
-<li><a href="#八nfs文件系统">八、NFS文件系统</a></li>
-<li><a href="#九bpf">九、BPF</a></li>
-<li><a href="#十smb文件系统">十、SMB文件系统</a></li>
-<li><a href="#十一linux-内核实战">十一、Linux 内核实战</a></li>
-<li><a href="#十二linux内核源码阅读记录">十二、Linux内核源码阅读记录</a></li>
-</ul>
-<hr />
-<h3 id="一远程登录-ssh-服务器流程">一、远程登录 SSH 服务器流程</h3>
+<h2 id="一远程登录-ssh-服务器流程">一、远程登录 SSH 服务器流程</h2>
 <p>Windows/Linux → 物理服务器 → Docker容器 → QEMU虚拟机</p>
 <pre><code>ssh 账号@193.x.x.x
 ssh 账号@172.x.x.x
 exit    #退出</code></pre>
-<h4 id="安装-code-server">安装 code-server</h4>
+<h3 id="安装-code-server">安装 code-server</h3>
 <p><code>curl -fsSL https://code-server.dev/install.sh | sh</code></p>
-<h4 id="生成代码索引">生成代码索引</h4>
+<h3 id="生成代码索引">生成代码索引</h3>
 <p><code>make gtags  # 用于 VSCode 的代码跳转功能</code></p>
-<h3 id="二内核编译环境">二、内核编译环境</h3>
-<h4 id="内核编译流程">1.内核编译流程</h4>
-<h5 id="创建专用编译目录">创建专用编译目录</h5>
+<h2 id="二内核编译环境">二、内核编译环境</h2>
+<h3 id="内核编译流程">1.内核编译流程</h3>
+<h4 id="创建专用编译目录">创建专用编译目录</h4>
 <p><code>mkdir build</code></p>
-<h5 id="配置内核选项">配置内核选项</h5>
+<h4 id="配置内核选项">配置内核选项</h4>
 <p><code>make O=build menuconfig</code></p>
-<h5 id="编译内核镜像">编译内核镜像</h5>
+<h4 id="编译内核镜像">编译内核镜像</h4>
 <p><code>make O=build bzImage -j$(nproc)</code></p>
-<h5 id="make内容补充">make内容补充</h5>
+<h4 id="make内容补充">make内容补充</h4>
 <p>可以使用<code>make help | less</code>查看<code>make</code>命令的具体内容</p>
 <pre><code>#清理环境相关
 make mrproper           #清理环境 彻底清理所有生成文件、配置文件及备份文件（需重新配置内核）
@@ -159,14 +187,14 @@ make kvm_guest.config       #优化内核配置以作为 KVM 虚拟机客户机�
 make vmlinux        #编译生成内核的裸二进制文件（未压缩的内核镜像）
 make modules_install    #将编译好的模块安装到 /lib/modules/$(uname -r)/ 目录
 make headers_install    #安装内核头文件到 ./usr（用于开发用户空间程序）</code></pre>
-<h4 id="模块独立编译">2.模块独立编译</h4>
-<h5 id="修改makefie文件">修改makefie文件</h5>
+<h3 id="模块独立编译">2.模块独立编译</h3>
+<h4 id="修改makefie文件">修改makefie文件</h4>
 <p><code>CONFIG_EXT2_FS := m  # 设置为模块编译</code></p>
-<h5 id="执行编译">执行编译</h5>
+<h4 id="执行编译">执行编译</h4>
 <p><code>make -C /path/to/kernel/source M=$(pwd) modules</code></p>
-<h4 id="内核文档编译">3.内核文档编译</h4>
+<h3 id="内核文档编译">3.内核文档编译</h3>
 <p><code>make O=build SPHINXOPTS=-v htmldocs -j$(nproc)</code> #生成内核的HTML版本</p>
-<h3 id="三使用qemu">三、使用QEMU</h3>
+<h2 id="三使用qemu">三、使用QEMU</h2>
 <p><strong>qemu安装参考：</strong><a href="https://www.qemu.org/download/#linux">qemu官网</a></p>
 <p><strong>qemu的start.sh需要关注的</strong>:</p>
 <pre><code>-append &quot;nokaslr ...&quot;   防止地址随机化，编译内核时关闭配置 CONFIG_RANDOMIZE_BASE
@@ -175,16 +203,16 @@ make headers_install    #安装内核头文件到 ./usr（用于开发用户空�
 -s   相当于-gdb tcp::1234</code></pre>
 <p>在每次启动qemu’虚拟机的时候，可以先使用<code>ps -e -o pid,ppid,args | grep qemu</code> 先查看有没有多个虚拟机开启，可以看到，三个进程都是开启的 qenu-system-x86_64 输出的父子进程关系如下所示： <code>5601 → 5602 (sudo) → 5603 (sudo) → 5604 (qenu-system-x86_64)</code></p>
 <p><strong>qemu启动后的三种杀死方式</strong> 1. 终端快捷键：Ctrl + A 然后按 X。 2. 按快捷键ctrl+a c（先按ctrl+a松开后再按c）再输入quit强制退出qemu。 3. 找到qemu的进程 执行<code>sudo kill -9 &lt;进程号&gt;</code>。</p>
-<h4 id="服务器端">服务器端</h4>
+<h3 id="服务器端">服务器端</h3>
 <pre><code>tmux ls                     # 查看会话列表
 tmux attach -t qemu         # 进入 qemu 会话
 cd /home/dingpenglong/qemu-kernel/vm/1.Fedora-Server-dvd-x86_64-40-1.14
 bash start.sh               # 启动 QEMU 虚拟机</code></pre>
-<h4 id="虚拟机端">虚拟机端</h4>
+<h3 id="虚拟机端">虚拟机端</h3>
 <pre><code>cd /home/linux/qemu-kernel
 cat /etc/*release*          # 验证系统信息
 ps -e -o pid,ppid,args | grep qemu  # 检查 QEMU 进程</code></pre>
-<h3 id="四gdb调试">四、GDB调试</h3>
+<h2 id="四gdb调试">四、GDB调试</h2>
 <pre><code>#基础调试
 target remote:5555          #你的调试器（GDB）连接到那台&quot;远程电脑&quot;，让 GDB 可以控制它的执行
 target remote :1234             # 连接 QEMU 调试端口
@@ -217,8 +245,8 @@ x/20s 0xabcd                # 查看内存中的 ASCII 字符串
 x/i $pc                 # 反汇编当前指令
 disassemble /r              # 带机器码反汇编当前函数
 set {int}0x1234 = 5         # 修改内存值</code></pre>
-<h3 id="五个人博客搭建">五、个人博客搭建</h3>
-<h4 id="域名配置流程">域名配置流程</h4>
+<h2 id="五个人博客搭建">五、个人博客搭建</h2>
+<h3 id="域名配置流程">域名配置流程</h3>
 <ol type="1">
 <li>阿里云注册<code>yourname.com</code></li>
 <li>添加 DNS 解析记录</li>
@@ -236,9 +264,9 @@ set {int}0x1234 = 5         # 修改内存值</code></pre>
 <pre><code># 下载Linux内核官方CSS
 wget https://kernel.org/doc/html/latest/_static/css/theme.css
 pandoc input.md -o output.html --css=theme.css --toc --standalone</code></pre>
-<h3 id="六常用命令速查">六、常用命令速查</h3>
+<h2 id="六常用命令速查">六、常用命令速查</h2>
 <p><a href="https://linuxcommand.p2hp.com/">Linux命令大全</a></p>
-<h4 id="vim编辑器">1.vim编辑器</h4>
+<h3 id="vim编辑器">1.vim编辑器</h3>
 <p><a href="https://www.runoob.com/linux/linux-vim.html">Vim编辑器菜鸟教程</a></p>
 <p><a href="https://yianwillis.github.io/vimcdoc/doc/quickref.html">Vim官方手册中文版</a></p>
 <pre><code>:w      #保存文件
@@ -260,7 +288,7 @@ fg      #从后台恢复 Vim
 1.ctrl + ] #跳转到函数或者变量的定义
 2. ctrl + o #返回到原来的位置
 3. g ctrl +] #跳转到函数或者变量的定义，这个比第一个多一个选择。</code></pre>
-<h4 id="git版本控制">2.Git版本控制</h4>
+<h3 id="git版本控制">2.Git版本控制</h3>
 <p><a href="https://www.runoob.com/git/git-tutorial.html">Git菜鸟教程</a></p>
 <pre><code>git init            #在当前目录初始化 Git 仓库
 git log         #查看提交历史 --oneline（简洁显示）、-p（显示差异）
@@ -284,7 +312,7 @@ git pull origin master #拉取远端更新并且合并到本地，最好从远�
 git push origin master #推送到远程仓库</code></pre>
 <p><strong>推荐一个登陆git网站的好用的工具</strong> <a href="https://steampp.net/">Steam++</a></p>
 <p>听这个名字就知道，之前一直用这个软件去登陆steam商店，偶然发现还能加速GitHub，免费且流畅</p>
-<h4 id="tmux终端复用">3.Tmux终端复用</h4>
+<h3 id="tmux终端复用">3.Tmux终端复用</h3>
 <pre><code>tmux new -t &lt;name&gt;  #创建名为 &lt;name&gt; 的新会话
 Ctrl + B D      #退出当前会话
 tmux det
@@ -294,19 +322,19 @@ Ctrl + B C      #新建窗口
 Ctrl + B N/P        #切换下一个/上一个窗口
 Ctrl + B %      #垂直分割窗格
 Ctrl + B &quot;      #水平分割窗格</code></pre>
-<h4 id="ps进程管理">4.ps进程管理</h4>
+<h3 id="ps进程管理">4.ps进程管理</h3>
 <pre><code>ps aux          #查看所有进程的详细信息    
 ps -eo pid,ppid,cmd #显示进程的 PID、PPID 和完整命令   
 ps -ef | grep &lt;进程名&gt; #过滤特定进程 ps -ef | grep nginx
 ps -e -o pid,ppid,args | grep qemu    #用于查询qemu虚拟机的pid、ppid、args 每次启动qemu虚拟机的时候要确保没有同时开启多个虚拟机</code></pre>
-<h4 id="sshscp远程连接">5.SSH&amp;SCP远程连接</h4>
+<h3 id="sshscp远程连接">5.SSH&amp;SCP远程连接</h3>
 <pre><code>ssh user@host               #例如ssh root@192.168.1.100
 ssh -p &lt;port&gt; user@host         #指定端口登录
 scp file user@host:/path        #上传文件到远程主机
 scp user@host:/path/file local_dir  #从远程主机下载文件
 ssh-copy-id user@host           #将公钥复制到远程主机</code></pre>
-<h3 id="七文件系统">七、文件系统</h3>
-<h4 id="操作流程">1.操作流程</h4>
+<h2 id="七文件系统">七、文件系统</h2>
+<h3 id="操作流程">1.操作流程</h3>
 <pre><code>fallocate -l 1G 1
 mkfs.ext4 -F /dev/sda           # 格式化文件系统
 mount -t ext4 /dev/sda /mnt     # 把磁盘挂载到某个目录
@@ -319,7 +347,7 @@ debugfs /dev/sda
 dd if=/dev/sda of=./data bs=1 skip=7341056 count=20  #具体的skip=多少需要根据Block size 和BLOCKS计算
 cat data
 umount /mnt                     # 卸载文件系统</code></pre>
-<h4 id="基本概念">2.基本概念</h4>
+<h3 id="基本概念">2.基本概念</h3>
 <ul>
 <li><ol type="1">
 <li>超级块是对一个文件系统的描述；</li>
@@ -335,7 +363,7 @@ umount /mnt                     # 卸载文件系统</code></pre>
 </ol></li>
 </ul>
 <p>一个进程和文件系统相关的信息是由fs_struct来描述的（如当前正在执行的文件和当前工作目录），一个进程打开的文件集是由files_struct来描述的，而每个打开的文件是由file结构描述的。</p>
-<h4 id="文件数据结构的理解和重点">3.文件数据结构的理解和重点：</h4>
+<h3 id="文件数据结构的理解和重点">3.文件数据结构的理解和重点：</h3>
 <ul>
 <li><ol type="1">
 <li>多个目录下denrty对应同一个索引节点inode</li>
@@ -347,9 +375,9 @@ umount /mnt                     # 卸载文件系统</code></pre>
 <li>文件的nlink代表的是硬链接数</li>
 </ol></li>
 </ul>
-<h3 id="八nfs文件系统">八、nfs文件系统</h3>
-<h4 id="nfs环境">1.nfs环境</h4>
-<h5 id="server-环境">1.1 Server 环境</h5>
+<h2 id="八nfs文件系统">八、nfs文件系统</h2>
+<h3 id="nfs环境">1.nfs环境</h3>
+<h4 id="server-环境">1.1 Server 环境</h4>
 <p>nfs server软件安装</p>
 <pre><code>apt-get install nfs-kernel-server -y # debian
 dnf install nfs-utils -y # openeuler</code></pre>
@@ -357,7 +385,7 @@ dnf install nfs-utils -y # openeuler</code></pre>
 <pre><code>/tmp/ *(rw,no_root_squash,fsid=0)           #共享tmp目录 *代表允许所有IP地质访问共享目录，rw 允许读写，no_root_squash 允许客户端root用户直接以服务端root权限操作文件，NFSv4 要求一个根文件系统（fsid=0），其他导出应作为其子目录。
 /tmp/s_test/ *(rw,no_root_squash,fsid=1)
 /tmp/s_scratch *(rw,no_root_squash,fsid=2)</code></pre>
-<h5 id="client-环境">1.2 Client 环境</h5>
+<h4 id="client-环境">1.2 Client 环境</h4>
 <p>nfs client软件安装</p>
 <pre><code>apt-get install nfs-common -y # debian
 dnf install nfs-utils -y # openeuler</code></pre>
@@ -366,7 +394,7 @@ dnf install nfs-utils -y # openeuler</code></pre>
 mount -t nfs -o vers=4.1 ${server_ip}:/s_test /mnt
 mount -t nfs -o vers=4.2 ${server_ip}:/s_test /mnt   #这里的server_ip填写实际的NFS服务器地址</code></pre>
 <p>一般都会指定vers的版本，如果server端没有配置fisd，那么挂载的根路径将是/，需要用如下命令： <code>mount -t nfs -o vers=4.0 ${server_ip}:/tmp/s_test /mnt # 或 tmp/s_test</code></p>
-<h3 id="九bpf">九、BPF</h3>
+<h2 id="九bpf">九、BPF</h2>
 <ul>
 <li><ol type="1">
 <li>BPF全称是「Berkeley Packet Filter」,翻译过来是「伯克利包过滤器」。</li>
@@ -407,16 +435,16 @@ echo something &gt; /mnt/file
 echo 3 &gt; /proc/sys/vm/drop_caches
 cat /mnt/file</code></pre>
 <p>test.bt 脚本通过以下方式跟踪 ext2_read_folio 脚本中包含两个探针（kprobe 和 kretprobe），记录进入read函数和出read函数的时间戳，并计算。</p>
-<h4 id="在ubuntu-22.04上安装bcc的完整指南">在Ubuntu 22.04上安装BCC的完整指南</h4>
-<h5 id="bcc-bpf-compiler-collection-是一个用于创建高效内核追踪和操作工具的工具包基于扩展的伯克利包过滤器ebpf技术本指南详细介绍了在ubuntu-22.04上安装和验证bcc的步骤">BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</h5>
-<h5 id="方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</h5>
+<h3 id="在ubuntu-22.04上安装bcc的完整指南">在Ubuntu 22.04上安装BCC的完整指南</h3>
+<h4 id="bcc-bpf-compiler-collection-是一个用于创建高效内核追踪和操作工具的工具包基于扩展的伯克利包过滤器ebpf技术本指南详细介绍了在ubuntu-22.04上安装和验证bcc的步骤">BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</h4>
+<h4 id="方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</h4>
 <p>这是最简单快捷的安装方法，适用于大多数用户。</p>
-<h6 id="步骤1添加bcc-ppa源">步骤1：添加BCC PPA源</h6>
+<h5 id="步骤1添加bcc-ppa源">步骤1：添加BCC PPA源</h5>
 <div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-add-repository ppa:hadret/bpfcc</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span></code></pre></div>
-<h6 id="步骤2安装bcc包">步骤2：安装BCC包</h6>
+<h5 id="步骤2安装bcc包">步骤2：安装BCC包</h5>
 <div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bpfcc-tools python3-bpfcc</span></code></pre></div>
-<h6 id="步骤3验证安装">步骤3：验证安装</h6>
+<h5 id="步骤3验证安装">步骤3：验证安装</h5>
 <div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="co"># 列出已安装的BCC工具</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a><span class="fu">find</span> /usr -name <span class="st">&quot;*-bpfcc&quot;</span> -type f <span class="kw">|</span> <span class="fu">sort</span></span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a></span>
@@ -425,9 +453,9 @@ cat /mnt/file</code></pre>
 <span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a></span>
 <span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a><span class="co"># 测试运行BCC程序（例如execsnoop）</span></span>
 <span id="cb26-8"><a href="#cb26-8" aria-hidden="true"></a><span class="fu">sudo</span> execsnoop-bpfcc -h</span></code></pre></div>
-<h5 id="方法二从源代码编译安装">方法二：从源代码编译安装</h5>
+<h4 id="方法二从源代码编译安装">方法二：从源代码编译安装</h4>
 <p>如果你需要最新版本或自定义构建，可以从源代码安装。</p>
-<h6 id="步骤1安装依赖项">步骤1：安装依赖项</h6>
+<h5 id="步骤1安装依赖项">步骤1：安装依赖项</h5>
 <div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="co"># 安装基本依赖</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bison build-essential cmake flex git libedit-dev <span class="kw">\</span></span>
@@ -440,23 +468,23 @@ cat /mnt/file</code></pre>
 <span id="cb27-10"><a href="#cb27-10" aria-hidden="true"></a></span>
 <span id="cb27-11"><a href="#cb27-11" aria-hidden="true"></a><span class="co"># 安装内核头文件</span></span>
 <span id="cb27-12"><a href="#cb27-12" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y linux-headers-<span class="va">$(</span><span class="fu">uname</span> -r<span class="va">)</span></span></code></pre></div>
-<h6 id="步骤2克隆bcc仓库">步骤2：克隆BCC仓库</h6>
+<h5 id="步骤2克隆bcc仓库">步骤2：克隆BCC仓库</h5>
 <div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="bu">cd</span> ~</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a><span class="fu">git</span> clone https://github.com/iovisor/bcc.git</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a><span class="co"># 如果遇到网络问题，可以使用国内镜像：</span></span>
 <span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a><span class="co"># git clone https://gitee.com/mirrors/bcc.git</span></span></code></pre></div>
-<h6 id="步骤3编译和安装">步骤3：编译和安装</h6>
+<h5 id="步骤3编译和安装">步骤3：编译和安装</h5>
 <div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="fu">mkdir</span> -p ~/bcc/build <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/bcc/build</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a><span class="fu">cmake</span> -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_CMD=python3 ..</span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">nproc</span><span class="va">)</span></span>
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a><span class="fu">sudo</span> make install</span></code></pre></div>
-<h6 id="步骤4验证安装">步骤4：验证安装</h6>
+<h5 id="步骤4验证安装">步骤4：验证安装</h5>
 <div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a></span>
 <span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a><span class="co"># 测试BCC工具</span></span>
 <span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a><span class="fu">sudo</span> /usr/share/bcc/tools/execsnoop</span></code></pre></div>
-<h5 id="创建并运行自己的bcc程序">创建并运行自己的BCC程序</h5>
+<h4 id="创建并运行自己的bcc程序">创建并运行自己的BCC程序</h4>
 <div class="sourceCode" id="cb31"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a><span class="co"># 文件名: test_bcc.py</span></span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a><span class="im">from</span> bcc <span class="im">import</span> BPF</span>
@@ -485,7 +513,7 @@ cat /mnt/file</code></pre>
 <p>运行此脚本：</p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true"></a><span class="fu">chmod</span> +x test_bcc.py</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true"></a><span class="fu">sudo</span> ./test_bcc.py</span></code></pre></div>
-<h5 id="常用bcc工具">常用BCC工具</h5>
+<h4 id="常用bcc工具">常用BCC工具</h4>
 <p>BCC安装后提供了许多强大的工具，包括：</p>
 <ul>
 <li><code>execsnoop-bpfcc</code> - 跟踪新进程的执行</li>
@@ -498,35 +526,30 @@ cat /mnt/file</code></pre>
 <li><code>stackcount-bpfcc</code> - 统计内核堆栈轨迹</li>
 </ul>
 <p>使用这些工具时需要加上<code>sudo</code>权限。</p>
-<h5 id="参考资料">参考资料</h5>
+<h4 id="参考资料">参考资料</h4>
 <ul>
 <li><a href="https://github.com/iovisor/bcc">BCC官方GitHub仓库</a></li>
 <li><a href="https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md">BCC参考指南</a></li>
 <li><a href="https://www.brendangregg.com/ebpf.html">Linux eBPF追踪工具</a></li>
 </ul>
-<h3 id="十smb文件系统">十、SMB文件系统</h3>
-<h4 id="server搭建">1.Server搭建</h4>
-<h5 id="用户态">1.1 用户态</h5>
+<h2 id="十smb文件系统">十、SMB文件系统</h2>
+<h3 id="server搭建">1.Server搭建</h3>
+<h4 id="用户态">1.1 用户态</h4>
 <pre><code># 待办理</code></pre>
-<h3 id="十一linux-内核实战">十一、Linux 内核实战</h3>
-<h4 id="nfs问题分析"><a href="https://dingpenglong.com/linux_kernel/nfs/issue/linux_kernel_nfs_problem">nfs问题分析</a></h4>
-<h3 id="十二linux内核源码解读"><a href="https://dingpenglong.com/linux_kernel/code/linux_kernel_codestudy">十二、Linux内核源码解读</a></h3>
-<h3 id="遇到的常见问题的小tips">遇到的常见问题的小Tips</h3>
-<h4 id="虚拟机卡在了boot-form-hard-disk阶段">1. 虚拟机卡在了Boot form Hard Disk阶段</h4>
+<h2 id="十一linux-内核实战">十一、Linux 内核实战</h2>
+<h3 id="nfs问题分析"><a href="https://dingpenglong.com/linux_kernel/nfs/issue/linux_kernel_nfs_problem">nfs问题分析</a></h3>
+<h2 id="十二linux内核源码解读"><a href="https://dingpenglong.com/linux_kernel/code/linux_kernel_codestudy">十二、Linux内核源码解读</a></h2>
+<h2 id="遇到的常见问题的小tips">遇到的常见问题的小Tips</h2>
+<h3 id="虚拟机卡在了boot-form-hard-disk阶段">1. 虚拟机卡在了Boot form Hard Disk阶段</h3>
 <p>这种情况只能重装虚拟机系统<br />
 注：做实验千万不要在Vitrual manager的虚拟机上跑，最好在qemu上跑。</p>
-<h4 id="调试补丁">2. 调试补丁</h4>
+<h3 id="调试补丁">2. 调试补丁</h3>
 <ul>
 <li>应用补丁： 确保你的工作目录是你的Linux内核源代码根目录，patch命令应用补丁<br />
 <code>patch -p1 &lt; /home/linux/blog/course/kernel/src/0001-debug-vfs.patch</code></li>
 <li>然后配置内核<code>make menuconfig</code>、编译内核<code>make bzImage -j8</code></li>
 </ul>
-<h4 id="git-clone时候failed-to-connect-to-github.com-port-443-after-0-ms-连接被拒绝">3. git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</h4>
-<ul>
-<li>如果在学校和公司无法在网站上访问，可以申请一个服务器代理。</li>
-<li>检查防火墙配置。<code>sudo systemctl disable firewalld</code></li>
-</ul>
-<h4 id="git-clone时候failed-to-connect-to-github.com-port-443-after-0-ms-连接被拒绝-1">3.git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</h4>
+<h3 id="git-clone时候failed-to-connect-to-github.com-port-443-after-0-ms-连接被拒绝">3.git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</h3>
 <ul>
 <li><ol type="1">
 <li>如果在学校和公司无法在网站上访问，可以申请一个服务器代理。</li>
@@ -535,7 +558,7 @@ cat /mnt/file</code></pre>
 <li>检查防火墙配置。<code>sudo systemctl disable firewalld</code></li>
 </ol></li>
 </ul>
-<h4 id="编译的.ko文件如何映射到内核文件里面">4.编译的.ko文件，如何映射到内核文件里面？</h4>
+<h3 id="编译的.ko文件如何映射到内核文件里面">4.编译的.ko文件，如何映射到内核文件里面？</h3>
 <ul>
 <li><ol type="1">
 <li>加载内核模块:<code>sudo insmod your_module.ko</code> 或者<code>sudo modprobe your_module</code></li>
@@ -547,12 +570,12 @@ cat /mnt/file</code></pre>
 <li>卸载模块：<code>sudo rmmod your_module</code></li>
 </ol></li>
 </ul>
-<h4 id="遇到无法卸载挂载文件">5.遇到无法卸载挂载文件？</h4>
+<h3 id="遇到无法卸载挂载文件">5.遇到无法卸载挂载文件？</h3>
 <ul>
 <li><p>有时候umount挂载文件会出现’device is busy’的问题</p></li>
 <li><p>可以使用以下命令查看使用挂载点的进程: <code>lsof +D &lt;挂载点&gt;</code> <code>fuser -m &lt;挂载点&gt;</code> 找到进程号后，就可以使用<code>kill -SIGKILL &lt;进程号&gt;</code> 杀死进程</p></li>
 </ul>
-<h4 id="mount-使用nfs3.0版本无法挂载的问题">6.mount 使用nfs3.0版本无法挂载的问题？</h4>
+<h3 id="mount-使用nfs3.0版本无法挂载的问题">6.mount 使用nfs3.0版本无法挂载的问题？</h3>
 <ul>
 <li>需要使用绝对路径 <code>mount -t nfs -o vers=3 ${server_ip}:/tmp/s_test /mnt</code></li>
 </ul>

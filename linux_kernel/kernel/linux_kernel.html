@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>linux_kernel</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="doc/linux-style.css" />
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#linux-内核开发">Linux 内核开发</a>
+<ul>
+<li><a href="#一环境配置">一、环境配置</a>
+<ul>
+<li><a href="#ssh远程登陆">3.ssh远程登陆</a></li>
+<li><a href="#安装-code-server">安装 code-server</a></li>
+<li><a href="#生成代码索引">生成代码索引</a></li>
+</ul></li>
+<li><a href="#二gdb调试">二、GDB调试</a></li>
+<li><a href="#三常用命令工具必须掌握">三、常用命令/工具(必须掌握)</a>
+<ul>
+<li><a href="#vim编辑器">1.vim编辑器</a></li>
+<li><a href="#git版本控制">2.Git版本控制</a></li>
+<li><a href="#tmux终端复用">3.Tmux终端复用</a></li>
+<li><a href="#ps进程管理">4.ps进程管理</a></li>
+<li><a href="#sshscp远程连接">5.SSH&amp;SCP远程连接</a></li>
+</ul></li>
+<li><a href="#内核调试工具"><span>内核调试工具</span></a></li>
+<li><a href="#五个人博客搭建">五、个人博客搭建</a>
+<ul>
+<li><a href="#域名配置流程">域名配置流程</a></li>
+</ul></li>
+<li><a href="#文件系统"><span>文件系统</span></a></li>
+<li><a href="#linux-内核实战待完善">Linux 内核实战(待完善)</a>
+<ul>
+<li><a href="#一nfs问题分析"><span>一、nfs问题分析</span></a></li>
+</ul></li>
+<li><a href="#linux内核源码解读"><span>Linux内核源码解读</span></a>
+<ul>
+<li><a href="#遇到的常见问题的小tips">遇到的常见问题的小Tips</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="linux-内核开发">Linux 内核开发</h1>
+<h2 id="一环境配置">一、环境配置</h2>
+<p>首先肯定要先用虚拟机起一个linux操作系统，我用的是Ubuntu22.04发行版。 ### 1.内核编译 首先需要下载内核源码，<a href="https://www.kernel.org/pub/linux/kernel/">内核源码的地址</a>，这个地址里面有各个版本的内核源码。</p>
+<p>我用到的是内核4.19版本的源码，然后创建好的虚拟机编译去内核源码。</p>
+<h4 id="先建立专用编译目录">先建立专用编译目录</h4>
+<p><code>cd llinux-4.9.19/</code> <code>mkdir build</code></p>
+<h4 id="配置内核选项">配置内核选项</h4>
+<p><code>make O=build menuconfig</code></p>
+<h4 id="编译内核镜像">编译内核镜像</h4>
+<p><code>make O=build bzImage -j$(nproc)</code></p>
+<h4 id="make内容补充">make内容补充</h4>
+<p>可以使用<code>make help | less</code>查看<code>make</code>命令的具体内容</p>
+<pre><code>#清理环境相关
+make mrproper           #清理环境 彻底清理所有生成文件、配置文件及备份文件（需重新配置内核）
+make distclean          #在 mrproper 基础上，额外删除编辑器备份和补丁文件（完全干净的环境）
+
+#配置内核相关
+make defconfig          # 生成默认配置
+make menuconfig         # 自定义调整配置
+make xconfig / make gconfig #分别使用 Qt 或 GTK+ 图形界面配置内核（适合桌面环境）
+make localmodconfig     #根据当前加载的模块生成精简配置（禁用未使用的模块）
+make allyesconfig       #将所有选项设置为 yes（生成最大化的内核，用于测试
+make allnoconfig        #将所有选项设置为 no（最小化内核，需手动启用功能）
+make testconfig         #运行 Kconfig 的单元测试
+make debug.config       # 将 debug.config 合并到当前 .config 文件
+make x86_debug.config       #针对 x86/x86_64 架构的 调试和测试选项
+make kvm_guest.config       #优化内核配置以作为 KVM 虚拟机客户机（Guest OS） 运行
+
+#编译内核与模块
+make vmlinux        #编译生成内核的裸二进制文件（未压缩的内核镜像）
+make modules_install    #将编译好的模块安装到 /lib/modules/$(uname -r)/ 目录
+make headers_install    #安装内核头文件到 ./usr（用于开发用户空间程序）</code></pre>
+<h4 id="模块独立编译">模块独立编译</h4>
+<h5 id="修改makefie文件">修改makefie文件</h5>
+<p><code>CONFIG_EXT2_FS := m  # 设置为模块编译</code></p>
+<h5 id="执行编译">执行编译</h5>
+<p><code>make -C /path/to/kernel/source M=$(pwd) modules</code> ### 2.qemu启动内核</p>
+<p>内核编译好了之后，就需要用一个仿真器启动内核了，如何安装qemu和配置qemu的启动选项是最重要的。</p>
+<p><strong>qemu安装参考：</strong><a href="https://www.qemu.org/download/#linux">qemu官网</a></p>
+<p>也可以下载qemu源码进行安装： 先安装qemu所需的依赖软件</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="co"># ubuntu 22.04</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install libattr1-dev libcap-ng-dev -y</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="fu">sudo</span> apt install ninja-build -y</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install libglib2.0-dev -y</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install libpixman-1-dev -y</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a><span class="fu">sudo</span> apt install python3-pip</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="ex">pip</span> install tomli</span></code></pre></div>
+<p>然后再下载qemu源码，编译安装</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="fu">git</span> clone https://gitlab.com/qemu-project/qemu.git <span class="co">#从git上获取qemu源码</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="bu">cd</span> qemu</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="fu">git</span> submodule init  #初始化git子模块</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="fu">git</span> submodule update --recursive <span class="co">#更新git子模块</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="fu">mkdir</span> build</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="bu">cd</span> build/</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="ex">../configure</span> --enable-kvm --enable-virtfs --prefix=<span class="va">${HOME}</span>/dingpenglong/sw/qemu/ <span class="co">#--启用kvm硬件虚拟化加速--启用Virfs支持 --指定安装路径</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="fu">make</span> -j<span class="kw">`</span><span class="ex">nproc</span><span class="kw">`</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="fu">make</span> install</span></code></pre></div>
+<p>完成这些还不够，还需要解开qemu的一些权限，以方便我们启动qemu： - qemu-bridge-helper</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="co"># 源码安装的</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="fu">sudo</span> chown root libexec/qemu-bridge-helper <span class="co">#将文件所有者改为root</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="fu">sudo</span> chmod u+s libexec/qemu-bridge-helper  #设置setuid</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="co"># apt安装的</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a><span class="fu">sudo</span> chown root /usr/lib/qemu/qemu-bridge-helper</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a><span class="fu">sudo</span> chmod u+s /usr/lib/qemu/qemu-bridge-helper</span></code></pre></div>
+<ul>
+<li>kvm</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="fu">groups</span> <span class="kw">|</span> <span class="fu">grep</span> kvm   #检查当前用户是否在kvm组里面</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="fu">sudo</span> usermod -aG kvm <span class="va">$USER</span>  #将当前用户加入 kvm 组</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="fu">su</span> - <span class="va">$USER</span> <span class="co"># 或退出shell重新登录, 但在tmux中不起作用，tmux需要执行newgrp kvm</span></span></code></pre></div>
+<ul>
+<li>网络桥接策略</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="co"># 源码安装的 QEMU</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="fu">mkdir</span> -p etc/qemu</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="ex">vim</span> etc/qemu/bridge.conf   # 添加内容：allow virbr0</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a><span class="co"># apt 安装的 QEMU</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a><span class="fu">sudo</span> mkdir -p /etc/qemu/</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a><span class="fu">sudo</span> vim /etc/qemu/bridge.conf  # 添加内容：allow virbr0</span></code></pre></div>
+<ul>
+<li>自定义虚拟机网段</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="ex">virsh</span> net-list                   # 查看虚拟网络列表</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="ex">virsh</span> net-edit default           # 编辑名为 <span class="st">&quot;default&quot;</span> 的网络配置</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="co"># 在 XML 中修改 &lt;ip&gt; 段，例如：</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="co"># &lt;ip address=&#39;192.168.100.1&#39; netmask=&#39;255.255.255.0&#39;&gt;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a><span class="co">#   &lt;dhcp&gt;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a><span class="co">#     &lt;range start=&#39;192.168.100.2&#39; end=&#39;192.168.100.254&#39;/&gt;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a><span class="co">#   &lt;/dhcp&gt;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a><span class="co"># &lt;/ip&gt;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a><span class="ex">virsh</span> net-destroy default        # 停止当前网络</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a><span class="ex">virsh</span> net-start default          # 用新配置启动网络</span></code></pre></div>
+<p>安装和配置完成之后呢，就需要知道如何启动qemu了，启动配置的参数也很重要，可以把启动命令编写成一个shell脚本。</p>
+<p><code>vim start.sh</code>编辑内容</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="va">kernel_version=</span>stable  # 设置内核版本变量为<span class="st">&quot;stable&quot;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="ex">qemu-system-x86_64</span> <span class="dt">\ </span>  # 启动x86_64架构的虚拟机</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="ex">-enable-kvm</span> <span class="dt">\ </span>         # 启用KVM硬件虚拟化加速</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a><span class="ex">-cpu</span> host <span class="dt">\ </span>           # 使用宿主机CPU的所有特性</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a><span class="ex">-smp</span> 16 <span class="dt">\ </span>             # 分配16个CPU核心给虚拟机</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a><span class="ex">-m</span> 4096 <span class="dt">\ </span>             # 分配4096MB(4GB)内存给虚拟机</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a><span class="ex">-kernel</span> /home/dingpenglong/code/<span class="va">$kernel_version</span>/x86_64-build/arch/x86_build/boot/bzImage <span class="dt">\ </span> # 指定自定义内核镜像路径</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a><span class="ex">-virtfs</span> local,id=kmod_dev,path=/home/dingpenglong/,readonly,mount_tag=9p,security_model=none <span class="dt">\ </span> # 共享宿主机目录作为9p只读文件系统</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a><span class="ex">-vga</span> none <span class="dt">\ </span>           # 禁用虚拟显卡输出</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a><span class="ex">-nographic</span> <span class="dt">\ </span>          # 完全禁用图形界面，输出重定向到当前终端</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true"></a><span class="ex">-append</span> <span class="st">&quot;nokaslr console=ttyS0 root=/dev/vda rw kmemleak=on&quot;</span> <span class="dt">\ </span> # 内核启动参数：禁用地址随机化、串口控制台、根设备可读写、启用内存泄漏检测</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true"></a><span class="ex">-device</span> virtio-scsi-pci <span class="dt">\ </span> # 添加virtio-scsi控制器设备</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true"></a><span class="ex">-drive</span> file=image.qcow2,if=none,format=qcow2,cache=writeback,file.locking=off,id=root <span class="dt">\ </span> # 定义qcow2格式的根磁盘镜像</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true"></a><span class="ex">-device</span> virtio-blk,drive=root,id=d_root <span class="dt">\ </span> # 将根磁盘作为virtio块设备挂载</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true"></a><span class="ex">-net</span> tap <span class="dt">\ </span>            # 使用TAP模式连接宿主机网络</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true"></a><span class="ex">-net</span> nic,model=virtio,macaddr=00:11:22:33:44:03 <span class="dt">\ </span> # 添加virtio网卡并指定MAC地址</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true"></a><span class="ex">-drive</span> file=1,if=none,format=raw,cache=writeback,file.locking=off,id=dd_1 <span class="dt">\ </span> # 定义原始格式(raw)的附加磁盘</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true"></a><span class="ex">-device</span> scsi-hd,drive=dd_1,id=disk_1,logical_block_size=512,physical_block_size=512 <span class="dt">\ </span> # 将附加磁盘作为SCSI硬盘挂载</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true"></a><span class="ex">-gdb</span> tcp::5555        # 开启GDB调试服务，监听5553端口</span></code></pre></div>
+<p>在每次启动qemu’虚拟机的时候，可以先使用<code>ps -e -o pid,ppid,args | grep qemu</code></p>
+<p>先查看有没有多个虚拟机开启，可以看到，三个进程都是开启的 qenu-system-x86_64</p>
+<p>输出的父子进程关系如下所示： <code>5601 → 5602 (sudo) → 5603 (sudo) → 5604 (qenu-system-x86_64)</code></p>
+<p><strong>qemu启动后的三种杀死方式</strong> 1. 终端快捷键：Ctrl + A 然后按 X。 2. 按快捷键ctrl+a c（先按ctrl+a松开后再按c）再输入quit强制退出qemu。 3. 找到qemu的进程 执行<code>sudo kill -9 &lt;进程号&gt;</code>。</p>
+<h3 id="ssh远程登陆">3.ssh远程登陆</h3>
+<p>使用远程登陆的方法就可以在物理机器上远程操作了,复制粘贴什么的也特别方便;</p>
+<p>还有一个需要注意的地方是远程的时候,一定要使用tmux创建一个新的会话,这样网络断了,你的进程不会丢失。</p>
+<p>关于tmux的一些使用可以看我后面的记录。</p>
+<p><strong>Windows/Linux → 物理服务器 → Docker容器 → QEMU虚拟机</strong></p>
+<pre><code>ssh 账号@193.x.x.x
+ssh 账号@172.x.x.x
+exit    #退出</code></pre>
+<p>为什么要这么麻烦，从物理机起一个虚拟机后在用一个qemu起一个？</p>
+<p>首先我们去测试和分析内核代码的时候，肯定要针对不同的内核版本分析，用qemu可以很好的去启动不同的内核版本。</p>
+<p>如果内核源码在qemu内部启动，镜像坏了或在内核错误了，可以重新再拉一个内核和镜像。</p>
+<h3 id="安装-code-server">安装 code-server</h3>
+<p><code>curl -fsSL https://code-server.dev/install.sh | sh</code></p>
+<h3 id="生成代码索引">生成代码索引</h3>
+<p><code>make gtags  # 用于 VSCode 的代码跳转功能</code></p>
+<p>安装这两个主要想着方便我用类似VScode的形式去查看内核源码</p>
+<p>当然也可以用vim去查看内核，后面将vim的使用的时候也有具体的操作，我对vim接触太少了我还是用不太习惯。</p>
+<h2 id="二gdb调试">二、GDB调试</h2>
+<p>GDB调试qemu,GDB调试需要去调试内核源码build/vmlinux,至于为什么是这个文件? 我查了一些内容:vmlinux 是编译生成的 未压缩、带完整调试符号的 ELF 可执行文件，也就是说vmlinux是完整的内核数据库,bzImage则是压缩过的。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="co">#基础调试</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="ex">target</span> remote:5555          #你的调试器（GDB）连接到那台<span class="st">&quot;远程电脑&quot;</span>，让 GDB 可以控制它的执行</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="ex">target</span> remote :1234             # 连接 QEMU 调试端口</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a><span class="ex">c</span>                               # 继续执行 (Continue)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a><span class="ex">Ctrl+C</span>                           # 中断程序执行</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a><span class="ex">si</span>                              # 单步执行汇编指令 (Step Instruction)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a><span class="ex">n</span>                               # 源代码级单步跳过 (Next)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a><span class="ex">s</span>                               # 源代码级单步进入 (Step)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a><span class="co">#断点调试</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true"></a><span class="ex">b</span> start_kernel              # 在函数入口设置断点</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true"></a><span class="ex">b</span> *0xffffffff81000000           # 在指定地址设置断点</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true"></a><span class="ex">watch</span> *(int*)<span class="ex">0x1234</span>         # 监控内存地址写入</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true"></a><span class="ex">rwatch</span> [expression]         # 监控内存读取</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true"></a><span class="ex">info</span> breakpoints            # 查看所有断点</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true"></a><span class="ex">disable</span> 2               # 禁用 2 号断点</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true"></a><span class="ex">delete</span> 3                # 删除 3 号断点</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true"></a><span class="co">#上下文查看</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true"></a><span class="ex">bt</span>                  # 查看调用栈 (BackTrace)</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true"></a><span class="ex">info</span> registers              # 显示所有寄存器值</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true"></a><span class="ex">p</span> <span class="va">$rax</span>                  # 查看 RAX 寄存器值</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true"></a><span class="ex">p</span> <span class="va">$lx_current</span>()<span class="ex">.pid</span>         #打印断点的进程</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true"></a><span class="ex">p</span> <span class="va">$lx_current</span>()<span class="ex">.comm</span>            #打印断点的进程</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true"></a><span class="kw">&amp;((</span>struct cifsFileInfo *)0)-&gt;tlink  #打印结构体偏移量</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true"></a></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true"></a><span class="co">#内存操作</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true"></a>x/10x 0x1234                # 以十六进制查看 10 个内存字</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true"></a>x/20s 0xabcd                # 查看内存中的 ASCII 字符串</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true"></a>x/i <span class="va">$pc</span>                 # 反汇编当前指令</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true"></a>disassemble /r              # 带机器码反汇编当前函数</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true"></a>set <span class="dt">{int}</span>0x1234 = 5         # 修改内存值</span></code></pre></div>
+<h2 id="三常用命令工具必须掌握">三、常用命令/工具(必须掌握)</h2>
+<p><a href="https://linuxcommand.p2hp.com/">Linux命令大全</a></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="fu">tar</span> -xzf filename.tar.gz  # 对于.tar.gz文件</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="fu">tar</span> -xJf filename.tar.xz  # 对于.tar.xz文件</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a><span class="fu">sudo</span> apt install ./filename.deb  #对于安装deb文件</span></code></pre></div>
+<h3 id="vim编辑器">1.vim编辑器</h3>
+<p><a href="https://www.runoob.com/linux/linux-vim.html">Vim编辑器菜鸟教程</a></p>
+<p><a href="https://yianwillis.github.io/vimcdoc/doc/quickref.html">Vim官方手册中文版</a></p>
+<p>作为一个linux内核开发工作者，vim真的必须得学会掌握。</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>:<span class="ex">w</span>      #保存文件</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>:<span class="ex">wq</span>或zz      #保存并退出</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a><span class="ex">x</span>       #删除光标所在字符 </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a><span class="fu">dd</span>          #删除当前行</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a><span class="ex">gg</span>      #定位到首行</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a><span class="ex">u</span>       #撤回操作</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>:<span class="ex">5</span>,10d      #删除5到10行</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a><span class="ex">v</span>进入可视模式，选择多行后按d </span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a><span class="ex">Ctrl</span> + Z    #挂起 Vim 到后台</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a><span class="bu">fg</span>      #从后台恢复 Vim</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a><span class="ex">/keyword</span>    #向下搜索 keyword</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true"></a><span class="ex">?keyword</span>    #向上搜索 keyword</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true"></a>:<span class="ex">%s/old/new/g</span>   #全局替换所有 old 为 new</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true"></a>:<span class="ex">%s/old/new/gc</span>  #替换时逐个确认</span></code></pre></div>
+<p>vim还有一个高级的用法就是用vim阅读内核源码：</p>
+<p>首先需要在根目录下执行<code>ctags -R</code> 这个命令会生成索引文件，<code>ls -l tags</code>查看索引文件</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>然后<span class="ex">vim</span>中：</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="ex">1.ctrl</span> + ] #跳转到函数或者变量的定义</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a><span class="ex">2.</span> ctrl + o #返回到原来的位置</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a><span class="ex">3.</span> g ctrl +] #跳转到函数或者变量的定义，这个比第一个多一个选择。</span></code></pre></div>
+<h3 id="git版本控制">2.Git版本控制</h3>
+<p><a href="https://www.runoob.com/git/git-tutorial.html">Git菜鸟教程</a></p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="fu">git</span> init            #在当前目录初始化 Git 仓库</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a><span class="fu">git</span> log         #查看提交历史 --oneline（简洁显示）、-p（显示差异）</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a><span class="fu">git</span> status      #查看工作区状态（修改/未跟踪的文件）</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a><span class="fu">git</span> add <span class="op">&lt;</span>file<span class="op">&gt;</span>      #将文件添加到暂存区  git add .（添加所有文件）</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a><span class="fu">git</span> pull        #拉取远程仓库并合并到当前分支 git pull origin main</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a><span class="fu">git</span> fetch       #仅拉取远程仓库更新，不自动合并    git fetch --all</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a><span class="fu">git</span> reset       #回退提交   --soft（保留修改）、--hard（丢弃修改）</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true"></a><span class="fu">git</span> diff        #查看工作区与暂存区的差异   git diff HEAD（比较最新提交）</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true"></a><span class="fu">git</span> commit      #提交暂存区的修改   -m <span class="st">&quot;message&quot;</span>（添加提交信息）</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true"></a><span class="fu">git</span> revert <span class="op">&lt;</span>commit<span class="op">&gt;</span> <span class="co">#撤销指定提交（生成新提交）  git revert HEAD（撤销最新提交）</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true"></a><span class="fu">git</span> rm <span class="op">&lt;</span>file<span class="op">&gt;</span>  删除本地和远程的文件</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true"></a><span class="fu">git</span> rm --cached  <span class="op">&lt;</span>file<span class="op">&gt;</span> 删除远程的文件，保留本地</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true"></a><span class="fu">git</span> remote -v    #查看git版本</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true"></a><span class="fu">git</span> check <span class="op">&lt;</span>分支名<span class="op">&gt;</span>  #切换分支名</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true"></a><span class="fu">git</span> branch  #查看当前分支</span></code></pre></div>
+<p><strong>GIT使用流程</strong>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="fu">git</span> init(如果要上传本地仓库)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a><span class="co"># git clone https:...   或者克隆git上的代码</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a><span class="co"># git checkout -b new-feature  为了避免直接在 main 或 master 分支上进行开发，通常会创建一个新的分支</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a><span class="co">#git status         #可以看工作区状态，看看有哪些文件有修改的</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a><span class="fu">git</span> add <span class="op">&lt;</span>file<span class="op">&gt;</span>         #添加到暂存区</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a><span class="fu">git</span> commit -m <span class="st">&quot;&quot;</span>       #提交更改</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a><span class="co">#git pull origin master 每次git push之前可以拉取远端更新并且合并到本地，以避免冲突</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true"></a><span class="co">#git fetch origin 也可以拉去最新的远端代码</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true"></a><span class="co">#git reset origin/kylinos-next --hard 强制本地代码和远程保持一致</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true"></a><span class="fu">git</span> push origin master <span class="co">#推送到远程仓库</span></span></code></pre></div>
+<p><strong>推荐一个登陆git网站的好用的工具</strong> <a href="https://steampp.net/">Steam++</a></p>
+<p>听这个名字就知道，之前一直用这个软件去登陆steam商店，偶然发现还能加速GitHub，免费且流畅</p>
+<h3 id="tmux终端复用">3.Tmux终端复用</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="ex">tmux</span> new -t <span class="op">&lt;</span>name<span class="op">&gt;</span>  #创建名为 <span class="op">&lt;</span>name<span class="op">&gt;</span> 的新会话</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="ex">Ctrl</span> + B D      #退出当前会话</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="ex">tmux</span> det</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a><span class="ex">tmux</span> ls         #显示所有会话tm</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a><span class="ex">tmux</span> attach -t <span class="op">&lt;</span>name<span class="op">&gt;</span>   #重新连接到指定会话</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a><span class="ex">Ctrl</span> + B C      #新建窗口</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true"></a><span class="ex">Ctrl</span> + B N/P        #切换下一个/上一个窗口</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true"></a><span class="ex">Ctrl</span> + B %      #垂直分割窗格</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true"></a><span class="ex">Ctrl</span> + B <span class="st">&quot;      #水平分割窗格</span></span></code></pre></div>
+<h3 id="ps进程管理">4.ps进程管理</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="fu">ps</span> aux          #查看所有进程的详细信息    </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a><span class="fu">ps</span> -eo pid,ppid,cmd <span class="co">#显示进程的 PID、PPID 和完整命令   </span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a><span class="fu">ps</span> -ef <span class="kw">|</span> <span class="fu">grep</span> <span class="op">&lt;</span>进程名<span class="op">&gt;</span> <span class="co">#过滤特定进程 ps -ef | grep nginx</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a><span class="fu">ps</span> -e -o pid,ppid,args <span class="kw">|</span> <span class="fu">grep</span> qemu    #用于查询qemu虚拟机的pid、ppid、args 每次启动qemu虚拟机的时候要确保没有同时开启多个虚拟机</span></code></pre></div>
+<h3 id="sshscp远程连接">5.SSH&amp;SCP远程连接</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="fu">ssh</span> user@host               #例如ssh root@192.168.1.100</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a><span class="fu">ssh</span> -p <span class="op">&lt;</span>port<span class="op">&gt;</span> user@host         #指定端口登录</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a><span class="fu">scp</span> file user@host:/path        #上传文件到远程主机</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a><span class="fu">scp</span> user@host:/path/file local_dir  #从远程主机下载文件</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a><span class="ex">ssh-copy-id</span> user@host           #将公钥复制到远程主机</span></code></pre></div>
+<p>在远程登陆的时候可以先将远程的主机公钥复制过来，实现免密登陆</p>
+<h2 id="内核调试工具"><a href="ttps://dingpenglong.com/linux_kernel/kenel/linux_debug">内核调试工具</a></h2>
+<p><strong>这个链接是一些常用的内核调试方法和工具</strong></p>
+<h2 id="五个人博客搭建">五、个人博客搭建</h2>
+<p>博客怎么搭建大致流程就是如下：</p>
+<p>写博客有个好处就算可以让自己做过的东西再梳理一遍，这样更有效的加深记忆。</p>
+<h3 id="域名配置流程">域名配置流程</h3>
+<ol type="1">
+<li>阿里云注册<code>yourname.com</code></li>
+<li>添加 DNS 解析记录</li>
+</ol>
+<pre><code>GitHub Pages 的 IP 地址： 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153</code></pre>
+<ol start="3" type="1">
+<li>GitHubPages 配置</li>
+</ol>
+<pre><code>创建 &lt;username&gt;.github.io 仓库
+启用 GitHub Pages 服务
+配置自定义域名</code></pre>
+<ol start="4" type="1">
+<li>使用<code>pandoc</code>将markdown文件生成类似Linux源码格式的html文件</li>
+</ol>
+<pre><code># 下载Linux内核官方CSS
+wget https://kernel.org/doc/html/latest/_static/css/theme.css
+pandoc input.md -o output.html --css=theme.css --toc --standalone</code></pre>
+<p><strong>从文件系统开始了解内核</strong></p>
+<h2 id="文件系统"><a href="https://dingpenglong.com/linux_kernel/fs/fs">文件系统</a></h2>
+<h2 id="linux-内核实战待完善">Linux 内核实战(待完善)</h2>
+<h3 id="一nfs问题分析"><a href="https://dingpenglong.com/linux_kernel/nfs/issue/linux_kernel_nfs_problem">一、nfs问题分析</a></h3>
+<h2 id="linux内核源码解读"><a href="https://dingpenglong.com/linux_kernel/code/linux_kernel_codestudy">Linux内核源码解读</a></h2>
+<h3 id="遇到的常见问题的小tips">遇到的常见问题的小Tips</h3>
+<h4 id="虚拟机卡在了boot-form-hard-disk阶段">1. 虚拟机卡在了Boot form Hard Disk阶段</h4>
+<p>这种情况只能重装虚拟机系统<br />
+注：做实验千万不要在Vitrual manager的虚拟机上跑，最好在qemu上跑。</p>
+<h4 id="调试补丁">2. 调试补丁</h4>
+<ul>
+<li>应用补丁： 确保你的工作目录是你的Linux内核源代码根目录，patch命令应用补丁<br />
+<code>patch -p1 &lt; /home/linux/blog/course/kernel/src/0001-debug-vfs.patch</code></li>
+<li>然后配置内核<code>make menuconfig</code>、编译内核<code>make bzImage -j8</code></li>
+</ul>
+<h4 id="git-clone时候failed-to-connect-to-github.com-port-443-after-0-ms-连接被拒绝">3.git clone时候：Failed to connect to github.com port 443 after 0 ms: 连接被拒绝</h4>
+<ul>
+<li><ol type="1">
+<li>如果在学校和公司无法在网站上访问，可以申请一个服务器代理。</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>检查防火墙配置。<code>sudo systemctl disable firewalld</code></li>
+</ol></li>
+</ul>
+<h4 id="编译的.ko文件如何映射到内核文件里面">4.编译的.ko文件，如何映射到内核文件里面？</h4>
+<ul>
+<li><ol type="1">
+<li>加载内核模块:<code>sudo insmod your_module.ko</code> 或者<code>sudo modprobe your_module</code></li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>验证是否加载成功：<code>lsmod | grep your_module</code></li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>卸载模块：<code>sudo rmmod your_module</code></li>
+</ol></li>
+</ul>
+<h4 id="遇到无法卸载挂载文件">5.遇到无法卸载挂载文件？</h4>
+<ul>
+<li><p>有时候umount挂载文件会出现’device is busy’的问题</p></li>
+<li><p>可以使用以下命令查看使用挂载点的进程: <code>lsof +D &lt;挂载点&gt;</code> <code>fuser -m &lt;挂载点&gt;</code> 找到进程号后，就可以使用<code>kill -SIGKILL &lt;进程号&gt;</code> 杀死进程</p></li>
+</ul>
+<h4 id="mount-使用nfs3.0版本无法挂载的问题">6.mount 使用nfs3.0版本无法挂载的问题？</h4>
+<ul>
+<li>需要使用绝对路径 <code>mount -t nfs -o vers=3 ${server_ip}:/tmp/s_test /mnt</code></li>
+</ul>
+</body>
+</html>
