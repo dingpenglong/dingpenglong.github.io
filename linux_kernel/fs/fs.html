@@ -85,7 +85,11 @@
 <li><a href="#操作流程">1.操作流程</a></li>
 <li><a href="#基本概念">2.基本概念</a></li>
 <li><a href="#文件数据结构的理解和重点">3.文件数据结构的理解和重点：</a></li>
-<li><a href="#nfs文件系统"><span>nfs文件系统</span></a></li>
+<li><a href="#nfs文件系统">nfs文件系统</a>
+<ul>
+<li><a href="#点击查看nfs文件系统"><span>点击查看nfs文件系统</span></a></li>
+</ul></li>
+<li><a href="#smb文件系统">smb文件系统</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -109,20 +113,29 @@
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>│   ├── <span class="ex">nfsd</span> # nfs服务端代码</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>│   ├── <span class="ex">nfs_common</span>  # nfs公共端代码</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>│   ├── <span class="ex">cifs</span>      #主线最新代码的smb/client</span></code></pre></div>
-<p>可以在最新的源码上用<code>git log -oneline -- fs/ksmbd</code> 查看ksmbd的提交记录</p>
+<p>可以在最新的源码上用<code>git log --oneline -- fs/ksmbd</code> 查看ksmbd的提交记录 ’git show –stat <commit-id>’可以查看某个文件修改的统计 fs/ksmd -&gt; fs/smb/server 出现在这个提交记录上：38c8a9a52082 smb: move client and server files to common directory fs/smb fs/cifsd -&gt; fs/ksmd 出现在这个提交记录上：1a93084b9a89 ksmbd: move fs/cifsd to fs/ksmbd</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="co"># 查看d文件的最近一次重命名提交</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="fu">git</span> log --follow --diff-filter=R --name-status -1 -- d</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="co"># 查看c文件的最近一次重命名提交</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="fu">git</span> log --follow --diff-filter=R --name-status -1 -- c</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="co"># 查看b文件的最近一次重命名提交</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="fu">git</span> log --follow --diff-filter=R --name-status -1 -- b</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="co"># 一次性查看完整重命名历史（按时间倒序）</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="fu">git</span> log --follow --name-status -- d</span></code></pre></div>
 <h2 id="操作流程">1.操作流程</h2>
-<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">fallocate</span> -l 1G 1</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ex">mkfs.ext4</span> -F /dev/sda           # 格式化文件系统</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="fu">mount</span> -t ext4 /dev/sda /mnt     # 把磁盘挂载到某个目录</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="fu">df</span> /dev/sda <span class="co"># 查看是否已经挂载上</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="bu">echo</span> <span class="st">&quot;我爱操作系统&quot;</span> <span class="op">&gt;</span> /mnt/file   # 存到挂载点下的某个文件中</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="fu">cat</span> /mnt/file                   # 输出文件内容</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="ex">debugfs</span> /dev/sda</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="co"># debugfs:  stats # Block size: 1024</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="co"># debugfs:  stat file # BLOCKS: (0):7169</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="fu">dd</span> if=/dev/sda of=./data bs=1 skip=7341056 count=20  #具体的skip=多少需要根据Block size 和BLOCKS计算</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="fu">cat</span> data</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="fu">umount</span> /mnt                     # 卸载文件系统</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ex">fallocate</span> -l 1G 1</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">mkfs.ext4</span> -F /dev/sda           # 格式化文件系统</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="fu">mount</span> -t ext4 /dev/sda /mnt     # 把磁盘挂载到某个目录</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="fu">df</span> /dev/sda <span class="co"># 查看是否已经挂载上</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a><span class="bu">echo</span> <span class="st">&quot;我爱操作系统&quot;</span> <span class="op">&gt;</span> /mnt/file   # 存到挂载点下的某个文件中</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a><span class="fu">cat</span> /mnt/file                   # 输出文件内容</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a><span class="ex">debugfs</span> /dev/sda</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a><span class="co"># debugfs:  stats # Block size: 1024</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a><span class="co"># debugfs:  stat file # BLOCKS: (0):7169</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a><span class="fu">dd</span> if=/dev/sda of=./data bs=1 skip=7341056 count=20  #具体的skip=多少需要根据Block size 和BLOCKS计算</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a><span class="fu">cat</span> data</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a><span class="fu">umount</span> /mnt                     # 卸载文件系统</span></code></pre></div>
 <h2 id="基本概念">2.基本概念</h2>
 <ul>
 <li><ol type="1">
@@ -151,6 +164,8 @@
 <li>文件的nlink代表的是硬链接数</li>
 </ol></li>
 </ul>
-<h2 id="nfs文件系统"><a href="https://dingpenglong.com/linux_kernel/fs/nfs/nfs">nfs文件系统</a></h2>
+<h2 id="nfs文件系统">nfs文件系统</h2>
+<h3 id="点击查看nfs文件系统"><a href="https://dingpenglong.com/linux_kernel/fs/nfs/nfs">点击查看nfs文件系统</a></h3>
+<h2 id="smb文件系统">smb文件系统</h2>
 </body>
 </html>

@@ -108,38 +108,38 @@
 我通过ubuntu的apt安装的是0.14发行版，但bpftrace会出现&quot;段错误&quot;。我源码安装都没用，太🍀蛋了！！！
 网上查阅到的解析就是，你再安装一遍新版本，v-0.14版本太老了。下载APPImage安装吧。</code></pre>
 <p><a href="https://github.com/bpftrace/bpftrace/discussions/3026">bpf -0.14 段错误官方回答</a></p>
-<pre><code>编写test.bt:
-kprobe:ext2_read_folio
-{
-        @start[tid] = nsecs;
-        printf(&quot;kprobe\n&quot;);
-        print(kstack());
-}
-
-kretprobe:ext2_read_folio
-{
-        $us = (nsecs - @start[tid]) / 100;
-        printf(&quot;kretprobe, duration %d\n&quot;, $us);
-        delete(@start[tid]);
-        print(kstack());
-}
-然后执行命令
-bpftrace test.bt &amp;
-mkfs.ext2 -F image
-mount image /mnt
-echo something &gt; /mnt/file
-echo 3 &gt; /proc/sys/vm/drop_caches
-cat /mnt/file</code></pre>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>编写<span class="ex">test.bt</span>:</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="ex">kprobe</span>:ext2_read_folio</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="kw">{</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>        <span class="ex">@start</span>[tid] = nsecs<span class="kw">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>        <span class="bu">printf</span>(<span class="st">&quot;kprobe\n&quot;</span>);</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>        <span class="ex">print</span>(kstack());</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="kw">}</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a><span class="ex">kretprobe</span>:ext2_read_folio</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a><span class="kw">{</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a>        <span class="va">$us</span> = <span class="kw">(</span><span class="ex">nsecs</span> - @start[tid]<span class="kw">)</span> <span class="ex">/</span> 100<span class="kw">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a>        <span class="bu">printf</span>(<span class="st">&quot;kretprobe, duration %d\n&quot;</span>, <span class="va">$us</span>);</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a>        <span class="ex">delete</span>(@start[tid]);</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a>        <span class="ex">print</span>(kstack());</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a><span class="kw">}</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true"></a>然后执行命令</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true"></a><span class="ex">bpftrace</span> test.bt <span class="kw">&amp;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true"></a><span class="ex">mkfs.ext2</span> -F image</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true"></a><span class="fu">mount</span> image /mnt</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true"></a><span class="bu">echo</span> something <span class="op">&gt;</span> /mnt/file</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true"></a><span class="bu">echo</span> 3 <span class="op">&gt;</span> /proc/sys/vm/drop_caches</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true"></a><span class="fu">cat</span> /mnt/file</span></code></pre></div>
 <p>test.bt 脚本通过以下方式跟踪 ext2_read_folio 脚本中包含两个探针（kprobe 和 kretprobe），记录进入read函数和出read函数的时间戳，并计算。</p>
 <h3 id="二在ubuntu-22.04上安装bcc的完整指南">二、在Ubuntu 22.04上安装BCC的完整指南</h3>
 <h4 id="bcc-bpf-compiler-collection-是一个用于创建高效内核追踪和操作工具的工具包基于扩展的伯克利包过滤器ebpf技术本指南详细介绍了在ubuntu-22.04上安装和验证bcc的步骤">BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</h4>
 <h4 id="方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</h4>
 <p>这是最简单快捷的安装方法，适用于大多数用户。</p>
 <h5 id="步骤1添加bcc-ppa源">步骤1：添加BCC PPA源</h5>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-add-repository ppa:hadret/bpfcc</span>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-add-repository ppa:hadret/bpfcc</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span></code></pre></div>
 <h5 id="步骤2安装bcc包">步骤2：安装BCC包</h5>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bpfcc-tools python3-bpfcc</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bpfcc-tools python3-bpfcc</span></code></pre></div>
 <h5 id="步骤3验证安装">步骤3：验证安装</h5>
 <div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="co"># 列出已安装的BCC工具</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="fu">find</span> /usr -name <span class="st">&quot;*-bpfcc&quot;</span> -type f <span class="kw">|</span> <span class="fu">sort</span></span>
@@ -165,17 +165,17 @@ cat /mnt/file</code></pre>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a><span class="co"># 安装内核头文件</span></span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y linux-headers-<span class="va">$(</span><span class="fu">uname</span> -r<span class="va">)</span></span></code></pre></div>
 <h5 id="步骤2克隆bcc仓库">步骤2：克隆BCC仓库</h5>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="bu">cd</span> ~</span>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="bu">cd</span> ~</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="fu">git</span> clone https://github.com/iovisor/bcc.git</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="co"># 如果遇到网络问题，可以使用国内镜像：</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="co"># git clone https://gitee.com/mirrors/bcc.git</span></span></code></pre></div>
 <h5 id="步骤3编译和安装">步骤3：编译和安装</h5>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="fu">mkdir</span> -p ~/bcc/build <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/bcc/build</span>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="fu">mkdir</span> -p ~/bcc/build <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/bcc/build</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="fu">cmake</span> -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_CMD=python3 ..</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">nproc</span><span class="va">)</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="fu">sudo</span> make install</span></code></pre></div>
 <h5 id="步骤4验证安装">步骤4：验证安装</h5>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="co"># 测试BCC工具</span></span>
@@ -207,7 +207,7 @@ cat /mnt/file</code></pre>
 <span id="cb10-24"><a href="#cb10-24" aria-hidden="true"></a><span class="cf">except</span> <span class="pp">KeyboardInterrupt</span>:</span>
 <span id="cb10-25"><a href="#cb10-25" aria-hidden="true"></a>    <span class="cf">pass</span></span></code></pre></div>
 <p>运行此脚本：</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="fu">chmod</span> +x test_bcc.py</span>
+<div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="fu">chmod</span> +x test_bcc.py</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="fu">sudo</span> ./test_bcc.py</span></code></pre></div>
 <h4 id="常用bcc工具">常用BCC工具</h4>
 <p>BCC安装后提供了许多强大的工具，包括：</p>
