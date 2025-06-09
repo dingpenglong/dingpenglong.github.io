@@ -82,9 +82,15 @@
 <ul>
 <li><a href="#linux内核debug调试">linux内核debug调试</a>
 <ul>
-<li><a href="#一bpf">一、BPF</a>
+<li><a href="#一bpf">一、BPF</a></li>
+<li><a href="#二在ubuntu-22.04上安装bcc的完整指南">二、在Ubuntu 22.04上安装BCC的完整指南</a>
 <ul>
-<li><a href="#二在ubuntu-22.04上安装bcc的完整指南">二、在Ubuntu 22.04上安装BCC的完整指南</a></li>
+<li><a href="#bcc-bpf-compiler-collection-是一个用于创建高效内核追踪和操作工具的工具包基于扩展的伯克利包过滤器ebpf技术本指南详细介绍了在ubuntu-22.04上安装和验证bcc的步骤">BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</a></li>
+<li><a href="#方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</a></li>
+<li><a href="#方法二从源代码编译安装">方法二：从源代码编译安装</a></li>
+<li><a href="#创建并运行自己的bcc程序">创建并运行自己的BCC程序</a></li>
+<li><a href="#常用bcc工具">常用BCC工具</a></li>
+<li><a href="#参考资料">参考资料</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -131,16 +137,16 @@
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true"></a><span class="bu">echo</span> 3 <span class="op">&gt;</span> /proc/sys/vm/drop_caches</span>
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true"></a><span class="fu">cat</span> /mnt/file</span></code></pre></div>
 <p>test.bt 脚本通过以下方式跟踪 ext2_read_folio 脚本中包含两个探针（kprobe 和 kretprobe），记录进入read函数和出read函数的时间戳，并计算。</p>
-<h3 id="二在ubuntu-22.04上安装bcc的完整指南">二、在Ubuntu 22.04上安装BCC的完整指南</h3>
-<h4 id="bcc-bpf-compiler-collection-是一个用于创建高效内核追踪和操作工具的工具包基于扩展的伯克利包过滤器ebpf技术本指南详细介绍了在ubuntu-22.04上安装和验证bcc的步骤">BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</h4>
-<h4 id="方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</h4>
+<h2 id="二在ubuntu-22.04上安装bcc的完整指南">二、在Ubuntu 22.04上安装BCC的完整指南</h2>
+<h3 id="bcc-bpf-compiler-collection-是一个用于创建高效内核追踪和操作工具的工具包基于扩展的伯克利包过滤器ebpf技术本指南详细介绍了在ubuntu-22.04上安装和验证bcc的步骤">BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</h3>
+<h3 id="方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</h3>
 <p>这是最简单快捷的安装方法，适用于大多数用户。</p>
-<h5 id="步骤1添加bcc-ppa源">步骤1：添加BCC PPA源</h5>
+<h4 id="步骤1添加bcc-ppa源">步骤1：添加BCC PPA源</h4>
 <div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-add-repository ppa:hadret/bpfcc</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span></code></pre></div>
-<h5 id="步骤2安装bcc包">步骤2：安装BCC包</h5>
+<h4 id="步骤2安装bcc包">步骤2：安装BCC包</h4>
 <div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bpfcc-tools python3-bpfcc</span></code></pre></div>
-<h5 id="步骤3验证安装">步骤3：验证安装</h5>
+<h4 id="步骤3验证安装">步骤3：验证安装</h4>
 <div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="co"># 列出已安装的BCC工具</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="fu">find</span> /usr -name <span class="st">&quot;*-bpfcc&quot;</span> -type f <span class="kw">|</span> <span class="fu">sort</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a></span>
@@ -149,9 +155,9 @@
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a><span class="co"># 测试运行BCC程序（例如execsnoop）</span></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a><span class="fu">sudo</span> execsnoop-bpfcc -h</span></code></pre></div>
-<h4 id="方法二从源代码编译安装">方法二：从源代码编译安装</h4>
+<h3 id="方法二从源代码编译安装">方法二：从源代码编译安装</h3>
 <p>如果你需要最新版本或自定义构建，可以从源代码安装。</p>
-<h5 id="步骤1安装依赖项">步骤1：安装依赖项</h5>
+<h4 id="步骤1安装依赖项">步骤1：安装依赖项</h4>
 <div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="co"># 安装基本依赖</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="fu">sudo</span> apt-get update</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y bison build-essential cmake flex git libedit-dev <span class="kw">\</span></span>
@@ -164,23 +170,23 @@
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a></span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a><span class="co"># 安装内核头文件</span></span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a><span class="fu">sudo</span> apt-get install -y linux-headers-<span class="va">$(</span><span class="fu">uname</span> -r<span class="va">)</span></span></code></pre></div>
-<h5 id="步骤2克隆bcc仓库">步骤2：克隆BCC仓库</h5>
+<h4 id="步骤2克隆bcc仓库">步骤2：克隆BCC仓库</h4>
 <div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="bu">cd</span> ~</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="fu">git</span> clone https://github.com/iovisor/bcc.git</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="co"># 如果遇到网络问题，可以使用国内镜像：</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="co"># git clone https://gitee.com/mirrors/bcc.git</span></span></code></pre></div>
-<h5 id="步骤3编译和安装">步骤3：编译和安装</h5>
+<h4 id="步骤3编译和安装">步骤3：编译和安装</h4>
 <div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="fu">mkdir</span> -p ~/bcc/build <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ~/bcc/build</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="fu">cmake</span> -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_CMD=python3 ..</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="fu">make</span> -j<span class="va">$(</span><span class="ex">nproc</span><span class="va">)</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="fu">sudo</span> make install</span></code></pre></div>
-<h5 id="步骤4验证安装">步骤4：验证安装</h5>
+<h4 id="步骤4验证安装">步骤4：验证安装</h4>
 <div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="co"># 验证Python模块</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="ex">python3</span> -c <span class="st">&quot;import bcc; print(bcc.__file__)&quot;</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="co"># 测试BCC工具</span></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="fu">sudo</span> /usr/share/bcc/tools/execsnoop</span></code></pre></div>
-<h4 id="创建并运行自己的bcc程序">创建并运行自己的BCC程序</h4>
+<h3 id="创建并运行自己的bcc程序">创建并运行自己的BCC程序</h3>
 <div class="sourceCode" id="cb10"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="co">#!/usr/bin/python3</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="co"># 文件名: test_bcc.py</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="im">from</span> bcc <span class="im">import</span> BPF</span>
@@ -209,7 +215,7 @@
 <p>运行此脚本：</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="fu">chmod</span> +x test_bcc.py</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="fu">sudo</span> ./test_bcc.py</span></code></pre></div>
-<h4 id="常用bcc工具">常用BCC工具</h4>
+<h3 id="常用bcc工具">常用BCC工具</h3>
 <p>BCC安装后提供了许多强大的工具，包括：</p>
 <ul>
 <li><code>execsnoop-bpfcc</code> - 跟踪新进程的执行</li>
@@ -222,7 +228,7 @@
 <li><code>stackcount-bpfcc</code> - 统计内核堆栈轨迹</li>
 </ul>
 <p>使用这些工具时需要加上<code>sudo</code>权限。</p>
-<h4 id="参考资料">参考资料</h4>
+<h3 id="参考资料">参考资料</h3>
 <ul>
 <li><a href="https://github.com/iovisor/bcc">BCC官方GitHub仓库</a></li>
 <li><a href="https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md">BCC参考指南</a></li>
