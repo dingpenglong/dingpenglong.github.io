@@ -85,7 +85,6 @@
 <li><a href="#一bpf">一、BPF</a></li>
 <li><a href="#二在ubuntu-22.04上安装bcc的完整指南">二、在Ubuntu 22.04上安装BCC的完整指南</a>
 <ul>
-<li><a href="#bcc-bpf-compiler-collection-是一个用于创建高效内核追踪和操作工具的工具包基于扩展的伯克利包过滤器ebpf技术本指南详细介绍了在ubuntu-22.04上安装和验证bcc的步骤">BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</a></li>
 <li><a href="#方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</a></li>
 <li><a href="#方法二从源代码编译安装">方法二：从源代码编译安装</a></li>
 <li><a href="#创建并运行自己的bcc程序">创建并运行自己的BCC程序</a></li>
@@ -138,7 +137,7 @@
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true"></a><span class="fu">cat</span> /mnt/file</span></code></pre></div>
 <p>test.bt 脚本通过以下方式跟踪 ext2_read_folio 脚本中包含两个探针（kprobe 和 kretprobe），记录进入read函数和出read函数的时间戳，并计算。</p>
 <h2 id="二在ubuntu-22.04上安装bcc的完整指南">二、在Ubuntu 22.04上安装BCC的完整指南</h2>
-<h3 id="bcc-bpf-compiler-collection-是一个用于创建高效内核追踪和操作工具的工具包基于扩展的伯克利包过滤器ebpf技术本指南详细介绍了在ubuntu-22.04上安装和验证bcc的步骤">BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</h3>
+<p>BCC (BPF Compiler Collection) 是一个用于创建高效内核追踪和操作工具的工具包，基于扩展的伯克利包过滤器(eBPF)技术。本指南详细介绍了在Ubuntu 22.04上安装和验证BCC的步骤。</p>
 <h3 id="方法一使用ppa源安装推荐">方法一：使用PPA源安装（推荐）</h3>
 <p>这是最简单快捷的安装方法，适用于大多数用户。</p>
 <h4 id="步骤1添加bcc-ppa源">步骤1：添加BCC PPA源</h4>

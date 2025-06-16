@@ -94,18 +94,22 @@
 <li><a href="#三常用命令工具必须掌握">三、常用命令/工具(必须掌握)</a>
 <ul>
 <li><a href="#vim编辑器">1.vim编辑器</a></li>
-<li><a href="#git版本控制">2.Git版本控制</a></li>
+<li><a href="#git的使用">2.Git的使用</a></li>
 <li><a href="#tmux终端复用">3.Tmux终端复用</a></li>
 <li><a href="#ps进程管理">4.ps进程管理</a></li>
 <li><a href="#sshscp远程连接">5.SSH&amp;SCP远程连接</a></li>
 </ul></li>
-<li><a href="#五个人博客搭建">五、个人博客搭建</a>
+<li><a href="#四个人博客搭建">四、个人博客搭建</a>
 <ul>
 <li><a href="#域名配置流程">域名配置流程</a></li>
 </ul></li>
 <li><a href="#文件系统">文件系统</a>
 <ul>
 <li><a href="#点击查看文件系统"><span>点击查看文件系统</span></a></li>
+</ul></li>
+<li><a href="#内存管理">内存管理</a>
+<ul>
+<li><a href="#点击查看内存管理"><span>点击查看内存管理</span></a></li>
 </ul></li>
 <li><a href="#内核调试工具">内核调试工具</a>
 <ul>
@@ -262,7 +266,8 @@
 <p>输出的父子进程关系如下所示： <code>5601 → 5602 (sudo) → 5603 (sudo) → 5604 (qenu-system-x86_64)</code></p>
 <p><strong>qemu启动后的三种杀死方式</strong> 1. 终端快捷键：Ctrl + A 然后按 X。 2. 按快捷键ctrl+a c（先按ctrl+a松开后再按c）再输入quit强制退出qemu。 3. 找到qemu的进程 执行<code>sudo kill -9 &lt;进程号&gt;</code>。</p>
 <h2 id="二gdb调试">二、GDB调试</h2>
-<p>GDB调试qemu,GDB调试需要去调试内核源码build/vmlinux,至于为什么是这个文件? 我查了一些内容:vmlinux 是编译生成的 未压缩、带完整调试符号的 ELF 可执行文件，也就是说vmlinux是完整的内核数据库,bzImage则是压缩过的。</p>
+<p>GDB调试qemu,GDB调试需要去调试内核源码build/vmlinux,至于为什么是这个文件?</p>
+<p>我查了一些内容:vmlinux 是编译生成的 未压缩、带完整调试符号的 ELF 可执行文件，也就是说vmlinux是完整的内核数据库,bzImage则是压缩过的。</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="co">#基础调试</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="ex">target</span> remote:5555          #你的调试器（GDB）连接到那台<span class="st">&quot;远程电脑&quot;</span>，让 GDB 可以控制它的执行</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="ex">target</span> remote :1234             # 连接 QEMU 调试端口</span>
@@ -299,109 +304,29 @@
 <p><a href="https://linuxcommand.p2hp.com/">Linux命令大全</a></p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="fu">tar</span> -xzf filename.tar.gz  # 对于.tar.gz文件</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="fu">tar</span> -xJf filename.tar.xz  # 对于.tar.xz文件</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a><span class="fu">sudo</span> apt install ./filename.deb  #对于安装deb文件</span></code></pre></div>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a><span class="fu">sudo</span> apt install ./filename.deb  #对于安装deb文件</span></code></pre></div>
 <h3 id="vim编辑器">1.vim编辑器</h3>
-<p><a href="https://www.runoob.com/linux/linux-vim.html">Vim编辑器菜鸟教程</a></p>
-<p><a href="https://yianwillis.github.io/vimcdoc/doc/quickref.html">Vim官方手册中文版</a></p>
-<p>作为一个linux内核开发工作者，vim真的必须得学会掌握。这里我列举几个常用的：</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>:<span class="ex">w</span>      #保存文件</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>:<span class="ex">wq</span>或zz      #保存并退出</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a><span class="ex">x</span>       #删除光标所在字符 </span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a><span class="fu">dd</span>          #删除当前行</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a><span class="ex">gg</span>      #定位到首行</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a><span class="ex">u</span>       #撤回操作</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>[<span class="ex">Ctrl</span>]+r      #重做上一个动作。</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>:<span class="ex">5</span>,10d      #删除5到10行</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a><span class="ex">ctrl</span> + f  #屏幕<span class="st">&#39;向下&#39;</span>移动一页</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a><span class="ex">ctrl</span> + b   #    屏幕<span class="st">&#39;向上&#39;</span>移动一页</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a><span class="ex">0</span> 或功能键[Home]    #这是数字： 0 “：移动到这一行的最前面字符处 </span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true"></a>$ 或功能键[<span class="ex">End</span>]     #移动到这一行的最后面字符处</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true"></a><span class="ex">G</span>      #将文件移动到此文件的最后一行</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true"></a><span class="ex">n</span><span class="op">&lt;</span>Enter<span class="op">&gt;</span>    #n 为数字。 光标向下移动 n 行</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true"></a></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true"></a></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true"></a><span class="ex">/keyword</span>    #向下搜索 keyword</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true"></a><span class="ex">?keyword</span>    #向上搜索 keyword</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true"></a>:<span class="ex">n1</span>,n2s/word1/word2/g   #n1 与 n2 为数字。 在 n1 和 n2 行之间寻找 word1 这个字符串， 并将该字符串替换为 word2 ！ 举例来说，在 100 到 200 行之间搜寻 cird 并取代为 VBIRD 则：</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true"></a>『:<span class="ex">100</span>,200s/vbird/VBIRD/g』。</span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true"></a>:<span class="ex">1</span>,<span class="va">$s</span>/word1/word2/g  #从第一行到最后一行查找 word1 字符串，并将该字符串替换为 word2 </span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true"></a></span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true"></a><span class="ex">r</span> #进入取代模式</span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true"></a></span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true"></a><span class="ex">Ctrl</span> + Z    #挂起 Vim 到后台</span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true"></a><span class="bu">fg</span>      #从后台恢复 Vim</span></code></pre></div>
-<p>vim还有一个高级的用法就是用vim阅读内核源码：</p>
-<p>首先需要在根目录下执行<code>ctags -R</code> 这个命令会生成索引文件，<code>ls -l tags</code>查看索引文件</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>然后<span class="ex">vim</span>中：</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="ex">1.ctrl</span> + ] #跳转到函数或者变量的定义</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a><span class="ex">2.</span> ctrl + o #返回到原来的位置</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a><span class="ex">3.</span> g ctrl +] #跳转到函数或者变量的定义，这个比第一个多一个选择。</span></code></pre></div>
-<p>vim的暂存档：</p>
-<p>当你某次用某个进程编辑vim的时候，可能因为网络问题或者中断问题，没有保存vim的编辑内容。</p>
-<p>但是vim会自动保存一个xxx.swp文件，以实现内容暂存。再一次用vim打开这个文件的时候，可以按下如下按键：</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="ex">R</span>：加载暂存文档的内容；D：删除暂存文档的内容；O：打开此文件为只读文件；</span></code></pre></div>
-<p>vim还可以实现多文件编辑</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="ex">vim</span> 1.txt 2.txt 3.txt #可以用vim一次性打开三个文件</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a><span class="co">#然后有如下指令查看</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a>:<span class="ex">n</span>  #编辑下一个文件</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a>:<span class="ex">N</span>  #编辑下一个文件</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a>:<span class="ex">files</span>    #列出目前这个 vim 的开启的所有文件</span></code></pre></div>
-<p>vim的多窗口编辑</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a>:<span class="ex">vsp</span>  #水平分割 上下两个窗口</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a>:<span class="ex">sp</span>   #垂直分割 左右两个窗口</span></code></pre></div>
-<h3 id="git版本控制">2.Git版本控制</h3>
-<p><a href="https://www.runoob.com/git/git-tutorial.html">Git菜鸟教程</a></p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="fu">git</span> init            #在当前目录初始化 Git 仓库</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a><span class="fu">git</span> log         #查看提交历史 --oneline（简洁显示）、-p（显示差异）</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a><span class="fu">git</span> status      #查看工作区状态（修改/未跟踪的文件）</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a><span class="fu">git</span> add <span class="op">&lt;</span>file<span class="op">&gt;</span>      #将文件添加到暂存区  git add .（添加所有文件）</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true"></a><span class="fu">git</span> pull        #拉取远程仓库并合并到当前分支 git pull origin main</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true"></a><span class="fu">git</span> fetch       #仅拉取远程仓库更新，不自动合并    git fetch --all</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true"></a><span class="fu">git</span> reset       #回退提交   --soft（保留修改）、--hard（丢弃修改）</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true"></a><span class="fu">git</span> diff        #查看工作区与暂存区的差异   git diff HEAD（比较最新提交）</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true"></a><span class="fu">git</span> commit      #提交暂存区的修改   -m <span class="st">&quot;message&quot;</span>（添加提交信息）</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true"></a><span class="fu">git</span> revert <span class="op">&lt;</span>commit<span class="op">&gt;</span> <span class="co">#撤销指定提交（生成新提交）  git revert HEAD（撤销最新提交）</span></span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true"></a><span class="fu">git</span> rm <span class="op">&lt;</span>file<span class="op">&gt;</span>  删除本地和远程的文件</span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true"></a><span class="fu">git</span> rm --cached  <span class="op">&lt;</span>file<span class="op">&gt;</span> 删除远程的文件，保留本地</span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true"></a><span class="fu">git</span> remote -v    #查看git版本</span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true"></a><span class="fu">git</span> check <span class="op">&lt;</span>分支名<span class="op">&gt;</span>  #切换分支名</span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true"></a><span class="fu">git</span> branch  #查看当前分支</span></code></pre></div>
-<p><strong>GIT使用流程</strong>:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="fu">git</span> init(如果要上传本地仓库)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a><span class="co"># git clone https:...   或者克隆git上的代码</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a><span class="co"># git checkout -b new-feature  为了避免直接在 main 或 master 分支上进行开发，通常会创建一个新的分支</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a><span class="co">#git status         #可以看工作区状态，看看有哪些文件有修改的</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a><span class="fu">git</span> add <span class="op">&lt;</span>file<span class="op">&gt;</span>         #添加到暂存区</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true"></a><span class="fu">git</span> commit -m <span class="st">&quot;&quot;</span>       #提交更改</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true"></a><span class="co">#git pull origin master 每次git push之前可以拉取远端更新并且合并到本地，以避免冲突</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true"></a><span class="co">#git fetch origin 也可以拉去最新的远端代码</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true"></a><span class="co">#git reset origin/kylinos-next --hard 强制本地代码和远程保持一致</span></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true"></a><span class="fu">git</span> push origin master <span class="co">#推送到远程仓库</span></span></code></pre></div>
-<p><strong>推荐一个登陆git网站的好用的工具</strong> <a href="https://steampp.net/">Steam++</a></p>
-<p>听这个名字就知道，之前一直用这个软件去登陆steam商店，偶然发现还能加速GitHub，免费且流畅</p>
+<h4 id="点击查看vim的使用"><a href="https://dingpenglong.com/tools/vim">点击查看vim的使用</a></h4>
+<h3 id="git的使用">2.Git的使用</h3>
+<h4 id="点击查看git的使用"><a href="https://dingpenglong.com/tools/git">点击查看git的使用</a></h4>
 <h3 id="tmux终端复用">3.Tmux终端复用</h3>
-<div class="sourceCode" id="cb19"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="ex">tmux</span> new -t <span class="op">&lt;</span>name<span class="op">&gt;</span>  #创建名为 <span class="op">&lt;</span>name<span class="op">&gt;</span> 的新会话</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a><span class="ex">Ctrl</span> + B D      #退出当前会话</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a><span class="ex">tmux</span> det   #退出当前tmux到后台</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a><span class="ex">tmux</span> ls         #显示所有会话tm</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a><span class="ex">tmux</span> attach -t <span class="op">&lt;</span>name<span class="op">&gt;</span>   #重新连接到指定会话</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a><span class="ex">Ctrl</span> + B C      #新建窗口</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a><span class="ex">Ctrl</span> + B N/P        #切换下一个/上一个窗口</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a><span class="ex">Ctrl</span> + B %      #垂直分割窗格</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true"></a><span class="ex">Ctrl</span> + B <span class="st">&quot;      #水平分割窗格</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="ex">tmux</span> new -t <span class="op">&lt;</span>name<span class="op">&gt;</span>  #创建名为 <span class="op">&lt;</span>name<span class="op">&gt;</span> 的新会话</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a><span class="ex">Ctrl</span> + B D      #退出当前会话</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a><span class="ex">tmux</span> det   #退出当前tmux到后台</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a><span class="ex">tmux</span> ls         #显示所有会话tm</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a><span class="ex">tmux</span> attach -t <span class="op">&lt;</span>name<span class="op">&gt;</span>   #重新连接到指定会话</span></code></pre></div>
 <h3 id="ps进程管理">4.ps进程管理</h3>
-<div class="sourceCode" id="cb20"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="fu">ps</span> aux          #查看所有进程的详细信息    </span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a><span class="fu">ps</span> -eo pid,ppid,cmd <span class="co">#显示进程的 PID、PPID 和完整命令   </span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a><span class="fu">ps</span> -ef <span class="kw">|</span> <span class="fu">grep</span> <span class="op">&lt;</span>进程名<span class="op">&gt;</span> <span class="co">#过滤特定进程 ps -ef | grep nginx</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a><span class="fu">ps</span> -e -o pid,ppid,args <span class="kw">|</span> <span class="fu">grep</span> qemu    #用于查询qemu虚拟机的pid、ppid、args 每次启动qemu虚拟机的时候要确保没有同时开启多个虚拟机</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="fu">ps</span> aux          #查看所有进程的详细信息    </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="fu">ps</span> -eo pid,ppid,cmd <span class="co">#显示进程的 PID、PPID 和完整命令   </span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a><span class="fu">ps</span> -ef <span class="kw">|</span> <span class="fu">grep</span> <span class="op">&lt;</span>进程名<span class="op">&gt;</span> <span class="co">#过滤特定进程 ps -ef | grep nginx</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a><span class="fu">ps</span> -e -o pid,ppid,args <span class="kw">|</span> <span class="fu">grep</span> qemu    #用于查询qemu虚拟机的pid、ppid、args 每次启动qemu虚拟机的时候要确保没有同时开启多个虚拟机</span></code></pre></div>
 <h3 id="sshscp远程连接">5.SSH&amp;SCP远程连接</h3>
-<div class="sourceCode" id="cb21"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="fu">ssh</span> user@host               #例如ssh root@192.168.1.100</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a><span class="fu">ssh</span> -p <span class="op">&lt;</span>port<span class="op">&gt;</span> user@host         #指定端口登录</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a><span class="fu">scp</span> file user@host:/path        #上传文件到远程主机</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true"></a><span class="fu">scp</span> user@host:/path/file local_dir  #从远程主机下载文件</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true"></a><span class="ex">ssh-copy-id</span> user@host           #将公钥复制到远程主机,在远程登陆的时候可以先将远程的主机公钥复制过来，实现免密登陆</span></code></pre></div>
-<h2 id="五个人博客搭建">五、个人博客搭建</h2>
+<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="fu">ssh</span> user@host               #例如ssh root@192.168.1.100</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a><span class="fu">ssh</span> -p <span class="op">&lt;</span>port<span class="op">&gt;</span> user@host         #指定端口登录</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a><span class="fu">scp</span> file user@host:/path        #上传文件到远程主机</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a><span class="fu">scp</span> user@host:/path/file local_dir  #从远程主机下载文件</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a><span class="ex">ssh-copy-id</span> user@host           #将公钥复制到远程主机,在远程登陆的时候可以先将远程的主机公钥复制过来，实现免密登陆</span></code></pre></div>
+<h2 id="四个人博客搭建">四、个人博客搭建</h2>
 <p>博客怎么搭建大致流程就是如下：</p>
 <p>写博客有个好处就算可以让自己做过的东西再梳理一遍，这样更有效的加深记忆。</p>
 <h3 id="域名配置流程">域名配置流程</h3>
@@ -409,23 +334,25 @@
 <li>阿里云注册<code>yourname.com</code></li>
 <li>添加 DNS 解析记录</li>
 </ol>
-<div class="sourceCode" id="cb22"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a><span class="ex">GitHub</span> Pages 的 IP 地址： 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="ex">GitHub</span> Pages 的 IP 地址： 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153</span></code></pre></div>
 <ol start="3" type="1">
 <li>GitHubPages 配置</li>
 </ol>
-<div class="sourceCode" id="cb23"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a>创建 <span class="op">&lt;</span><span class="ex">username</span><span class="op">&gt;</span>.github.io 仓库</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true"></a>启用 <span class="ex">GitHub</span> Pages 服务</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true"></a>配置自定义域名</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a>创建 <span class="op">&lt;</span><span class="ex">username</span><span class="op">&gt;</span>.github.io 仓库</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a>启用 <span class="ex">GitHub</span> Pages 服务</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a>配置自定义域名</span></code></pre></div>
 <ol start="4" type="1">
 <li>使用<code>pandoc</code>将markdown文件生成类似Linux源码格式的html文件</li>
 </ol>
-<div class="sourceCode" id="cb24"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="co"># 下载Linux内核官方CSS</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a><span class="fu">wget</span> https://kernel.org/doc/html/latest/_static/css/theme.css</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a><span class="ex">pandoc</span> input.md -o output.html --css=theme.css --toc --standalone</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="co"># 下载Linux内核官方CSS</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a><span class="fu">wget</span> https://kernel.org/doc/html/latest/_static/css/theme.css</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a><span class="ex">pandoc</span> input.md -o output.html --css=theme.css --toc --standalone</span></code></pre></div>
 <h2 id="文件系统">文件系统</h2>
 <h3 id="点击查看文件系统"><a href="https://dingpenglong.com/linux_kernel/fs/fs">点击查看文件系统</a></h3>
+<h2 id="内存管理">内存管理</h2>
+<h3 id="点击查看内存管理"><a href="https://dingpenglong.com/linux_kernel/mm/mm">点击查看内存管理</a></h3>
 <h2 id="内核调试工具">内核调试工具</h2>
-<h3 id="点击查看内核调试工具"><a href="https://dingpenglong.com/linux_kernel/kenel/linux_debug">点击查看内核调试工具</a></h3>
+<h3 id="点击查看内核调试工具"><a href="https://dingpenglong.com/linux_kernel/kernel/linux_kernel_debug">点击查看内核调试工具</a></h3>
 <h2 id="linux-内核实战">Linux 内核实战</h2>
 <h3 id="点击查看nfs实战问题分析持续更新中"><a href="https://dingpenglong.com/linux_kernel/nfs/issue/linux_kernel_nfs_problem">点击查看nfs实战问题分析(持续更新中)</a></h3>
 <h3 id="点击查看linux内核源码解读持续更新中"><a href="https://dingpenglong.com/linux_kernel/code/linux_kernel_codestudy">点击查看Linux内核源码解读(持续更新中)</a></h3>

@@ -82,19 +82,21 @@
 <ul>
 <li><a href="#文件系统">文件系统</a>
 <ul>
-<li><a href="#操作流程">1.操作流程</a></li>
-<li><a href="#基本概念">2.基本概念</a></li>
-<li><a href="#文件数据结构的理解和重点">3.文件数据结构的理解和重点：</a></li>
+<li><a href="#虚拟文件系统">虚拟文件系统</a></li>
 <li><a href="#nfs文件系统">nfs文件系统</a>
 <ul>
 <li><a href="#点击查看nfs文件系统"><span>点击查看nfs文件系统</span></a></li>
 </ul></li>
 <li><a href="#smb文件系统">smb文件系统</a></li>
+<li><a href="#ext2文件系统">ext2文件系统</a></li>
 </ul></li>
 </ul>
 </nav>
 <h1 id="文件系统">文件系统</h1>
-<p>文件系统下面有好几种文件系统</p>
+<p>文件系统是什么？举个例子，比如我们存储一些信息，肯定需要硬盘，那么存储的方法有两种，其中一种则是从第一个字节、第二个字节以此类推。第二种方法是先创建一个文件，在这个文件里存储这句话，我们打开硬盘时，只需要找到这个文件的位置，就能找到这个内容。</p>
+<p>文件系统就是一种管理数据的规则。</p>
+<p>文件系统下面有好几种文件系统： - 磁盘文件系统，如ext2、ext4、xfs、ntfs等。 - 网络文件系统，如nfs、cifs等。 - 特殊文件系统，如procfs、sysfs等。</p>
+<p>这里用主线内核代码和4.19分支的代码举个例子：</p>
 <p>主线最新目录结构:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="ex">.</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>├── <span class="ex">fs</span></span>
@@ -105,15 +107,19 @@
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>        ├── <span class="ex">client</span>  # smb客户端代码</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>        ├── <span class="ex">common</span>  # smb公共端代码</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a>        ├── <span class="ex">server</span>  # smb服务端代码 曾经是fs/cifsd和fs/ksmbd</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>        </span></code></pre></div>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>│   ├── <span class="ex">ntfs3</span>    #Linux 5.15才将ntfs3合并到内核里面</span></code></pre></div>
 <p>4.19目录结构:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ex">.</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>├── <span class="ex">fs</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>│   ├── <span class="ex">nfs</span> # nfs客户端代码</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>│   ├── <span class="ex">nfsd</span> # nfs服务端代码</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>│   ├── <span class="ex">nfs_common</span>  # nfs公共端代码</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>│   ├── <span class="ex">cifs</span>      #主线最新代码的smb/client</span></code></pre></div>
-<p>可以在最新的源码上用<code>git log --oneline -- fs/ksmbd</code> 查看ksmbd的提交记录 ’git show –stat <commit-id>’可以查看某个文件修改的统计 fs/ksmd -&gt; fs/smb/server 出现在这个提交记录上：38c8a9a52082 smb: move client and server files to common directory fs/smb fs/cifsd -&gt; fs/ksmd 出现在这个提交记录上：1a93084b9a89 ksmbd: move fs/cifsd to fs/ksmbd</p>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>│   ├── <span class="ex">cifs</span>      #主线最新代码的smb/client</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>│   ├── <span class="ex">ntfs</span>  #老旧的 ntfs 驱动功能非常有限</span></code></pre></div>
+<p>可以在最新的源码上用<code>git log --oneline -- fs/ksmbd</code> 查看ksmbd的提交记录 ’git show –stat <commit-id>’可以查看某个文件修改的统计</p>
+<p>fs/ksmd -&gt; fs/smb/server 出现在这个提交记录上：38c8a9a52082 smb: move client and server files to common directory fs/smb</p>
+<p>fs/cifsd -&gt; fs/ksmd 出现在这个提交记录上：1a93084b9a89 ksmbd: move fs/cifsd to fs/ksmbd</p>
+<p>4534a70b7056 2021-08-13 fs/ntfs3: Add headers and misc files #第一次提交ntfs3的代码</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="co"># 查看d文件的最近一次重命名提交</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="fu">git</span> log --follow --diff-filter=R --name-status -1 -- d</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="co"># 查看c文件的最近一次重命名提交</span></span>
@@ -123,49 +129,47 @@
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="co"># 一次性查看完整重命名历史（按时间倒序）</span></span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="fu">git</span> log --follow --name-status -- d</span></code></pre></div>
-<h2 id="操作流程">1.操作流程</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ex">fallocate</span> -l 1G 1</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">mkfs.ext4</span> -F /dev/sda           # 格式化文件系统</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="fu">mount</span> -t ext4 /dev/sda /mnt     # 把磁盘挂载到某个目录</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="fu">df</span> /dev/sda <span class="co"># 查看是否已经挂载上</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a><span class="bu">echo</span> <span class="st">&quot;我爱操作系统&quot;</span> <span class="op">&gt;</span> /mnt/file   # 存到挂载点下的某个文件中</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a><span class="fu">cat</span> /mnt/file                   # 输出文件内容</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a><span class="ex">debugfs</span> /dev/sda</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a><span class="co"># debugfs:  stats # Block size: 1024</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a><span class="co"># debugfs:  stat file # BLOCKS: (0):7169</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a><span class="fu">dd</span> if=/dev/sda of=./data bs=1 skip=7341056 count=20  #具体的skip=多少需要根据Block size 和BLOCKS计算</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a><span class="fu">cat</span> data</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a><span class="fu">umount</span> /mnt                     # 卸载文件系统</span></code></pre></div>
-<h2 id="基本概念">2.基本概念</h2>
-<ul>
-<li><ol type="1">
-<li>超级块是对一个文件系统的描述；</li>
-</ol></li>
-<li><ol start="2" type="1">
-<li>索引节点inode是对一个文件物理属性的描述；</li>
-</ol></li>
-<li><ol start="3" type="1">
-<li>目录项dentry是对一个文件逻辑属性的描述；</li>
-</ol></li>
-<li><ol start="4" type="1">
-<li>文件file是对当前进程打开的文件的描述；</li>
-</ol></li>
-</ul>
-<p>一个进程和文件系统相关的信息是由fs_struct来描述的（如当前正在执行的文件和当前工作目录），一个进程打开的文件集是由files_struct来描述的，而每个打开的文件是由file结构描述的。</p>
-<h2 id="文件数据结构的理解和重点">3.文件数据结构的理解和重点：</h2>
-<ul>
-<li><ol type="1">
-<li>多个目录下denrty对应同一个索引节点inode</li>
-</ol></li>
-<li><ol start="2" type="1">
-<li>文件夹下的nlink代表的是文件夹的子目录数（不包含文件）</li>
-</ol></li>
-<li><ol start="3" type="1">
-<li>文件的nlink代表的是硬链接数</li>
-</ol></li>
-</ul>
+<p>如何查看一个函数的第一次提交记录：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="co">#拿smb2_parse_contexts这个函数举例子</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="bu">cd</span>  主线分支</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="fu">git</span> blame fs/smb/client/smb2pdu.c <span class="kw">|</span> <span class="fu">grep</span> smb2_parse_contexts  #会弹出commit-id 找到定义函数的commit-id</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="fu">git</span> show  <span class="op">&lt;</span>commit-id<span class="op">&gt;</span>                #查看这个commit是否是第一次提交</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a><span class="fu">git</span> log --oneline  <span class="op">&lt;</span>commit-id<span class="op">&gt;</span>       #如果不是第一次提交，查看这个commit-id的前一个提交</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a><span class="fu">git</span> checkout <span class="op">&lt;</span>commit-id<span class="op">&gt;</span>             #回退到之前版本</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a><span class="co">#然后再重复第二个步骤</span></span></code></pre></div>
+<p>实际操作一下第二种存储方式的文件系统</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="ex">fallocate</span> -l 1G 1</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="ex">mkfs.ext4</span> -F /dev/sda           # 格式化文件系统</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="fu">mount</span> -t ext4 /dev/sda /mnt     # 把磁盘挂载到某个目录</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a><span class="fu">df</span> /dev/sda <span class="co"># 查看是否已经挂载上</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a><span class="bu">echo</span> <span class="st">&quot;我爱操作系统&quot;</span> <span class="op">&gt;</span> /mnt/file   # 存到挂载点下的某个文件中</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a><span class="fu">cat</span> /mnt/file                   # 输出文件内容</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a><span class="ex">debugfs</span> /dev/sda</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a><span class="co"># debugfs:  stats # Block size: 1024</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a><span class="co"># debugfs:  stat file # BLOCKS: (0):7169</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a><span class="fu">dd</span> if=/dev/sda of=./data bs=1 skip=7341056 count=20  #具体的skip=多少需要根据Block size 和BLOCKS计算</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a><span class="fu">cat</span> data</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a><span class="fu">umount</span> /mnt                     # 卸载文件系统</span></code></pre></div>
+<h2 id="虚拟文件系统">虚拟文件系统</h2>
+<p>所有的文件系统都需要经过这虚拟文件系统层，就相当于制定了一套规则，你必须按照这种格式给我提供接口，封装。</p>
+<p>可以看看虚拟文件系统封装了哪些重要的对象；</p>
+<p><strong>1 超级块对象</strong></p>
+<p>超级块，超级块是对一个文件系统的描述；存储特定文件系统的信息。如果是基于磁盘的文件系统，通常对应磁盘上特定扇区中的数据。如果不是基于磁盘的文件系统（如procfs或sysfs），会在使用时创建超级块，只保留在内存中。 超级块对象结构体定义在文件include/linux/fs.h中。</p>
+<p><strong>2 超级块操作</strong></p>
+<p>超级块也封装了一些操作。超级块操作函数表结构体也是定义在文件include/linux/fs.h中。</p>
+<p><strong>3 索引节点</strong></p>
+<p>索引节点inode是对一个文件物理属性的描述，操作文件和目录时的全部信息，也定义在include/linux/fs.h。</p>
+<p><strong>4 索引节点操作</strong></p>
+<p><strong>5 目录项</strong></p>
+<p><strong>6 目录项操作</strong></p>
+<p>目录项dentry是对一个文件逻辑属性的描述；</p>
+<p><strong>7 文件</strong></p>
+<p>文件file是对当前进程打开的文件的描述；</p>
+<p><strong>8 文件操作</strong></p>
+<p><strong>几个例子</strong> - 1. 多个目录下denrty对应同一个索引节点inode - 2. 文件夹下的nlink代表的是文件夹的子目录数（不包含文件） - 3. 文件的nlink代表的是硬链接数</p>
 <h2 id="nfs文件系统">nfs文件系统</h2>
 <h3 id="点击查看nfs文件系统"><a href="https://dingpenglong.com/linux_kernel/fs/nfs/nfs">点击查看nfs文件系统</a></h3>
 <h2 id="smb文件系统">smb文件系统</h2>
+<h2 id="ext2文件系统">ext2文件系统</h2>
 </body>
 </html>
