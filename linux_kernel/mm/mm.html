@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>mm</title>
+  <title>内存管理</title>
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -16,6 +16,9 @@
   <link rel="stylesheet" href="doc/linux-style.css" />
 </head>
 <body>
+<header id="title-block-header">
+<h1 class="title">内存管理</h1>
+</header>
 <nav id="TOC" role="doc-toc">
 <ul>
 <li><a href="#内存管理">内存管理</a>
@@ -58,10 +61,10 @@
 <h2 id="物理页面描述符-struct-page">1 物理页面描述符 <code>struct page</code></h2>
 <p>系统中的每个物理页面（通常为 4KB 大小，可通过 <code>getconf -a | grep PAGESIZE</code> 查看）都有一个 <code>struct page</code> 来描述它。这个结构体相当于每个物理页面的 “身份证”，记录了页面的各种信息：</p>
 <ul>
-<li><strong>flags</strong>：用二进制位记录页面的状态，例如是否出错、是否私有等。内核中定义了很多类似 <code>SetPageError</code>、<code>PagePrivate</code> 的宏来设置或检测这些状态位，它们的本质都是通过位操作来修改或读取 <code>flags</code> 字段。</li>
-<li>**_refcount**：记录页面被引用的次数。当引用次数为 0 时，页面处于空闲状态。</li>
-<li><strong>virtual</strong>：在一些特殊情况下（比如 highmem 内存区域），用于存储页面的内核虚拟地址。</li>
-<li><strong>union page_union_1 和 union page_union_2</strong>：这两个联合体包含页面的多种用途相关信息，比如页面在页面缓存中的位置、网络栈使用的信息等。</li>
+<li><strong><code>flags</code></strong>：用二进制位记录页面的状态，例如是否出错、是否私有等。内核中定义了很多类似 <code>SetPageError</code>、<code>PagePrivate</code> 的宏来设置或检测这些状态位，它们的本质都是通过位操作来修改或读取 <code>flags</code> 字段。</li>
+<li><strong><code>refcount</code></strong>：记录页面被引用的次数。当引用次数为 0 时，页面处于空闲状态。</li>
+<li><strong><code>virtual</code></strong>：在一些特殊情况下（比如 highmem 内存区域），用于存储页面的内核虚拟地址。</li>
+<li><strong><code>union page_union_1 和 union page_union_2</code></strong>：这两个联合体包含页面的多种用途相关信息，比如页面在页面缓存中的位置、网络栈使用的信息等。</li>
 </ul>
 <h2 id="内存分配与释放">2 内存分配与释放</h2>
 <h3 id="分配函数">2.1 分配函数</h3>

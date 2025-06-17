@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>linux_kernel</title>
+  <title>Linux 内核开发</title>
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -78,6 +78,9 @@
   <link rel="stylesheet" href="doc/linux-style.css" />
 </head>
 <body>
+<header id="title-block-header">
+<h1 class="title">Linux 内核开发 </h1>
+</header>
 <nav id="TOC" role="doc-toc">
 <ul>
 <li><a href="#linux-内核开发">Linux 内核开发</a>
@@ -103,6 +106,10 @@
 <ul>
 <li><a href="#域名配置流程">域名配置流程</a></li>
 </ul></li>
+<li><a href="#内核源码解读">内核源码解读</a>
+<ul>
+<li><a href="#点击查看linux内核源码解读持续更新中"><span>点击查看Linux内核源码解读(持续更新中)</span></a></li>
+</ul></li>
 <li><a href="#文件系统">文件系统</a>
 <ul>
 <li><a href="#点击查看文件系统"><span>点击查看文件系统</span></a></li>
@@ -111,6 +118,10 @@
 <ul>
 <li><a href="#点击查看内存管理"><span>点击查看内存管理</span></a></li>
 </ul></li>
+<li><a href="#进程线程管理与调度">进程、线程管理与调度</a>
+<ul>
+<li><a href="#点击查看进程线程管理与调度"><span>点击查看进程、线程管理与调度</span></a></li>
+</ul></li>
 <li><a href="#内核调试工具">内核调试工具</a>
 <ul>
 <li><a href="#点击查看内核调试工具"><span>点击查看内核调试工具</span></a></li>
@@ -118,7 +129,6 @@
 <li><a href="#linux-内核实战">Linux 内核实战</a>
 <ul>
 <li><a href="#点击查看nfs实战问题分析持续更新中"><span>点击查看nfs实战问题分析(持续更新中)</span></a></li>
-<li><a href="#点击查看linux内核源码解读持续更新中"><span>点击查看Linux内核源码解读(持续更新中)</span></a></li>
 <li><a href="#遇到的常见问题的小tips">遇到的常见问题的小Tips</a></li>
 </ul></li>
 </ul></li>
@@ -347,15 +357,18 @@
 <div class="sourceCode" id="cb17"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="co"># 下载Linux内核官方CSS</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a><span class="fu">wget</span> https://kernel.org/doc/html/latest/_static/css/theme.css</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a><span class="ex">pandoc</span> input.md -o output.html --css=theme.css --toc --standalone</span></code></pre></div>
+<h2 id="内核源码解读">内核源码解读</h2>
+<h3 id="点击查看linux内核源码解读持续更新中"><a href="https://dingpenglong.com/linux_kernel/code/linux_kernel_codestudy">点击查看Linux内核源码解读(持续更新中)</a></h3>
 <h2 id="文件系统">文件系统</h2>
 <h3 id="点击查看文件系统"><a href="https://dingpenglong.com/linux_kernel/fs/fs">点击查看文件系统</a></h3>
 <h2 id="内存管理">内存管理</h2>
 <h3 id="点击查看内存管理"><a href="https://dingpenglong.com/linux_kernel/mm/mm">点击查看内存管理</a></h3>
+<h2 id="进程线程管理与调度">进程、线程管理与调度</h2>
+<h3 id="点击查看进程线程管理与调度"><a href="https://dingpenglong.com/linux_kernel/process/process">点击查看进程、线程管理与调度</a></h3>
 <h2 id="内核调试工具">内核调试工具</h2>
 <h3 id="点击查看内核调试工具"><a href="https://dingpenglong.com/linux_kernel/kernel/linux_kernel_debug">点击查看内核调试工具</a></h3>
 <h2 id="linux-内核实战">Linux 内核实战</h2>
 <h3 id="点击查看nfs实战问题分析持续更新中"><a href="https://dingpenglong.com/linux_kernel/nfs/issue/linux_kernel_nfs_problem">点击查看nfs实战问题分析(持续更新中)</a></h3>
-<h3 id="点击查看linux内核源码解读持续更新中"><a href="https://dingpenglong.com/linux_kernel/code/linux_kernel_codestudy">点击查看Linux内核源码解读(持续更新中)</a></h3>
 <h3 id="遇到的常见问题的小tips">遇到的常见问题的小Tips</h3>
 <h4 id="虚拟机卡在了boot-form-hard-disk阶段">1. 虚拟机卡在了Boot form Hard Disk阶段</h4>
 <p>这种情况只能重装虚拟机系统<br />
