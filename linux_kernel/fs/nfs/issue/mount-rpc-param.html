@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>nfs挂载参数</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="doc/linux-style.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">nfs挂载参数</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#nfs挂载参数">nfs挂载参数</a></li>
+<li><a href="#代码分析">代码分析</a></li>
+</ul>
+</nav>
+<h1 id="nfs挂载参数">nfs挂载参数</h1>
+<p><code>mount -t nfs -o vers=4.2,timeo=600,retrans=3,proto=tcp,lock,soft  localhost:/s_test /mnt</code></p>
+<p><code>mount -t nfs -o vers=4.2,timeo=600,retrans=3,proto=tcp,lock,hard  localhost:/s_test /mnt</code></p>
+<p>从代码层面分析上面的挂载参数 hard 和soft的打印信息，以及定时器重传的规律，例如每次重传的时间，timeo的时间设置等等。</p>
+<p>mount | grep nfs #查看mount 挂载参数</p>
+<p>dmesg | less #查看日志信息</p>
+<h1 id="代码分析">代码分析</h1>
+<p>分析代码以内核4.19为例：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>net/sunrpc/clnt.c:</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="at">static</span> <span class="dt">void</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>call_timeout(<span class="kw">struct</span> rpc_task *task){</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>    ...</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>    ...</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>        <span class="cf">if</span> (RPC_IS_SOFT(task)) {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>        <span class="co">/*</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a><span class="co">         * Once a &quot;no retrans timeout&quot; soft tasks (a.k.a NFSv4) has</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a><span class="co">         * been sent, it should time out only if the transport</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a><span class="co">         * connection gets terminally broken.</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a><span class="co">         */</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>        <span class="cf">if</span> ((task-&gt;tk_flags &amp; RPC_TASK_NO_RETRANS_TIMEOUT) &amp;&amp;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>            rpc_check_connected(task-&gt;tk_rqstp))</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a>            <span class="cf">return</span>;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a>        <span class="cf">if</span> (clnt-&gt;cl_chatty) {</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true"></a>            pr_notice_ratelimited(</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true"></a>                <span class="st">&quot;</span><span class="sc">%s</span><span class="st">: server </span><span class="sc">%s</span><span class="st"> not responding, timed out</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true"></a>                clnt-&gt;cl_program-&gt;name,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true"></a>                task-&gt;tk_xprt-&gt;servername);</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true"></a>        }</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true"></a>        <span class="cf">if</span> (task-&gt;tk_flags &amp; RPC_TASK_TIMEOUT)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true"></a>            rpc_call_rpcerror(task, -ETIMEDOUT);</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true"></a>        <span class="cf">else</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true"></a>            __rpc_call_rpcerror(task, -EIO, -ETIMEDOUT);</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true"></a>        <span class="cf">return</span>;</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true"></a>    }</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true"></a>    <span class="cf">if</span> (!(task-&gt;tk_flags &amp; RPC_CALL_MAJORSEEN)) {</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true"></a>        task-&gt;tk_flags |= RPC_CALL_MAJORSEEN;</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true"></a>        <span class="cf">if</span> (clnt-&gt;cl_chatty) {</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true"></a>            pr_notice_ratelimited(</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true"></a>                <span class="st">&quot;</span><span class="sc">%s</span><span class="st">: server </span><span class="sc">%s</span><span class="st"> not responding, still trying</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true"></a>                clnt-&gt;cl_program-&gt;name,</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true"></a>                task-&gt;tk_xprt-&gt;servername);</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true"></a>        }</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true"></a>    }</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true"></a>}</span></code></pre></div>
+<p>因此参数soft 和 hard 是在上述代码的原因下会打印不同的值 - soft：nfs: server localhost not responding, timed out - hard: nfs: server localhost not responding, still trying</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>net/sunrpc/xprt.c :</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="co"> * xprt_set_retrans_timeout_rtt - set a request&#39;s retransmit timeout</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="co"> * </span><span class="an">@task:</span><span class="co"> task whose timeout is to be set</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a><span class="co"> *</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="co"> * Set a request&#39;s retransmit timeout using the RTT estimator.</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a><span class="dt">void</span> xprt_set_retrans_timeout_rtt(<span class="kw">struct</span> rpc_task *task)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a>{</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a>        <span class="dt">int</span> timer = task-&gt;tk_msg.rpc_proc-&gt;p_timer;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a>        <span class="kw">struct</span> rpc_clnt *clnt = task-&gt;tk_client;</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a>        <span class="kw">struct</span> rpc_rtt *rtt = clnt-&gt;cl_rtt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a>        <span class="kw">struct</span> rpc_rqst *req = task-&gt;tk_rqstp;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a>        <span class="dt">unsigned</span> <span class="dt">long</span> max_timeout = clnt-&gt;cl_timeout-&gt;to_maxval;</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true"></a>        task-&gt;tk_timeout = rpc_calc_rto(rtt, timer);</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true"></a>        task-&gt;tk_timeout &lt;&lt;= rpc_ntimeo(rtt, timer) + req-&gt;rq_retries;</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true"></a>        <span class="cf">if</span> (task-&gt;tk_timeout &gt; max_timeout || task-&gt;tk_timeout == <span class="dv">0</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true"></a>                task-&gt;tk_timeout = max_timeout;</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true"></a>}</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true"></a><span class="co">//我们来看一下rpc_rtt结构体</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true"></a>include/<span class="ot">linux</span>/sunrpc/timer.h： </span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true"></a><span class="kw">struct</span> rpc_rtt {</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true"></a>        <span class="dt">unsigned</span> <span class="dt">long</span> timeo;    <span class="co">/* default timeout value */</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true"></a>        <span class="dt">unsigned</span> <span class="dt">long</span> srtt[<span class="dv">5</span>];  <span class="co">/* smoothed round trip time &lt;&lt; 3 */</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true"></a>        <span class="dt">unsigned</span> <span class="dt">long</span> sdrtt[<span class="dv">5</span>]; <span class="co">/* smoothed medium deviation of RTT */</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true"></a>        <span class="dt">int</span> ntimeouts[<span class="dv">5</span>];       <span class="co">/* Number of timeouts for the last request */</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true"></a>};</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true"></a></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true"></a><span class="co">//看一下rpc_calc_rto函数和rpc_ntimeo函数</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true"></a>net/sunrpc/timer.c：</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true"></a><span class="pp">#define RPC_RTO_MAX </span>(<span class="dv">60</span>*HZ)<span class="pp"> </span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true"></a><span class="dt">unsigned</span> <span class="dt">long</span> rpc_calc_rto(<span class="kw">struct</span> rpc_rtt *rt, <span class="dt">unsigned</span> <span class="dt">int</span> timer)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true"></a>{</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true"></a>        <span class="dt">unsigned</span> <span class="dt">long</span> res;</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true"></a></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true"></a>        <span class="cf">if</span> (timer-- == <span class="dv">0</span>)</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true"></a>                <span class="cf">return</span> rt-&gt;timeo;</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true"></a>        res = ((rt-&gt;srtt[timer] + <span class="dv">7</span>) &gt;&gt; <span class="dv">3</span>) + rt-&gt;sdrtt[timer];</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true"></a>        <span class="cf">if</span> (res &gt; RPC_RTO_MAX)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true"></a>                res = RPC_RTO_MAX;</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true"></a></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true"></a>        <span class="cf">return</span> res;</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true"></a>}</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true"></a><span class="at">static</span> <span class="kw">inline</span> <span class="dt">int</span> rpc_ntimeo(<span class="kw">struct</span> rpc_rtt *rt, <span class="dt">int</span> timer) </span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true"></a>{</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true"></a>        <span class="cf">if</span> (!timer)</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true"></a>                <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true"></a>        <span class="cf">return</span> rt-&gt;ntimeouts[timer-<span class="dv">1</span>];</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true"></a>}</span></code></pre></div>
+<p>定时器的重传规律如上述代码所示，那现在来理顺一下，超时重传的逻辑关系：</p>
+<ol type="1">
+<li><strong>首先获取当前RPC过程的定时器索引：</strong></li>
+</ol>
+<p><code>timer = task-&gt;tk_msg.rpc_proc-&gt;p_timer</code></p>
+<ol start="2" type="1">
+<li><strong>然后获取RPC客户端和RTT数据结构：</strong></li>
+</ol>
+<p><code>struct rpc_clnt *clnt = task-&gt;tk_client;struct rpc_rtt *rtt = clnt-&gt;cl_rtt;</code></p>
+<ul>
+<li><p>可以先来看一下rtt结构体里面的内容：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="dt">unsigned</span> <span class="dt">long</span> timeo;     <span class="co">// 默认超时值</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="dt">unsigned</span> <span class="dt">long</span> srtt[<span class="dv">5</span>];   <span class="co">// 平滑RTT值 (存储时左移3位，即实际值×8)</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="dt">unsigned</span> <span class="dt">long</span> sdrtt[<span class="dv">5</span>];  <span class="co">// 平滑RTT偏差值 (存储时左移2位，即实际值×4)</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="dt">int</span> ntimeouts[<span class="dv">5</span>];        <span class="co">// 各定时器级别的超时计数</span></span></code></pre></div>
+<p>这个结构体记录了网络性能统计信息的，包含默认超时时间，以及各个操作对应数组中的值的RTT值和RTT偏差，超时次数，之后我们需要根据当前rpc的定时器来通过数组索引相应的网络性能。</p></li>
+</ul>
+<ol start="3" type="1">
+<li>获取当前RPC请求和最大超时限制：</li>
+</ol>
+<p><code>struct rpc_rqst *req = task-&gt;tk_rqstp;unsigned long max_timeout = clnt-&gt;cl_timeout-&gt;to_maxval;</code></p>
+<ol start="4" type="1">
+<li><strong>然后计算基础超时时间（基于RTT估计值）</strong></li>
+</ol>
+<p><code>task-&gt;tk_timeout = rpc_calc_rto(rtt, timer);</code></p>
+<p>利用之前获取到的RTT的值，估计超时时间,查看最主要的计算逻辑：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>    <span class="cf">if</span> (timer-- == <span class="dv">0</span>)  <span class="co">// 如果是第一级定时器</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>        <span class="cf">return</span> rt-&gt;timeo;  <span class="co">// 返回默认超时值</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>    </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>    res = ((rt-&gt;srtt[timer] + <span class="dv">7</span>) &gt;&gt; <span class="dv">3</span>) + rt-&gt;sdrtt[timer]; <span class="co">//RTO=RTT(四舍五入的值) + RTT偏差值</span></span></code></pre></div>
+<ol start="5" type="1">
+<li><strong>应用指数退避算法</strong></li>
+</ol>
+<p><code>task-&gt;tk_timeout &lt;&lt;= rpc_ntimeo(rtt, timer) + req-&gt;rq_retries;</code></p>
+<p>看一下这里面的rpc_ntimeo函数的内容：</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>    <span class="cf">if</span> (!timer)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>            <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>    <span class="cf">return</span> rt-&gt;ntimeouts[timer-<span class="dv">1</span>];</span></code></pre></div>
+<p>这个函数其实就是返回了一下rtt结构体里面记录的，此次rpc操作之前定时器级别的超时计数。rq_retries，当前请求已重试次数。</p>
+<p>然后计算，总退避因子 = 历史超时次数 + 当前重试次数</p>
+<p>然后 <code>&lt;&lt;=</code> 到基础超时时间，对应公式是：最终超时 = 基础RTO × 2^(总退避因子)</p>
+<p>继续分析一下这段打印的代码<code>setting alarm for xxxx ms</code></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>net/sunrpc/sched.c:</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="at">static</span> <span class="dt">void</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>__rpc_add_timer(<span class="kw">struct</span> rpc_wait_queue *queue, <span class="kw">struct</span> rpc_task *task)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a>{</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a>    <span class="cf">if</span> (!task-&gt;tk_timeout)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a>        <span class="cf">return</span>;</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a>    dprintk(<span class="st">&quot;RPC: </span><span class="sc">%5u</span><span class="st"> setting alarm for </span><span class="sc">%u</span><span class="st"> ms</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a>        task-&gt;tk_pid, jiffies_to_msecs(task-&gt;tk_timeout));</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a>    task-&gt;u.tk_wait.expires = jiffies + task-&gt;tk_timeout;</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true"></a>    <span class="cf">if</span> (list_empty(&amp;queue-&gt;timer_list.list) || time_before(task-&gt;u.tk_wait.expires, queue-&gt;timer_list.expires))</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true"></a>        rpc_set_queue_timer(queue, task-&gt;u.tk_wait.expires);</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true"></a>    list_add(&amp;task-&gt;u.tk_wait.timer_list, &amp;queue-&gt;timer_list.list);</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true"></a>}</span></code></pre></div>
+<p>正式通过这个函数，将内核设置的重传定时器的值打印出来，前面都是计算， expires = 当前时间 + 超时偏移 —–&gt;<code>task-&gt;u.tk_wait.expires = jiffies + task-&gt;tk_timeout;</code></p>
+<p>这里有两个需要添加的，一个是添加队列定时器，这个定时器必须满足两个条件其中一个才会添加，就是当前任务链表为空(就算这个任务是第一个添加进入任务链表的)，第二个条件是添加的新任务过期时间早于当前队列最早过期时间。</p>
+<p>实际验证一下：</p>
+<p>客户端发起写操作 echo something &gt; /mnt/file 会触发：</p>
+<pre><code>open() 系统调用 → NFS OPEN 操作
+
+write() 系统调用 → NFS WRITE 操作
+
+close() 系统调用 → NFS CLOSE 操作</code></pre>
+<p>由于修改了内核代码; 当收到 OPEN 请求时，服务器进入无限循环。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a>--- a/fs/nfsd/nfs4proc.c</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>+++ b/fs/nfsd/nfs4proc.c</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="er">@@</span> -<span class="dv">46</span>,<span class="dv">6</span> +<span class="dv">46</span>,<span class="dv">7</span> <span class="er">@@</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a> <span class="pp">#include </span><span class="im">&quot;acl.h&quot;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a> <span class="pp">#include </span><span class="im">&quot;pnfs.h&quot;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a> <span class="pp">#include </span><span class="im">&quot;trace.h&quot;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a>+<span class="er">#include &lt;linux/delay.h&gt;</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a> </span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a> <span class="pp">#ifdef CONFIG_NFSD_V4_SECURITY_LABEL</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a> <span class="pp">#include </span><span class="im">&lt;linux/security.h&gt;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a><span class="er">@@</span> -<span class="dv">356</span>,<span class="dv">6</span> +<span class="dv">356</span>,<span class="dv">11</span> <span class="er">@@</span> nfsd4_open(<span class="kw">struct</span> svc_rqst *rqstp, <span class="kw">struct</span> nfsd4_compound_state *cstate,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true"></a>        <span class="kw">struct</span> nfsd_net *nn = net_generic(net, nfsd_net_id);</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true"></a>        <span class="dt">bool</span> reclaim = <span class="kw">false</span>;</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true"></a> </span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true"></a>+       <span class="cf">while</span> (<span class="dv">1</span>) {</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true"></a>+               printk(<span class="st">&quot;</span><span class="sc">%s</span><span class="st">:</span><span class="sc">%d</span><span class="st">, sleep</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="ot">__func__</span>, <span class="ot">__LINE__</span>);</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true"></a>+               msleep(<span class="dv">20</span> * <span class="dv">1000</span>);</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true"></a>+       }</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true"></a>+</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true"></a>        dprintk(<span class="st">&quot;NFSD: nfsd4_open filename </span><span class="sc">%.*s</span><span class="st"> op_openowner </span><span class="sc">%p\n</span><span class="st">&quot;</span>,</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true"></a>                (<span class="dt">int</span>)open-&gt;op_fname.len, open-&gt;op_fname.data,</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true"></a>                open-&gt;op_openowner);</span></code></pre></div>
+<p>结果：服务器永远不回复 OPEN 响应，客户端阻塞在 OPEN 阶段</p>
+<p>挂载 并且打开调试开关</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="fu">mount</span> -t nfs -o vers=4.2,timeo=600,retrans=3,proto=tcp,lock,hard  localhost:/s_test /mnt</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="bu">echo</span> 0xFFFF <span class="op">&gt;</span> /proc/sys/sunrpc/nfs_debug <span class="co"># NFSDBG_ALL</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="bu">echo</span> 0x7fff <span class="op">&gt;</span> /proc/sys/sunrpc/rpc_debug <span class="co"># RPCDBG_ALL</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="bu">echo</span> somthing <span class="op">&gt;</span> /mnt/file   #nfs写入</span></code></pre></div>
+<p>通过 <code>dmesg | less</code> 查看日志：</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="bu">[</span>  204.970305] RPC:    50 setting alarm for 60000 ms</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>[  267.374370] RPC:    50 setting alarm for 120000 ms</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>[  390.277365] RPC:    50 setting alarm for 180000 ms</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>[  570.475071] nfs: server localhost not responding, still trying</span></code></pre></div>
+<p>可以看到打印的时间，每次重传的时间可以刚好对应上。</p>
+<p>然后根据挂载参数timeo=600,retrans=3 来分析一下<code>setting alarm for xxxx ms</code></p>
+<p>会打印的时间。基础时间是 60000ms</p>
+<p>第一次传输时间到第二次重传的时间是指数增长： 60000<em>2^1 = 120000 第二次重传时间到二三次重传时间…(这部分为啥</em>3每搞清楚)</p>
+</body>
+</html>
