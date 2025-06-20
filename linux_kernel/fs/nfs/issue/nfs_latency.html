@@ -86,21 +86,8 @@
 <li><a href="#nfs_latency">nfs_latency</a>
 <ul>
 <li><a href="#原始代码">原始代码</a></li>
-<li><a href="#修改部分">修改部分</a>
-<ul>
-<li><a href="#error-当前目录下没有-vmlinux.h-文件这个文件在-nfs.bpf.c-中被引用">（1）error: 当前目录下没有 vmlinux.h 文件，这个文件在 nfs.bpf.c 中被引用</a></li>
-<li><a href="#error-struct_event没有在nfs.c定义">（2）error: struct_event没有在nfs.c定义</a></li>
-<li><a href="#perf_buffer__new-函数调用的参数数量不正确我们使用的参数是-6-个但函数定义只接受-3-个参数">（3）perf_buffer__new() 函数调用的参数数量不正确，我们使用的参数是 6 个，但函数定义只接受 3 个参数</a></li>
-<li><a href="#内核中有-rpc_call_start-函数但没有-rpc_call_done-函数导致程序.nfs无法加载">（4）内核中有 rpc_call_start 函数，但没有 rpc_call_done 函数。导致程序.nfs无法加载</a></li>
-<li><a href="#map-events-创建失败的问题">（5）map ‘events’ 创建失败的问题</a></li>
-<li><a href="#无法找到-rpc_task_call_done-函数进行-kretprobe">（6）无法找到 rpc_task_call_done 函数进行 kretprobe</a></li>
-<li><a href="#由此可以看出大部分都是版本问题">（7）由此可以看出大部分都是版本问题</a></li>
-</ul></li>
-<li><a href="#最后通过nfs挂载测试">最后通过nfs挂载测试</a>
-<ul>
-<li><a href="#本地挂载-nfs-共享">本地挂载 NFS 共享</a></li>
-<li><a href="#运行脚本文件">运行脚本文件</a></li>
-</ul></li>
+<li><a href="#修改部分">修改部分</a></li>
+<li><a href="#最后通过nfs挂载测试">最后通过nfs挂载测试</a></li>
 </ul></li>
 </ul>
 </nav>

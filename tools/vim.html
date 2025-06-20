@@ -90,6 +90,9 @@
 <p><a href="https://www.runoob.com/linux/linux-vim.html">Vim编辑器菜鸟教程</a></p>
 <p><a href="https://yianwillis.github.io/vimcdoc/doc/quickref.html">Vim官方手册中文版</a></p>
 <p>作为一个linux内核开发工作者，vim真的必须得学会掌握。这里我列举几个常用的：</p>
+<ul>
+<li><strong>基础操作</strong></li>
+</ul>
 <div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>:<span class="ex">w</span>      #保存文件</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>:<span class="ex">wq</span>或zz      #保存并退出</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="ex">x</span>       #删除光标所在字符 </span>
@@ -117,21 +120,22 @@
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true"></a><span class="ex">Ctrl</span> + Z    #挂起 Vim 到后台</span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true"></a><span class="bu">fg</span>      #从后台恢复 Vim</span></code></pre></div>
 <ul>
-<li>vim阅读源码</li>
+<li><strong>vim阅读源码</strong></li>
 </ul>
 <p>vim还有一个高级的用法就是用vim阅读内核源码：首先需要在根目录下执行<code>ctags -R</code> 这个命令会生成索引文件，<code>ls -l tags</code>查看索引文件。</p>
+<p>找不到需要下载ctags，运行<code>sudo apt-get install exuberant-ctags</code></p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>然后<span class="ex">vim</span>中：</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="ex">1.ctrl</span> + ] #跳转到函数或者变量的定义</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="ex">2.</span> ctrl + o #返回到原来的位置</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="ex">3.</span> g ctrl +] #跳转到函数或者变量的定义，这个比第一个多一个选择。</span></code></pre></div>
 <ul>
-<li>vim的暂存档：</li>
+<li><strong>vim的暂存档</strong></li>
 </ul>
 <p>当你某次用某个进程编辑vim的时候，可能因为网络问题或者中断问题，没有保存vim的编辑内容。</p>
 <p>但是vim会自动保存一个xxx.swp文件，以实现内容暂存。再一次用vim打开这个文件的时候，可以按下如下按键：</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">R</span>：加载暂存文档的内容；D：删除暂存文档的内容；O：打开此文件为只读文件；</span></code></pre></div>
 <ul>
-<li>vim还可以实现多文件编辑</li>
+<li><strong>vim还可以实现多文件编辑</strong></li>
 </ul>
 <div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ex">vim</span> 1.txt 2.txt 3.txt #可以用vim一次性打开三个文件</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="co">#然后有如下指令查看</span></span>
@@ -139,9 +143,38 @@
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>:<span class="ex">N</span>  #编辑下一个文件</span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>:<span class="ex">files</span>    #列出目前这个 vim 的开启的所有文件</span></code></pre></div>
 <ul>
-<li>vim的多窗口编辑</li>
+<li><strong>vim的多窗口编辑</strong></li>
 </ul>
 <div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a>:<span class="ex">vsp</span>  #水平分割 上下两个窗口</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>:<span class="ex">sp</span>   #垂直分割 左右两个窗口</span></code></pre></div>
+<ul>
+<li><strong>vim复制到系统剪贴板</strong></li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="fu">sudo</span> apt update</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="fu">sudo</span> apt install vim-gtk   #安装支持剪贴板的 Vim 版本</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a>:<span class="ex">echo</span> has(<span class="st">&#39;clipboard&#39;</span>)   #现在应该返回 <span class="ex">1</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>:<span class="ex">version</span>              #  查看是否包含 +clipboard</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a><span class="st">&quot;+y              #复制选中内容到剪贴板    </span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a><span class="st">&quot;</span><span class="ex">+p</span>              #粘贴剪贴板内</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a><span class="st">&quot;+yy             #复制整行  </span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a><span class="st">:%y+             #复制整个文件    </span></span></code></pre></div>
+<ul>
+<li><strong>~/.vimrc的一些配置</strong></li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="kw">set</span> <span class="ex">number</span>              <span class="st">&quot;显示行号</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="st">syntax on               &quot;</span>语法高亮</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="kw">set</span> <span class="ex">paste</span>               <span class="st">&quot;粘贴不自动缩进</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="st">set ruler               &quot;</span>右下角显示位置</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a><span class="kw">set</span> <span class="ex">hlsearch</span>            <span class="st">&quot;搜索高亮</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a><span class="st">set fdm=indent          &quot;</span>indent缩进折叠，syntax语法折叠</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a><span class="kw">set</span> <span class="va">pastetoggle=</span><span class="op">&lt;</span><span class="ex">F9</span><span class="op">&gt;</span>    <span class="st">&quot;F9粘贴设置切换</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a><span class="st">set mouse-=a                    &quot;</span>鼠标选择文字不会进入visual模式</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a><span class="kw">set</span> <span class="ex">ic</span>                  <span class="st">&quot;set ic忽略大小写(ignore case), set noic 不忽略大小写</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a><span class="st">set cscopequickfix=a-,c-,d-,e-,f-,g-,i-,s-,t- &quot;</span>cscope打开quickfix窗口</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a><span class="st">&quot;set ts=4                &quot;</span>一个<span class="ex">tab</span>键等于4个空格宽度</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a><span class="st">&quot;set sw=4                &quot;</span>按<span class="op">&lt;</span>键和<span class="op">&gt;</span>键缩进时，移动<span class="ex">4</span>个空格</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a><span class="st">&quot;set expandtab           &quot;</span><span class="ex">tab</span>转化为空格</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a><span class="st">&quot;colorscheme desert      &quot;</span>支持的<span class="ex">color</span>查看/usr/share/vim/vim82/colors/（vim82是vim版本）</span></code></pre></div>
 </body>
 </html>

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>nfs_env</title>
+  <title>iptables -F</title>
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -78,13 +78,12 @@
   <link rel="stylesheet" href="doc/linux-style.css" />
 </head>
 <body>
+<header id="title-block-header">
+<h1 class="title">iptables -F</h1>
+</header>
 <nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="#nfs环境搭建">nfs环境搭建</a>
-<ul>
-<li><a href="#server-环境">Server 环境</a></li>
-<li><a href="#client-环境">Client 环境</a></li>
-</ul></li>
+<li><a href="#nfs环境搭建">nfs环境搭建</a></li>
 </ul>
 </nav>
 <h2 id="nfs环境搭建">nfs环境搭建</h2>
@@ -96,10 +95,26 @@
 <div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ex">/tmp/</span> *(rw,no_root_squash,fsid=0)           #共享<span class="ex">tmp</span>目录 *代表允许所有IP地质访问共享目录，rw 允许读写，no_root_squash 允许客户端root用户直接以服务端root权限操作文件，NFSv4 要求一个根文件系统（fsid=0），其他导出应作为其子目录。</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="ex">/tmp/s_test/</span> *(rw,no_root_squash,fsid=1)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="ex">/tmp/s_scratch</span> *(rw,no_root_squash,fsid=2)</span></code></pre></div>
+<p>使用命令<code>sudo systemctl status nfs-server</code>查看开启状态，如果Acitve：filed则是未开启，需要查看错误信息，然后使用nfs-server_start.sh开启。</p>
+<p>同时还需要开启nfs-server</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="fu">mkdir</span> /tmp/s_test</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="fu">mkdir</span> /tmp/s_scratch</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="bu">ulimit</span> -n 65535</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="co"># iptables -F</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="ex">exportfs</span> -r</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="ex">systemctl</span> stop firewalld</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="ex">setenforce</span> 0</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="ex">systemctl</span> restart nfs-server.service</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a><span class="fu">chmod</span> 777 /tmp/s_test</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a><span class="fu">chmod</span> 777 /tmp/s_scratch    </span></code></pre></div>
 <h3 id="client-环境">Client 环境</h3>
 <p>nfs client软件安装</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">apt-get</span> install nfs-common -y # debian</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ex">dnf</span> install nfs-utils -y # openeuler</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ex">apt-get</span> install nfs-common -y # debian</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">dnf</span> install nfs-utils -y # openeuler</span></code></pre></div>
 <p>nfs clinet 挂载命令：</p>
 <pre><code>mount -t nfs -o vers=4.0 ${server_ip}:/s_test /mnt
 mount -t nfs -o vers=4.1 ${server_ip}:/s_test /mnt

@@ -85,52 +85,16 @@
 <ul>
 <li><a href="#linux-内核开发">Linux 内核开发</a>
 <ul>
-<li><a href="#一环境配置">一、环境配置</a>
-<ul>
-<li><a href="#ssh远程登陆">1.ssh远程登陆</a></li>
-<li><a href="#安装-code-server">安装 code-server</a></li>
-<li><a href="#生成代码索引">生成代码索引</a></li>
-<li><a href="#内核编译">2.内核编译</a></li>
-<li><a href="#qemu启动内核">3.qemu启动内核</a></li>
-</ul></li>
+<li><a href="#一环境配置">一、环境配置</a></li>
 <li><a href="#二gdb调试">二、GDB调试</a></li>
-<li><a href="#三常用命令工具必须掌握">三、常用命令/工具(必须掌握)</a>
-<ul>
-<li><a href="#vim编辑器">1.vim编辑器</a></li>
-<li><a href="#git的使用">2.Git的使用</a></li>
-<li><a href="#tmux终端复用">3.Tmux终端复用</a></li>
-<li><a href="#ps进程管理">4.ps进程管理</a></li>
-<li><a href="#sshscp远程连接">5.SSH&amp;SCP远程连接</a></li>
-</ul></li>
-<li><a href="#四个人博客搭建">四、个人博客搭建</a>
-<ul>
-<li><a href="#域名配置流程">域名配置流程</a></li>
-</ul></li>
-<li><a href="#内核源码解读">内核源码解读</a>
-<ul>
-<li><a href="#点击查看linux内核源码解读持续更新中"><span>点击查看Linux内核源码解读(持续更新中)</span></a></li>
-</ul></li>
-<li><a href="#文件系统">文件系统</a>
-<ul>
-<li><a href="#点击查看文件系统"><span>点击查看文件系统</span></a></li>
-</ul></li>
-<li><a href="#内存管理">内存管理</a>
-<ul>
-<li><a href="#点击查看内存管理"><span>点击查看内存管理</span></a></li>
-</ul></li>
-<li><a href="#进程线程管理与调度">进程、线程管理与调度</a>
-<ul>
-<li><a href="#点击查看进程线程管理与调度"><span>点击查看进程、线程管理与调度</span></a></li>
-</ul></li>
-<li><a href="#内核调试工具">内核调试工具</a>
-<ul>
-<li><a href="#点击查看内核调试工具"><span>点击查看内核调试工具</span></a></li>
-</ul></li>
-<li><a href="#linux-内核实战">Linux 内核实战</a>
-<ul>
-<li><a href="#点击查看nfs实战问题分析持续更新中"><span>点击查看nfs实战问题分析(持续更新中)</span></a></li>
-<li><a href="#遇到的常见问题的小tips">遇到的常见问题的小Tips</a></li>
-</ul></li>
+<li><a href="#三常用命令工具必须掌握">三、常用命令/工具(必须掌握)</a></li>
+<li><a href="#四个人博客搭建">四、个人博客搭建</a></li>
+<li><a href="#内核源码解读">内核源码解读</a></li>
+<li><a href="#文件系统">文件系统</a></li>
+<li><a href="#内存管理">内存管理</a></li>
+<li><a href="#进程线程管理与调度">进程、线程管理与调度</a></li>
+<li><a href="#内核调试工具">内核调试工具</a></li>
+<li><a href="#linux-内核实战">Linux 内核实战</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -324,7 +288,8 @@
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a><span class="ex">Ctrl</span> + B D      #退出当前会话</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a><span class="ex">tmux</span> det   #退出当前tmux到后台</span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a><span class="ex">tmux</span> ls         #显示所有会话tm</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a><span class="ex">tmux</span> attach -t <span class="op">&lt;</span>name<span class="op">&gt;</span>   #重新连接到指定会话</span></code></pre></div>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a><span class="ex">tmux</span> attach -t <span class="op">&lt;</span>name<span class="op">&gt;</span>   #重新连接到指定会话</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a><span class="ex">tmux</span> kill-session -t  <span class="op">&lt;</span>name<span class="op">&gt;</span> #删除会话</span></code></pre></div>
 <h3 id="ps进程管理">4.ps进程管理</h3>
 <div class="sourceCode" id="cb13"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="fu">ps</span> aux          #查看所有进程的详细信息    </span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="fu">ps</span> -eo pid,ppid,cmd <span class="co">#显示进程的 PID、PPID 和完整命令   </span></span>
@@ -368,7 +333,7 @@
 <h2 id="内核调试工具">内核调试工具</h2>
 <h3 id="点击查看内核调试工具"><a href="https://dingpenglong.com/linux_kernel/kernel/linux_kernel_debug">点击查看内核调试工具</a></h3>
 <h2 id="linux-内核实战">Linux 内核实战</h2>
-<h3 id="点击查看nfs实战问题分析持续更新中"><a href="https://dingpenglong.com/linux_kernel/nfs/issue/linux_kernel_nfs_problem">点击查看nfs实战问题分析(持续更新中)</a></h3>
+<h3 id="点击查看nfs实战问题分析持续更新中"><a href="https://dingpenglong.com/linux_kernel/fs/nfs/issue/linux_kernel_nfs_problem">点击查看nfs实战问题分析(持续更新中)</a></h3>
 <h3 id="遇到的常见问题的小tips">遇到的常见问题的小Tips</h3>
 <h4 id="虚拟机卡在了boot-form-hard-disk阶段">1. 虚拟机卡在了Boot form Hard Disk阶段</h4>
 <p>这种情况只能重装虚拟机系统<br />
