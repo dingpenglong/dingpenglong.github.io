@@ -116,28 +116,36 @@
     kthread+262
     ret_from_fork+31</code></pre>
 <p>分析代码以内核4.19为例：</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>rpc_init_timeout_values</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>    <span class="cf">if</span> (proto == IPPROTO_TCP) <span class="co">//TCP用线性增长</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>            to-&gt;to_increment = timeo * HZ / <span class="dv">10</span>;  <span class="co">// 默认使用初始值作为增量</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>            to-&gt;to_exponential = <span class="dv">0</span>;  <span class="co">// 禁用指数退避</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>    <span class="cf">else</span>    <span class="co">// UDP 协议使用指数退避</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>        to-&gt;to_exponential = <span class="dv">0</span>;  <span class="co">// 禁用指数退避</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>    rpc_async_schedule</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a>        __rpc_execute</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>            <span class="cf">if</span> (to-&gt;to_exponential)    <span class="co">//判断是否设置为指数增长</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a>                req-&gt;rq_timeout &lt;&lt;= <span class="dv">1</span>;  <span class="co">// 指数退避：超时时间翻倍</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a>            <span class="cf">else</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a>                req-&gt;rq_timeout += to-&gt;to_increment;  <span class="co">// 线性增长：增加固定增量</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a>            __rpc_add_timer</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a>                <span class="co">//打印: &quot;RPC: %5u setting alarm for %u ms&quot;</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a>                rpc_set_queue_timer(queue, task-&gt;u.tk_wait.expires); <span class="co">//添加定时器到队列里面</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a>                list_add(&amp;task-&gt;u.tk_wait.timer_list, &amp;queue-&gt;timer_list.list);<span class="co">//添加任务到任务链表 </span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a>    call_timeout</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true"></a>        <span class="cf">if</span> (RPC_IS_SOFT(task)) <span class="co">//判断是否为参数是否为soft</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true"></a>        <span class="co">//打印: &quot;not responding, still trying或not responding, timed out&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>nfs_init_timeout_values</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>    <span class="cf">switch</span> (proto) </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>    <span class="cf">case</span> XPRT_TRANSPORT_TCP:<span class="co">//TCP用线性增长</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>        to-&gt;to_increment = timeo * HZ / <span class="dv">10</span>;  <span class="co">// 默认使用初始值作为增量</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>        to-&gt;to_exponential = <span class="dv">0</span>;  <span class="co">// 禁用指数退避</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>    <span class="cf">case</span>: XPRT_TRANSPORT_UDP   <span class="co">// UDP 协议使用指数退避</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>        to-&gt;to_exponential = <span class="dv">1</span>;;  <span class="co">//  使用用指数退避</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a>    rpc_async_schedule</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>        __rpc_execute</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a>            xprt_adjust_timeout</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a>                <span class="cf">if</span> (to-&gt;to_exponential)    <span class="co">//判断是否设置为指数增长</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a>                    req-&gt;rq_timeout &lt;&lt;= <span class="dv">1</span>;  <span class="co">// 指数退避：超时时间翻倍</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a>                <span class="cf">else</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a>                    req-&gt;rq_timeout += to-&gt;to_increment;  <span class="co">// 线性增长：增加固定增量</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a>            __rpc_add_timer</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a>                <span class="co">//打印: &quot;RPC: %5u setting alarm for %u ms&quot;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a>                rpc_set_queue_timer(queue, task-&gt;u.tk_wait.expires); <span class="co">//添加定时器到队列里面</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a>                list_add(&amp;task-&gt;u.tk_wait.timer_list, &amp;queue-&gt;timer_list.list);<span class="co">//添加任务到任务链表 </span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true"></a>    call_timeout</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true"></a>        <span class="cf">if</span> (RPC_IS_SOFT(task)) <span class="co">//判断是否为参数是否为soft</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true"></a>        <span class="co">//打印: &quot;not responding, still trying或not responding, timed out&quot;</span></span></code></pre></div>
+<p>也就是说在这段代码中，首先根据挂载参数判断是否是-tcp,</p>
+<p>如果是tcp 则to-&gt;to_increment = timeo * HZ / 10; // 默认使用初始值作为increment增量</p>
+<p>to-&gt;to_exponential = 0; // 禁用指数退避</p>
+<p>也就是这这个增量值就使用默认初始timeo作为增量，比如你timeo =600, 那么每次增加的增量也是600， 然后不使用指数增长，即设置to-&gt;to_exponential = 0；</p>
+<p>通过if (to-&gt;to_exponential) 判断是采用线性增长还是指数增长。</p>
+<p>是线性增长：req-&gt;rq_timeout += to-&gt;to_increment;</p>
 <h1 id="实际验证">实际验证</h1>
 <p>客户端发起写操作 echo something &gt; /mnt/file 会触发nfs4_open</p>
 <p>由于修改了内核代码,当收到 OPEN 请求时，服务器进入无限循环,已实现超时重传的效果</p>
@@ -169,6 +177,7 @@
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="bu">echo</span> 0xFFFF <span class="op">&gt;</span> /proc/sys/sunrpc/nfs_debug <span class="co"># NFSDBG_ALL</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="bu">echo</span> 0x7fff <span class="op">&gt;</span> /proc/sys/sunrpc/rpc_debug <span class="co"># RPCDBG_ALL</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a><span class="bu">echo</span> somthing <span class="op">&gt;</span> /mnt/file <span class="kw">&amp;</span>  #<span class="ex">nfs</span>写入</span></code></pre></div>
+<p>mount -t nfs -o vers=3,timeo=600,retrans=3,proto=tcp,lock,hard localhost:/tmp/s_test /mnt</p>
 <p>通过 <code>dmesg | less</code> 查看日志：</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="bu">[</span>  204.970305] RPC:    50 setting alarm for 60000 ms</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>[  267.374370] RPC:    50 setting alarm for 120000 ms</span>
@@ -178,14 +187,5 @@
 <p>然后根据挂载参数timeo=600,retrans=3 来分析一下<code>setting alarm for xxxx ms</code></p>
 <p>基础超时时间为60000ms，第一次重传时间为60000 + 60000ms，第二次重传时间为 120000 + 60000 ms,</p>
 <p>第三次重传未出现？可能是当时没捕捉到，再去验证一下。</p>
-<p>试一下udp传输参数 <code>mount -t nfs -o vers=4.2,timeo=400,retrans=3,proto=udp,lock,hard  localhost:/s_test /mnt</code></p>
-<p>之前还分析了这个函数，但好像这个函数没有用到</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a>        xprt_set_retrans_timeout_rtt</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>            rpc_calc_rto</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>                res = ((rt-&gt;srtt[timer] + <span class="dv">7</span>) &gt;&gt; <span class="dv">3</span>) + rt-&gt;sdrtt[timer];<span class="co">//计算RTO=RTT(四舍五入的值) + RTT偏差值</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a>            rpc_ntimeo</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a>                <span class="cf">return</span> rt-&gt;ntimeouts[timer-<span class="dv">1</span>]; <span class="co">//获取前一个定时器的超时次数</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a>        task-&gt;tk_timeout &lt;&lt;= rpc_ntimeo(rtt, timer) + req-&gt;rq_retries; <span class="co">//最终超时 = 基础RTO × 2^(总退避因子) </span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a>        <span class="co">// 总退避因子 = 历史超时次数 + 当前重试次数</span></span></code></pre></div>
 </body>
 </html>
