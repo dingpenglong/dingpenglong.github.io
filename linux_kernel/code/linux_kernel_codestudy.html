@@ -92,12 +92,14 @@
 <li><a href="#内核空间和用户空间的概念以及内核空间和用户空间的内存拷贝">内核空间和用户空间的概念以及内核空间和用户空间的内存拷贝</a></li>
 <li><a href="#x86段页式内存管理和页表映射机制">x86段页式内存管理和页表映射机制</a></li>
 <li><a href="#linux内核同步场景以及解决之道">linux内核同步场景以及解决之道</a></li>
+<li><a href="#char设备驱动到platform驱动的华丽转身">char设备驱动到platform驱动的华丽转身</a></li>
+<li><a href="#页框和伙伴算法以及slab机制">页框和伙伴算法以及slab机制</a></li>
 </ul></li>
 </ul>
 </nav>
 <h1 id="linux内核源码解读">Linux内核源码解读</h1>
 <h2 id="通过qemu运行一个最小系统">通过qemu运行一个最小系统</h2>
-<h3 id="下载linux内核源码和busybox源码">1. 下载linux内核源码和busybox源码</h3>
+<h3 id="下载linux内核源码和busybox源码">下载linux内核源码和busybox源码</h3>
 <p>我下载的版本是Linux内核4.9.229版本 <a href="https://mirrors.edge.kernel.org/pub/linux/kernel/">linux源码下载地址</a> 我下载的busybos源码版本是1.36.1版本 <a href="https://busybox.net/downloads/">busybox源码下载地址</a></p>
 <pre><code># 下载最新稳定版（如 1.36.1）
 wget https://busybox.net/downloads/busybox-1.36.1.tar.bz2
@@ -107,11 +109,11 @@ make menuconfig #可以根据需求做一些特定的修改
 make 
 make install</code></pre>
 <p>make install 后我们的busybox的内容是不完整的，可以去修改busybox的配置。 参考b站 <code>简说linux</code> <a href="https://space.bilibili.com/646178510/lists?sid=375089&amp;spm_id_from=333.788.0.0">b站视频链接</a> 将源码编译后用qemu运行。</p>
-<h3 id="通过qemu启动内核">2. 通过qemu启动内核</h3>
+<h3 id="通过qemu启动内核">通过qemu启动内核</h3>
 <p>qemu启动脚本：<code>vim start.sh</code></p>
 <pre><code>qemu-system-x86_64 -kernel ./linux-4.9.229/arch/x86_64/boot/bzImage  -initrd ./busybox-1.36.1/rootfs.img.gz  -app
 end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
-<h3 id="内核源码各个目录的解读">3. 内核源码各个目录的解读</h3>
+<h3 id="内核源码各个目录的解读">内核源码各个目录的解读</h3>
 <h4 id="核心功能目录">核心功能目录</h4>
 <ol type="1">
 <li><strong><code>arch</code></strong>
@@ -489,13 +491,11 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <p>5.本质是基于进程调度器，UP(单核)和SMP(多核)下的实现无差异。</p>
 <p>6.不支持进程和中断之间的同步</p>
 <ul>
-<li><strong>spinlock的说明和使用方法</strong></li>
-</ul>
+<li><p><strong>spinlock的说明和使用方法</strong></p>
 <p>自旋锁是一种死等机制，spinlock自旋锁一次只能有一个程序进入临界区，其他执行单元都是在死等，就算说spilock会一直占用cpu，所以spinlock执行时间会很短，因为不睡眠，自旋锁可以在中断上下文中进行。</p>
 <p>spinlock调用自旋锁，spinunlock释放自旋锁。使用自旋锁执行的函数不能太长。</p>
-<p>自旋锁常用于 进程与进程、和本地软中断、和本地硬中断的同步。由于自旋锁是一种特殊的机制，自选锁有一个spin_trylock去尝试获取锁，获取不到就不死等。</p>
-<ul>
-<li><strong>spinlock内核源码（UP版）</strong></li>
+<p>自旋锁常用于 进程与进程、和本地软中断、和本地硬中断的同步。由于自旋锁是一种特殊的机制，自选锁有一个spin_trylock去尝试获取锁，获取不到就不死等。</p></li>
+<li><p><strong>spinlock内核源码（UP版）</strong></p></li>
 </ul>
 <p>同样是以arm为例子</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">struct</span> {</span>
@@ -508,9 +508,9 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a><span class="pp">#endif</span></span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a>} __aligned(<span class="dv">4</span>) arch_spinlock_t;</span></code></pre></div>
 <ul>
-<li><p><strong>spinlock在SMP下的源码实现</strong></p></li>
-<li><p><strong>char设备驱动到platform驱动的华丽转身</strong></p></li>
+<li><strong>spinlock内核源码(SMP版本)</strong></li>
 </ul>
+<h2 id="char设备驱动到platform驱动的华丽转身">char设备驱动到platform驱动的华丽转身</h2>
 <p>Platfrom相当于一个虚拟的总线驱动，就算不在硬件的总线，也可以通过platform进行管理。</p>
 <p>使用Platform驱动在Linux设备驱动开发中具有两大核心优势：</p>
 <ol type="1">
@@ -549,9 +549,9 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a>   <span class="co">// 注销平台驱动</span></span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a>    platform_driver_unregister(&amp;my_platform_driver);</span></code></pre></div>
 <ul>
-<li><strong>源码角度分析platform设备和驱动的匹配原则</strong></li>
+<li><p><strong>源码角度分析platform设备和驱动的匹配原则</strong></p>
+<p>platform 是一条虚拟总线，可以将一些设备放置在该虚拟设备总线上，设备为 platform_device，要操作这些设备需要使用匹配的驱动，驱动为 platform_driver，当执行 insmod 时，驱动会在总线上查找与其对应的设备，查找成功后执行 probe 动作进行设备初始化，当驱动卸载后执行 remove 函数，进行退出动作。</p></li>
 </ul>
-<p>platform 是一条虚拟总线，可以将一些设备放置在该虚拟设备总线上，设备为 platform_device，要操作这些设备需要使用匹配的驱动，驱动为 platform_driver，当执行 insmod 时，驱动会在总线上查找与其对应的设备，查找成功后执行 probe 动作进行设备初始化，当驱动卸载后执行 remove 函数，进行退出动作。</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="kw">struct</span> bus_type platform_bus_type = {</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>    .name       = <span class="st">&quot;platform&quot;</span>,</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>    .dev_groups = platform_dev_groups,</span>
@@ -661,8 +661,16 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <span id="cb14-10"><a href="#cb14-10" aria-hidden="true"></a>   },</span>
 <span id="cb14-11"><a href="#cb14-11" aria-hidden="true"></a>   .probe = my_probe,</span>
 <span id="cb14-12"><a href="#cb14-12" aria-hidden="true"></a>};</span></code></pre></div>
+<h2 id="页框和伙伴算法以及slab机制">页框和伙伴算法以及slab机制</h2>
 <ul>
-<li><strong>页框和伙伴算法以及slab机制</strong></li>
+<li><p><strong>页框</strong></p>
+<p>内存中的内存块用struct page 描述，一般大小位4K</p>
+<p>内核对于有些场景，需要申请<strong>大小不定</strong>的连续页框。所以需要用伙伴算法进行分配。</p></li>
+<li><p><strong>伙伴算法</strong></p>
+<p>怎么分配的呢：首先将linux内核中的空闲页框分组为11个链表，每个链表中的页框块是固定的 第i个链表中每个页框块都包含2的i次方个连续页。</p>
+<p>就比如这个链表数组，第一个链表中包含了2^0 = 1个连续的页框，第4个链表包含了2^4个连续 的页框。</p>
+<p>最大可申请的连续物理块是2^10 = 1024 个的连续页框，一个页框是4k，那么可以申请4M大小。</p>
+<p>内存分配的逻辑无非就是查看链表里面是否有大小满足的，不满足则继续往下找，如果被占用也继续往 下找，找到一个可以分割一部分页框给这个任务的。 释放内存的逻辑则是判断这个连续的内存他的一些 页框有没有被释放，被释放了则合并。</p></li>
 </ul>
 </body>
 </html>
