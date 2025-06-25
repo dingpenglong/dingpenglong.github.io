@@ -85,12 +85,12 @@
 <ul>
 <li><a href="#nfsv3-lockd和write的重传定时器对比">nfsv3 lockd和write的重传定时器对比</a>
 <ul>
-<li><a href="#内核改造">1 内核改造：</a></li>
+<li><a href="#内核改造">内核改造：</a></li>
 </ul></li>
 </ul>
 </nav>
 <h1 id="nfsv3-lockd和write的重传定时器对比">nfsv3 lockd和write的重传定时器对比</h1>
-<h2 id="内核改造">1 内核改造：</h2>
+<h2 id="内核改造">内核改造：</h2>
 <p><a href="https://chenxiaosong.com/course/nfs/issue/lockd-server-not-responding.html">具体内核修改代码点此链接</a></p>
 <p>nfsv3 NLM请求超时的问题测试结果:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="bu">[</span>   74.865468] RPC:    56 setting alarm for 10000 ms</span>
@@ -251,28 +251,41 @@
 <span id="cb8-16"><a href="#cb8-16" aria-hidden="true"></a>[  371.509911] RPC:    49 setting alarm for 60000 ms</span>
 <span id="cb8-17"><a href="#cb8-17" aria-hidden="true"></a>[  371.510044] RPC:    49 setting alarm for 60000 ms</span></code></pre></div>
 <p>可以看到当我的client=lockd则是NLM请求，proc名称则是TEST也与NLM请求相关，这样就揭示了为什么从日志信息来看会有不同从初始时间。</p>
+<p>是否会造成5s这样的倍数？ 这里有一个5的倍数代码：</p>
 <p>get_lockd_grace_period return nlm_timeout * 5 * HZ;</p>
+<p>在这个代码里面增加打印</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode diff"><code class="sourceCode diff"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="kw">diff --git a/fs/lockd/svc.c b/fs/lockd/svc.c</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>index 346ed161756d..acb013fc39f3 100644</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="dt">--- a/fs/lockd/svc.c</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a><span class="dt">+++ b/fs/lockd/svc.c</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a><span class="dt">@@ -88,11 +88,19 @@ static struct ctl_table_header * nlm_sysctl_table;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a> </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a> static unsigned long get_lockd_grace_period(void)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a> {</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a><span class="va">+       /* 打印调用栈 */</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true"></a><span class="va">+    dump_stack();</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true"></a>        /* Note: nlm_timeout should always be nonzero */</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true"></a>        if (nlm_grace_period)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true"></a><span class="va">+       {</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true"></a><span class="va">+               printk(&quot;get_lockd_grace_period = %ld&quot;,roundup(nlm_grace_period, nlm_timeout));</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true"></a>                return roundup(nlm_grace_period, nlm_timeout) * HZ;</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true"></a><span class="va">+       }</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true"></a>        else</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true"></a><span class="va">+       {</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true"></a><span class="va">+               printk(&quot;get_lockd_grace_period nlm_timeout = %ld&quot;,nlm_timeout * 5 * HZ);</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true"></a>                return nlm_timeout * 5 * HZ;</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true"></a><span class="va">+       }</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true"></a> }</span></code></pre></div>
 <p>打印到日志查看一下这个值的内容: [ 266.981120] get_lockd_grace_period nlm_timeout = 50000</p>
 <p>确实调用了,但只是调用了一次</p>
 <p>这个函数是计算 NFS 锁管理服务的客户端恢复崩溃后重新声明锁的时间窗口 从日志信息来看而且这个函数是会发生在nlmsvc_lock之前</p>
 <p>这个函数的调用栈:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="bu">[</span>  266.955006] Call Trace:</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>[  266.955785]  dump_stack+0x6d/0x8b</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>[  266.956833]  set_grace_period+0x16/0xd1</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>[  266.958048]  lockd_up.cold+0x11e/0x185</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a>[  266.959227]  nfsd_startup_net+0x18c/0x1a0</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a>[  266.960487]  nfsd_svc+0xa6/0x110</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a>[  266.961240]  write_threads+0x79/0xe0</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a>[  266.961874]  ? simple_transaction_get.part.0+0x8d/0xd0</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a>[  266.962785]  ? write_pool_threads+0x230/0x230</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true"></a>[  266.963557]  ? write_pool_threads+0x230/0x230</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true"></a>[  266.964332]  nfsctl_transaction_write+0x4a/0x80</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true"></a>[  266.965147]  __vfs_write+0x1b/0x40</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true"></a>[  266.965753]  vfs_write+0xad/0x1a0</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true"></a>[  266.966352]  ksys_write+0x5e/0xe0</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true"></a>[  266.966950]  __x64_sys_write+0x19/0x20</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true"></a>[  266.967618]  do_syscall_64+0x64/0x1e0</span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true"></a>[  266.968277]  ? do_async_page_fault+0x5d/0xc0</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true"></a>[  266.969046]  entry_SYSCALL_64_after_hwframe+0x5c/0xc1</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="ex">vfs_write</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>    <span class="ex">__vfs_write</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>        <span class="ex">nfsd_svc</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>            <span class="ex">nfsd_startup_net</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>                <span class="ex">lockd_up.cold</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a>                    <span class="ex">set_grace_period</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a>                        <span class="ex">get_lockd_grace_period</span></span></code></pre></div>
 </body>
 </html>
