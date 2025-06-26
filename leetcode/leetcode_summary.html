@@ -518,17 +518,20 @@
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>    <span class="kw">public</span>:</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>        ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a>            ListNode* dummy = <span class="kw">new</span> ListNode(<span class="dv">0</span>);</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a>            ListeNode* cur = dummy-&gt;next;</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a>            <span class="cf">while</span>(l1 || l2 || carry){</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a>                <span class="dt">int</span> sum = carry;</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a>                sum += l1 ? l1-&gt;val:<span class="dv">0</span>;</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a>                sum += l2 ? l2-&gt;val:<span class="dv">0</span>;</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a>                <span class="cf">if</span>(l1) l1=l1-&gt;next;</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a>                <span class="cf">if</span>(l2) l2=l2-&gt;next;</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a>                </span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a>            }</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a>        }</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a>}</span></code></pre></div>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a>            ListeNode* cur = dummy;</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a>            <span class="dt">int</span> carry = <span class="dv">0</span>;</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a>            <span class="cf">while</span>(l1 || l2 || carry){</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a>                <span class="dt">int</span> sum = carry;</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a>                sum += l1 ? l1-&gt;val:<span class="dv">0</span>;</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a>                sum += l2 ? l2-&gt;val:<span class="dv">0</span>;</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a>                <span class="cf">if</span>(l1) l1=l1-&gt;next;</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a>                <span class="cf">if</span>(l2) l2=l2-&gt;next;</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a>                carry = sum /<span class="dv">10</span>;</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a>                cur-&gt;next = <span class="kw">new</span> ListNode(sum % <span class="dv">10</span>);</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a>                cur = cur-&gt;next;</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true"></a>            }</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true"></a>        }</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true"></a>}</span></code></pre></div>
 <h2 id="快速排序">快速排序</h2>
 <div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="dt">void</span> quickSort(std::vector&lt;<span class="dt">int</span>&gt;&amp; arr, <span class="dt">int</span> left, <span class="dt">int</span> right) {</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>    <span class="cf">if</span> (left &gt;= right) <span class="cf">return</span>;</span>
