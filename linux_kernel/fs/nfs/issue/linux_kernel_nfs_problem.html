@@ -1,36 +1,28 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>nfs问题分析</title>
-  <style>
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    span.underline{text-decoration: underline;}
-    div.column{display: inline-block; vertical-align: top; width: 50%;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    ul.task-list{list-style: none;}
-  </style>
-  <link rel="stylesheet" href="doc/linux-style.css" />
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="doc/linux-style.css" type="text/css" />
 </head>
 <body>
-<header id="title-block-header">
+<div id="header">
 <h1 class="title">nfs问题分析</h1>
-</header>
-<nav id="TOC" role="doc-toc">
+</div>
+<div id="TOC">
 <ul>
-<li><a href="#nfs问题分析">nfs问题分析</a>
-<ul>
+<li><a href="#nfs问题分析">nfs问题分析</a><ul>
 <li><a href="#本地挂载-nfs-共享">本地挂载 NFS 共享</a></li>
-<li><a href="#nfs_latency问题"><span>nfs_latency问题</span></a></li>
-<li><a href="#stat-nfsv3-sync-write-time问题"><span>stat-nfsv3-sync-write-time问题</span></a></li>
-<li><a href="#mount-rpc-write-param问题"><span>mount-rpc-write-param问题</span></a></li>
-<li><a href="#nfsv3-locked-timer问题"><span>nfsv3-locked-timer问题</span></a></li>
+<li><a href="#nfs_latency问题"><a href="https://dingpenglong.com/linux_kernel/fs/nfs/issue/nfs_latency">nfs_latency问题</a></a></li>
+<li><a href="#stat-nfsv3-sync-write-time问题"><a href="https://dingpenglong.com/linux_kernel/fs/nfs/issue/stat-nfsv3-sync-write-time">stat-nfsv3-sync-write-time问题</a></a></li>
+<li><a href="#mount-rpc-write-param问题"><a href="https://dingpenglong.com/linux_kernel/fs/nfs/issue/mount-rpc-param">mount-rpc-write-param问题</a></a></li>
+<li><a href="#nfsv3-locked-timer问题"><a href="https://dingpenglong.com/linux_kernel/fs/nfs/issue/nfsv3-locked-timer">nfsv3-locked-timer问题</a></a></li>
 </ul></li>
 </ul>
-</nav>
+</div>
 <h1 id="nfs问题分析">nfs问题分析</h1>
 <h2 id="本地挂载-nfs-共享">本地挂载 NFS 共享</h2>
 <pre><code># 创建挂载点

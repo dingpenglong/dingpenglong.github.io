@@ -1,28 +1,20 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>嵌入式 STM32、RTOS、Linux 开发</title>
-  <style>
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    span.underline{text-decoration: underline;}
-    div.column{display: inline-block; vertical-align: top; width: 50%;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    ul.task-list{list-style: none;}
-  </style>
-  <link rel="stylesheet" href="doc/linux-style.css" />
+  <title>嵌入式 STM32、RTOS、Linux 开发</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="doc/linux-style.css" type="text/css" />
 </head>
 <body>
-<header id="title-block-header">
-<h1 class="title">嵌入式 STM32、RTOS、Linux 开发 </h1>
-</header>
-<nav id="TOC" role="doc-toc">
+<div id="header">
+<h1 class="title">嵌入式 STM32、RTOS、Linux 开发</h1>
+</div>
+<div id="TOC">
 <ul>
-<li><a href="#嵌入式-stm32rtoslinux-开发">嵌入式 STM32、RTOS、Linux 开发</a>
-<ul>
+<li><a href="#嵌入式-stm32rtoslinux-开发">嵌入式 STM32、RTOS、Linux 开发</a><ul>
 <li><a href="#泵浦激光器同步控制">泵浦激光器同步控制</a></li>
 <li><a href="#nm-泵浦激光器项目">940nm 泵浦激光器项目</a></li>
 <li><a href="#智能车载终端项目">智能车载终端项目</a></li>
@@ -32,7 +24,7 @@
 <li><a href="#我参与过的一些硬件电路设计">我参与过的一些硬件电路设计：</a></li>
 </ul></li>
 </ul>
-</nav>
+</div>
 <h1 id="嵌入式-stm32rtoslinux-开发">嵌入式 STM32、RTOS、Linux 开发</h1>
 <h2 id="泵浦激光器同步控制">泵浦激光器同步控制</h2>
 <p>这个项目是我在一家公司里面实现的，所以大部分代码不能开源出来，不够有些细节还是可以讨论。</p>
@@ -64,42 +56,32 @@
 </ul>
 <h3 id="一硬件设计">（一）硬件设计</h3>
 <ul>
-<li><strong>MCU 控制板</strong>
-<ul>
+<li><strong>MCU 控制板</strong></li>
 <li>有三个串口分别解析上位机命令、PID 参数设置和 PID 曲线、串口屏预留拓展</li>
 <li>然后还有风扇控制接口：PWM 输出、PWM 捕获、GPIO 控制风扇关断引脚</li>
-<li>其他接口用于 FPC 排线连接到功率板上</li>
-</ul></li>
-<li><strong>功率板</strong>
-<ul>
+<li><p>其他接口用于 FPC 排线连接到功率板上</p></li>
+<li><strong>功率板</strong></li>
 <li>加了一个二极管防反接、电流防护保险丝、EMI 滤波</li>
 <li>包含 ADS1220、TPS546D24A、drv8412 芯片，用于恒温、恒流驱动实现</li>
 <li>采用四层板设计，可以更好地散热，同时将 PGND 和 AGND 分开</li>
-<li>顶层和底层走线，第二层走 PGND，第三层走电源</li>
-</ul></li>
+<li><p>顶层和底层走线，第二层走 PGND，第三层走电源</p></li>
 </ul>
 <h3 id="二芯片通信">（二）芯片通信</h3>
 <ul>
-<li><strong>ADS1220</strong>
-<ul>
+<li><strong>ADS1220</strong></li>
 <li>采用 SPI 通信</li>
 <li>写读取数据函数时需要等待 DRDY 信号才能采集数据</li>
-<li>遇到的问题：通道转换过程中会发生数据错误</li>
-</ul></li>
-<li><strong>TPS546D24A</strong>
-<ul>
+<li><p>遇到的问题：通道转换过程中会发生数据错误</p></li>
+<li><strong>TPS546D24A</strong></li>
 <li>采用 SMBUS 通信</li>
 <li>遇到的问题：SMBUS 资料较少，读取电流不准确，只能依靠 offset、gain 寄存器来设置读取电流的偏移量</li>
 <li>TPS546D24A 的寄存器较多，配置了很多功能</li>
 <li>从机地址不对，输出电压前需要设置 SCALE_LOOP 寄存器</li>
 <li>每次进行 SMBUS 通信时，需要使用 SMBUS 检错函数，检查传进来的 pcontext 栈不出错，以及 statemachine 不为 0x00002</li>
-<li>同时封装了很多检错 TPS546D24 的函数，读取相应寄存器即可获取数据</li>
-</ul></li>
-<li><strong>DRV8412</strong>
-<ul>
+<li><p>同时封装了很多检错 TPS546D24 的函数，读取相应寄存器即可获取数据</p></li>
+<li><strong>DRV8412</strong></li>
 <li>采用 I2C 通信</li>
-<li>配置 PH/EN 模式和 PWM 模式</li>
-</ul></li>
+<li><p>配置 PH/EN 模式和 PWM 模式</p></li>
 </ul>
 <h3 id="三pid-算法">（三）PID 算法</h3>
 <p>增加了积分限幅、输出限幅等设置，并且给调节过程配置了缓上升调节，以达到安全性，可以设置步长、斜率速度。<br />
@@ -127,52 +109,46 @@
 <p>对于这部分的软件架构设计呢，我主要是分成三部分的大内容，首先是恒流任务和恒温任务，他们的优先级都是一样的，然而串口的优先级是最高的。我们都知道Freertos是基于优先级调度任务的，同等优先级是基于时间片的，所以这里用二值信号量去判断是否串口中断是否来临，那么这样就可以有效的阻塞串口处理函数。串口触发时间呢，则采用事件组去触发任务，数据的传输则用消息队列，获取电流，获取温度，获取风扇的转速等等这些。</p>
 <h4 id="任务模块划分">1. 任务模块划分</h4>
 <ul>
-<li><strong>恒流控制任务</strong>
-<ul>
+<li><strong>恒流控制任务</strong><br />
+</li>
 <li>优先级：与恒温任务同级（非最高）<br />
 </li>
 <li>功能：实时调节电流输出<br />
 </li>
-</ul></li>
-<li><strong>恒温控制任务</strong>
-<ul>
+<li><strong>恒温控制任务</strong><br />
+</li>
 <li>优先级：与恒流任务同级<br />
 </li>
 <li>功能：监控并维持系统温度<br />
 </li>
-</ul></li>
-<li><strong>串口通信任务</strong>
-<ul>
+<li><strong>串口通信任务</strong><br />
+</li>
 <li>优先级：最高级（抢占式调度）<br />
 </li>
 <li>功能：处理串口指令与数据交互</li>
-</ul></li>
 </ul>
 <h4 id="任务调度策略">2. 任务调度策略</h4>
 <ul>
-<li><strong>FreeRTOS优先级机制</strong>
-<ul>
+<li><strong>FreeRTOS优先级机制</strong><br />
+</li>
 <li>串口任务 &gt; 恒流/恒温任务（同优先级）<br />
 </li>
 <li>同优先级任务采用时间片轮转调度<br />
 </li>
-</ul></li>
-<li><strong>中断响应设计</strong>
-<ul>
+<li><strong>中断响应设计</strong><br />
+</li>
 <li>使用二值信号量阻塞串口中断服务函数<br />
 </li>
 <li>确保高优先级串口事件及时响应</li>
-</ul></li>
 </ul>
 <h4 id="同步与通信机制">3. 同步与通信机制</h4>
 <ul>
-<li><strong>事件驱动</strong>
-<ul>
+<li><strong>事件驱动</strong><br />
+</li>
 <li>串口触发事件通过<strong>事件组</strong>通知关联任务<br />
 </li>
-</ul></li>
-<li><strong>数据传输</strong>
-<ul>
+<li><strong>数据传输</strong><br />
+</li>
 <li>采用<strong>消息队列</strong>传递：
 <ul>
 <li>电流数据<br />
@@ -182,25 +158,28 @@
 <li>风扇转速数据<br />
 </li>
 </ul></li>
-</ul></li>
-<li><strong>资源保护</strong>
-<ul>
+<li><strong>资源保护</strong><br />
+</li>
 <li>关键操作通过信号量/互斥锁实现原子访问</li>
-</ul></li>
 </ul>
 <h3 id="六问题与解答">（六）问题与解答</h3>
-<ol type="1">
-<li><strong>为什么项目里面通信协议不用 1 个字节的帧头，而用 4 个字节的帧头？</strong>
+<ol style="list-style-type: decimal">
+<li><strong>为什么项目里面通信协议不用 1 个字节的帧头，而用 4 个字节的帧头？</strong></li>
+</ol>
 <ul>
 <li>1 个字节的帧头优点：效率更高，资源利用率更高。</li>
 <li>4 个字节的帧头的优点：防止误判，能够增加可靠性。</li>
-</ul></li>
-<li><strong>假如数据包的发送中的数据长度后面一段帧的内容丢失了，而下位机的内容是否需要一直检查帧长度不对，等待下一帧的发送，这样应该怎么解决？</strong>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li><strong>假如数据包的发送中的数据长度后面一段帧的内容丢失了，而下位机的内容是否需要一直检查帧长度不对，等待下一帧的发送，这样应该怎么解决？</strong></li>
+</ol>
 <ul>
 <li>帧同步恢复：当发现长度字段与后续字段不匹配时，立即丢弃，搜索下一个帧头。</li>
 <li>在串口中实现一个环形缓冲队列，然后只有每一帧发送过来之后才进行读取。</li>
-</ul></li>
-<li><strong>Makefile 的使用，如何开启/关闭 warning 和 error 提示？</strong>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li><strong>Makefile 的使用，如何开启/关闭 warning 和 error 提示？</strong></li>
+</ol>
 <ul>
 <li>如果你想在编译时显示更多的警告信息，可以使用编译器的 <code>-Wall</code> 或 <code>-Wextra</code> 选项。这些选项会启用更多的警告提示。</li>
 <li><code>CFLAGS</code>：C 编译器的选项</li>
@@ -210,8 +189,10 @@
 <li><code>%</code>：匹配任意文件名</li>
 <li><code>$&lt;</code>：表示依赖中的第一个文件</li>
 <li><code>$@</code>：表示目标文件</li>
-</ul></li>
-<li><strong>C/C++ 的区别？讲一下具体？</strong>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li><strong>C/C++ 的区别？讲一下具体？</strong></li>
+</ol>
 <ul>
 <li>C++ 有封装、继承、多态。</li>
 <li>多态：当一个派生类继承基类的时候，基类里面必须有一个或多个虚函数 <code>virtual</code>，通过基类的指针或引用来调用派生类的函数。派生类可以重写（<code>override</code>）这些虚函数，从而实现不同的行为。</li>
@@ -220,8 +201,7 @@
 <li>接口统一：通过基类的接口操作不同类型的对象。</li>
 <li>代码复用：减少重复代码，提高代码的可维护性。</li>
 </ul></li>
-</ul></li>
-</ol>
+</ul>
 <h2 id="智能车载终端项目">智能车载终端项目</h2>
 <p>这个项目需要用到一个IMX6ULL开发板，正点原子和韦东山的都可以，然后买一个usb摄像头，就可以了。</p>
 <p><a href="https://gitcode.com/open-source-toolkit/0f937/?utm_source=tools_gitcode&amp;index=top&amp;type=card&amp;webUrl&amp;isLogin=1">项目地址</a></p>
@@ -233,9 +213,9 @@
 </ul>
 <h3 id="功能设计">功能设计</h3>
 <ul>
-<li><p><strong>音乐播放器</strong> ：用 <code>QMediaPlayer</code> 类，通过 <code>stateChanged(QMediaPlayer::State state)</code> 判断状态实现播放、暂停、停止，需提前知晓路径。</p></li>
-<li><p><strong>视频播放器</strong> ：同用 <code>QMediaPlayer</code> 类，但需 <code>setVideoOutput(QVideoWidget*)</code> 设置视频输出。</p></li>
-<li><p><strong>倒车界面</strong> ：定时器（500ms）实时读取 AP3216 光传感器距离信息，传递到 QString 上显示。</p></li>
+<li><strong>音乐播放器</strong> ：用 <code>QMediaPlayer</code> 类，通过 <code>stateChanged(QMediaPlayer::State state)</code> 判断状态实现播放、暂停、停止，需提前知晓路径。</li>
+<li><strong>视频播放器</strong> ：同用 <code>QMediaPlayer</code> 类，但需 <code>setVideoOutput(QVideoWidget*)</code> 设置视频输出。</li>
+<li><strong>倒车界面</strong> ：定时器（500ms）实时读取 AP3216 光传感器距离信息，传递到 QString 上显示。</li>
 <li><p><strong>USB 相机</strong> ：经 <code>yuv_to_jpeg</code> 转格式，<code>V4l2_open()</code> 函数打开摄像头设备，配置 MJPG、分辨率，申请内核缓冲区并 mmap 映射到用户空间，<code>Vide_Show()</code> 定时器（30ms）读帧数据显示在 QLabel 上，按钮槽函数实现拍照、保存及跳转相册界面。</p></li>
 <li><p><strong>天气界面</strong>：用 IP 地址获取天气信息，调用中华万年历 API（数据与中国天气网一致、JSON 格式、查询方便），<code>QNetworkAccessManager</code> 发送网络请求，解析 JSON 数据，定时器（1 小时）更新天气数据。</p></li>
 <li><p><strong>语音识别界面</strong>申请语音识别账号，QT 开发录音功能，创建 <code>QAudioRecorder</code>，用 <code>QAudioEncoderSettings</code> 设音频参数，调用 <code>record()、pause()、stop()</code> 函数录音，录音数据上传服务端识别。</p></li>
@@ -264,7 +244,7 @@
 <li><code>On_pushButton_photos_clicked()</code>：关闭摄像头并跳转至相册界面。</li>
 </ul>
 <h4 id="实现步骤">实现步骤</h4>
-<ol type="1">
+<ol style="list-style-type: decimal">
 <li>使用 V4L2 API 打开摄像头设备，配置格式（例如 YUV），并开始捕获帧。</li>
 <li>将捕获的帧数据读取到内存中。</li>
 <li>将数据转换为 Qt 可以处理的格式（例如 <code>QImage</code>），可能需要进行 YUV 转 RGB 的步骤。</li>
@@ -284,12 +264,10 @@
 <h4 id="音频驱动模块">1. 音频驱动模块</h4>
 <ul>
 <li>采用 WM8960 音频编解码芯片，使用 I2S 接口配置。</li>
-<li>I2S 接口包含以下信号：
-<ul>
+<li>I2S 接口包含以下信号：</li>
 <li>SCK：时钟线</li>
 <li>WS：声道选择信号（1 表示左声道，0 表示右声道）</li>
 <li>SD：两根数据线，用于放音和录音</li>
-</ul></li>
 <li>IMX6ULL 使用 SAL 接口连接 WM8960。</li>
 <li>将 WM8960 设备节点信息添加到 I2C1 节点下。</li>
 <li>修改 SAI2 的 pinctrl 和时钟配置，修改 sound 节点。</li>
@@ -304,35 +282,27 @@
 </ul>
 <h4 id="dht11-芯片驱动">3. DHT11 芯片驱动</h4>
 <ul>
-<li>传送的数据格式：
-<ul>
+<li>传送的数据格式：</li>
 <li>8 位温度整数 + 8 位温度小数</li>
 <li>8 位湿度整数 + 8 位湿度小数</li>
 <li>+8 位校验和</li>
-</ul></li>
-<li>引脚读取方式：
-<ul>
+<li>引脚读取方式：</li>
 <li>查询方式</li>
 <li>中断方式</li>
 <li>内核自带的 DHT11 驱动程序</li>
-</ul></li>
-<li>流程：
-<ul>
+<li>流程：</li>
 <li>发送高脉冲启动 DHT11</li>
 <li>等待 DHT11 就绪</li>
 <li>读取 5 字节数据</li>
 <li>根据校验码验证数据</li>
 <li>使用 <code>copy_to_user</code> 将数据传递给用户空间</li>
-</ul></li>
 </ul>
 <h4 id="gps-定位">4.GPS 定位</h4>
 <ul>
 <li>使用 Eco 模块通过串口通信，支持标准的 NMEA 协议。</li>
-<li>解析 GPS 数据（例如 RMC、GGA、VTG 等）：
-<ul>
+<li>解析 GPS 数据（例如 RMC、GGA、VTG 等）：</li>
 <li>RMC 结构体数据包括：UCT 时间、状态、纬度、精度、速度、方位角、UTC 日期、磁偏角、磁偏角方向、模式。</li>
-<li>使用 <code>strsplit(&amp;s, ",")</code> 分割字符串，将数据写入结构体中。</li>
-</ul></li>
+<li>使用 <code>strsplit(&amp;s, &quot;,&quot;)</code> 分割字符串，将数据写入结构体中。</li>
 </ul>
 <h4 id="usb-摄像头驱动">5.USB 摄像头驱动</h4>
 <ul>
@@ -386,18 +356,20 @@
 </ul>
 <h3 id="一线程池的原理">（一）线程池的原理</h3>
 <p>线程池分为三部分： 1. <strong>任务队列</strong>：用于存储待处理的任务，工作线程从队列中获取任务进行处理。 - 通过线程池的 API 接口，将待处理的任务添加到任务队列中。 - 已处理的任务会被从任务队列中删除。 - 线程池的使用者（调用线程池函数往队列添加任务的线程）是生产者线程。</p>
-<ol start="2" type="1">
-<li><strong>工作线程</strong>：任务队列的消费者，负责从队列中读取任务并执行。
+<ol start="2" style="list-style-type: decimal">
+<li><strong>工作线程</strong>：任务队列的消费者，负责从队列中读取任务并执行。</li>
+</ol>
 <ul>
 <li>工作线程不断从任务队列中读取任务并处理。</li>
-</ul></li>
-<li><strong>管理者线程</strong>：只能有一个，负责管理线程池的运行状态。
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li><strong>管理者线程</strong>：只能有一个，负责管理线程池的运行状态。</li>
+</ol>
 <ul>
 <li>周期性地检测任务队列的任务数量以及忙状态的工作线程个数。</li>
 <li>当任务过多时，可以适当创建一些新的工作线程。</li>
 <li>当任务过少时，可以适当销毁一些工作线程。</li>
-</ul></li>
-</ol>
+</ul>
 <h3 id="二socket-通信">（二）Socket 通信</h3>
 <p>服务器端的通信流程： 1. 创建 socket 描述符。 2. 使用 <code>bind</code> 绑定 IP 和端口。 3. 调用 <code>listen</code> 进入监听状态。 4. 调用 <code>accept</code> 接受客户端的连接请求。 5. 通过 <code>connect</code> 与客户端建立连接，完成通信。</p>
 <h3 id="三多线程">（三）多线程</h3>
@@ -417,7 +389,7 @@
 <li>销毁线程池：根据线程池结构体的实例去释放内存</li>
 <li>给线程池添加任务：就是给线程池的任务结构体去传递回调函数和一些参数。这里需要给线程池上锁</li>
 <li>工作线程：给线程池上锁，条件变量阻塞工作线程，从队列里面拿出一个任务，任务队列头结点向后移动</li>
-<li>管理者：每次相隔3s检测一次，当任务的个数&gt;存活的线程个数 &amp;&amp; 存活的线程数&lt;最大线程数，则添加工作线程，若忙的线程*2 &lt; 存活的线程数 &amp;&amp; 存活的线程&gt;最小线程数，则销毁工作线程。</li>
+<li>管理者：每次相隔3s检测一次，当任务的个数&gt;存活的线程个数 &amp;&amp; 存活的线程数<最大线程数，则添加工作线程，若忙的线程*2 < 存活的线程数 && 存活的线程>最小线程数，则销毁工作线程。</li>
 </ul>
 <h2 id="基于空谱结合的卷积神经网络高光谱图像分类">基于空谱结合的卷积神经网络高光谱图像分类</h2>
 <p>这个项目是我结合实验室的一个成像模型的预训练，就是需要通过实验室特有的成像模型获取数据，然后对数据进行处理分类。大家有时间可以去看看关联成像，这部分也是我实验室的一个研究方向，但是这个跟嵌入式没啥关系，当作一个拓展吧。</p>
@@ -428,7 +400,7 @@
 </ul>
 <h3 id="算法步骤">算法步骤</h3>
 <p>输入数据为尺寸 526×345×111 的光谱图像，设计轻量化卷积神经网络：</p>
-<ol type="1">
+<ol style="list-style-type: decimal">
 <li><strong>光谱降维</strong> ：用 1×1 卷积将 111 通道压缩至 32 通道，去冗余降复杂度。</li>
 <li><strong>空间特征提取</strong> ：堆叠多个 3×3 卷积块，后接最大池化层，网络加深时缩小空间尺寸（345×526→10×16），通道数翻倍（32→64→128→256→512），平衡信息损失与语义表达。</li>
 <li><strong>全局特征融合</strong> ：以全局平均池化（GAP）替代全连接层，压缩特征图至 512 维向量，防参数爆炸。</li>

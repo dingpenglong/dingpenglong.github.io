@@ -1,90 +1,57 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>Linux内核源码解读</title>
-  <style>
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    span.underline{text-decoration: underline;}
-    div.column{display: inline-block; vertical-align: top; width: 50%;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    ul.task-list{list-style: none;}
-    pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-    pre > code.sourceCode > span:empty { height: 1.2em; }
-    code.sourceCode > span { color: inherit; text-decoration: inherit; }
-    div.sourceCode { margin: 1em 0; }
-    pre.sourceCode { margin: 0; }
-    @media screen {
-    div.sourceCode { overflow: auto; }
-    }
-    @media print {
-    pre > code.sourceCode { white-space: pre-wrap; }
-    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-    }
-    pre.numberSource code
-      { counter-reset: source-line 0; }
-    pre.numberSource code > span
-      { position: relative; left: -4em; counter-increment: source-line; }
-    pre.numberSource code > span > a:first-child::before
-      { content: counter(source-line);
-        position: relative; left: -1em; text-align: right; vertical-align: baseline;
-        border: none; display: inline-block;
-        -webkit-touch-callout: none; -webkit-user-select: none;
-        -khtml-user-select: none; -moz-user-select: none;
-        -ms-user-select: none; user-select: none;
-        padding: 0 4px; width: 4em;
-        color: #aaaaaa;
-      }
-    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-    div.sourceCode
-      {   }
-    @media screen {
-    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-    }
-    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #7d9029; } /* Attribute */
-    code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { } /* BuiltIn */
-    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4070a0; } /* Char */
-    code span.cn { color: #880000; } /* Constant */
-    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-    code span.dt { color: #902000; } /* DataType */
-    code span.dv { color: #40a070; } /* DecVal */
-    code span.er { color: #ff0000; font-weight: bold; } /* Error */
-    code span.ex { } /* Extension */
-    code span.fl { color: #40a070; } /* Float */
-    code span.fu { color: #06287e; } /* Function */
-    code span.im { } /* Import */
-    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-    code span.op { color: #666666; } /* Operator */
-    code span.ot { color: #007020; } /* Other */
-    code span.pp { color: #bc7a00; } /* Preprocessor */
-    code span.sc { color: #4070a0; } /* SpecialChar */
-    code span.ss { color: #bb6688; } /* SpecialString */
-    code span.st { color: #4070a0; } /* String */
-    code span.va { color: #19177c; } /* Variable */
-    code span.vs { color: #4070a0; } /* VerbatimString */
-    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
   </style>
-  <link rel="stylesheet" href="doc/linux-style.css" />
+  <link rel="stylesheet" href="doc/linux-style.css" type="text/css" />
 </head>
 <body>
-<header id="title-block-header">
+<div id="header">
 <h1 class="title">Linux内核源码解读</h1>
-</header>
-<nav id="TOC" role="doc-toc">
+</div>
+<div id="TOC">
 <ul>
-<li><a href="#linux内核源码解读">Linux内核源码解读</a>
-<ul>
+<li><a href="#linux内核源码解读">Linux内核源码解读</a><ul>
 <li><a href="#通过qemu运行一个最小系统">通过qemu运行一个最小系统</a></li>
 <li><a href="#linux网络设备驱动开发思路指南">Linux网络设备驱动开发思路指南</a></li>
 <li><a href="#linux中断">Linux中断</a></li>
@@ -96,7 +63,7 @@
 <li><a href="#页框和伙伴算法以及slab机制">页框和伙伴算法以及slab机制</a></li>
 </ul></li>
 </ul>
-</nav>
+</div>
 <h1 id="linux内核源码解读">Linux内核源码解读</h1>
 <h2 id="通过qemu运行一个最小系统">通过qemu运行一个最小系统</h2>
 <h3 id="下载linux内核源码和busybox源码">下载linux内核源码和busybox源码</h3>
@@ -115,89 +82,121 @@ make install</code></pre>
 end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <h3 id="内核源码各个目录的解读">内核源码各个目录的解读</h3>
 <h4 id="核心功能目录">核心功能目录</h4>
-<ol type="1">
-<li><strong><code>arch</code></strong>
+<ol style="list-style-type: decimal">
+<li><strong><code>arch</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>架构相关代码</strong>：每个子目录对应一种CPU架构（如<code>x86</code>、<code>arm</code>、<code>arm64</code>）。</li>
 <li><strong>关键内容</strong>：处理器调度、内存管理、中断处理等硬件相关实现。</li>
-</ul></li>
-<li><strong><code>kernel</code></strong>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li><strong><code>kernel</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>核心子系统</strong>：进程调度（<code>sched/</code>）、信号处理（<code>signal.c</code>）、系统调用（<code>sys.c</code>）等。</li>
 <li><strong>基础机制</strong>：定时器、RCU锁、模块加载等。</li>
-</ul></li>
-<li><strong><code>mm</code></strong>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li><strong><code>mm</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>内存管理</strong>：物理内存分配（<code>page_alloc.c</code>）、虚拟内存（<code>vmalloc.c</code>）、页表管理（<code>pgtable.c</code>）等。</li>
-</ul></li>
-<li><strong><code>init</code></strong>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li><strong><code>init</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>内核启动流程</strong>：<code>main.c</code>包含内核初始化入口（<code>start_kernel</code>）。</li>
 <li><strong>早期用户空间初始化</strong>（如<code>initramfs</code>）。</li>
-</ul></li>
-</ol>
+</ul>
 <h4 id="驱动与设备">驱动与设备</h4>
-<ol type="1">
-<li><strong><code>drivers</code></strong>
+<ol style="list-style-type: decimal">
+<li><strong><code>drivers</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>设备驱动</strong>：按设备类型分类，如<code>char/</code>（字符设备）、<code>pci/</code>、<code>usb/</code>、<code>net/</code>等。</li>
 <li><strong>总线与平台驱动</strong>：<code>i2c/</code>、<code>spi/</code>、<code>platform/</code>。</li>
-</ul></li>
-<li><strong><code>block</code></strong>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li><strong><code>block</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>块设备层</strong>：I/O调度算法（<code>deadline-iosched.c</code>）、通用块设备驱动。</li>
-</ul></li>
-</ol>
+</ul>
 <h4 id="文件系统与网络">文件系统与网络</h4>
-<ol type="1">
-<li><strong><code>fs</code></strong>
+<ol style="list-style-type: decimal">
+<li><strong><code>fs</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>文件系统实现</strong>：<code>ext4/</code>、<code>btrfs/</code>、<code>proc/</code>、<code>sysfs/</code>等。</li>
 <li><strong>虚拟文件系统（VFS）</strong>：<code>vfs/</code>目录下的通用文件操作接口。</li>
-</ul></li>
-<li><strong><code>net</code></strong>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li><strong><code>net</code></strong></li>
+</ol>
 <ul>
 <li><strong>网络协议栈</strong>：IPv4/IPv6（<code>ipv4/</code>、<code>ipv6/</code>）、TCP/UDP、Socket层。</li>
 <li><strong>协议实现</strong>：<code>ethernet/</code>、<code>wireless/</code>、<code>mac80211/</code>等。</li>
-</ul></li>
-</ol>
+</ul>
 <h4 id="工具与辅助模块">工具与辅助模块</h4>
-<ol type="1">
-<li><strong><code>lib</code></strong>
+<ol style="list-style-type: decimal">
+<li><strong><code>lib</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>通用库函数</strong>：字符串处理、CRC校验、链表实现等。</li>
-</ul></li>
-<li><strong><code>scripts</code></strong>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li><strong><code>scripts</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>构建与配置脚本</strong>：内核编译工具链（如<code>Kconfig</code>解析、<code>Makefile</code>生成）。</li>
-</ul></li>
-<li><strong><code>tools</code></strong>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li><strong><code>tools</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>用户态工具</strong>：性能分析工具（如<code>perf/</code>）、调试工具。</li>
-</ul></li>
-</ol>
+</ul>
 <h4 id="安全与虚拟化">安全与虚拟化</h4>
-<ol type="1">
-<li><strong><code>security</code></strong>
+<ol style="list-style-type: decimal">
+<li><strong><code>security</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>安全模块</strong>：SELinux、AppArmor、SMACK等实现。</li>
-</ul></li>
-<li><strong><code>virt</code></strong>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li><strong><code>virt</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>虚拟化支持</strong>：KVM（Kernel-based Virtual Machine）相关代码。</li>
-</ul></li>
-</ol>
+</ul>
 <h4 id="文档与示例">文档与示例</h4>
-<ol type="1">
-<li><strong><code>Documentation</code></strong>
+<ol style="list-style-type: decimal">
+<li><strong><code>Documentation</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>内核文档</strong>：配置指南、API说明、子系统设计文档。</li>
-</ul></li>
-<li><strong><code>samples</code></strong>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li><strong><code>samples</code></strong><br />
+</li>
+</ol>
 <ul>
 <li><strong>示例代码</strong>：内核模块、BPF程序等示例。</li>
-</ul></li>
-</ol>
+</ul>
 <h4 id="其他重要目录">其他重要目录</h4>
 <ul>
 <li><strong><code>include</code></strong>：内核头文件（分为架构相关头文件<code>asm/</code>和通用头文件<code>linux/</code>）。</li>
@@ -284,44 +283,52 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <li><strong>功能扩展</strong>：按需实现<code>read/write/ioctl</code>等</li>
 </ul>
 <h4 id="系统注册流程">4. 系统注册流程</h4>
-<ol type="1">
+<ol style="list-style-type: decimal">
 <li>初始化设备对象(<code>cdev_init</code>)</li>
 <li>设置所属模块(<code>cdev.owner = THIS_MODULE</code>)</li>
 <li>添加至系统(<code>cdev_add</code>)</li>
 </ol>
 <h4 id="用户空间接口-1">5. 用户空间接口</h4>
 <ul>
-<li><p><strong>手动创建</strong>：<code>mknod</code>命令创建设备节点</p></li>
+<li><strong>手动创建</strong>：<code>mknod</code>命令创建设备节点</li>
 <li><p><strong>自动创建</strong>：通过<code>class_create</code>+<code>device_create</code></p></li>
-<li><p><strong>编写驱动</strong></p>
+<li><p><strong>编写驱动</strong></p></li>
+</ul>
 <p>一般需要注册设备号，分配cdev内存(cdev是字符设备的结构体)，如果需要自动创建设备节点，还需要创建calss和device，如果手动创建设备节点则用mknod，然后实现file_operations一些操作绑定，初始化cdev对象。</p>
-<p>手动创建设备节点则需要：<code>mknod /dev/hello c 232 0</code> 主要需要体现设备节点名称，以便于应用程序打开调用，c为字符设备描述，232为主设备号，0为次设备号。</p></li>
-<li><p><strong>应用程序驱动</strong></p>
+<p>手动创建设备节点则需要：<code>mknod /dev/hello c 232 0</code> 主要需要体现设备节点名称，以便于应用程序打开调用，c为字符设备描述，232为主设备号，0为次设备号。</p>
+<ul>
+<li><strong>应用程序驱动</strong></li>
+</ul>
 <p>一般就是在应用层调用 file 的open、read、write等等操作。</p>
-<p>应用层调用wite函数-&gt;c库write函数-&gt;系统调用，内核的wite会判断你的file_poerations 的write函数是否定义，定义了则调用你写的哪个驱动wirte函数。</p></li>
-<li><p><strong>字符设备驱动代码添加到内核源码树</strong></p>
-<p>字符设备驱动一般放在drivers/char 文件夹下面，把你编写的字符设备驱动.c拷贝到当前目录，然后去修改Kconig 文件，修改很简单，可以复制粘贴Kconfig里面已有的内容： <code>sh  config_HELLO     tristate "hello_device"   #tristate三个选项 y m n bool是两个选项: y,n     default y     help         hello device</code></p>
+<p>应用层调用wite函数-&gt;c库write函数-&gt;系统调用，内核的wite会判断你的file_poerations 的write函数是否定义，定义了则调用你写的哪个驱动wirte函数。</p>
+<ul>
+<li><strong>字符设备驱动代码添加到内核源码树</strong></li>
+</ul>
+<p>字符设备驱动一般放在drivers/char 文件夹下面，把你编写的字符设备驱动.c拷贝到当前目录，然后去修改Kconig 文件，修改很简单，可以复制粘贴Kconfig里面已有的内容： <code>sh    config_HELLO       tristate &quot;hello_device&quot;   #tristate三个选项 y m n bool是两个选项: y,n       default y       help           hello device</code></p>
 <p>然后通过make menuconfig就可以看到hello_device在内核源码树里面了。</p>
 <p>编译之前，需要在makefile文件里面假如<code>obj-$(config_HELLO) +=hello_Dev.o</code> 自动读取config_HELLO 是为 y、 n、m等参数。</p>
-<p>说白了驱动文件分为动态加载和静态加载，静态加载就是驱动文件写入内核中，不需要手动insmod 加载驱动.ko文件。</p></li>
-</ul>
+<p>说白了驱动文件分为动态加载和静态加载，静态加载就是驱动文件写入内核中，不需要手动insmod 加载驱动.ko文件。</p>
 <h2 id="内核空间和用户空间的概念以及内核空间和用户空间的内存拷贝">内核空间和用户空间的概念以及内核空间和用户空间的内存拷贝</h2>
 <ul>
-<li><p><strong>以32位系统为例</strong></p>
+<li><strong>以32位系统为例</strong></li>
+</ul>
 <p><code>2^32 bit = 2^22 Byte = 2^12 MB = 2^2 GB = 4GB</code></p>
 <p>系统的用户空间从地址的 0x00000000 - 0xBFFFFFFF(3GB)</p>
 <p>系统的内核空间从地址的 0xc0000000 - 0xFFFFFFFF(1GB)</p>
 <p>当然这大小可以选择配置，通过配置<code>PAGE_OFFSET</code></p>
-<p>x86，用户运行在Ring3模式，内核运行在Ring0模式 arm，用户运行在usr模式，内核运行在svc模式</p></li>
-<li><p><strong>用户空间代码怎么调入到内核中</strong></p>
-<p>当用户调用系统调用的时候，会触发一个中断，从而进入到内核。这些其实都在用户空间的进程中进行，而且此时会被硬件中断打断。</p></li>
-<li><p><strong>内核空间和用户空间的拷贝</strong></p>
+<p>x86，用户运行在Ring3模式，内核运行在Ring0模式 arm，用户运行在usr模式，内核运行在svc模式</p>
+<ul>
+<li><strong>用户空间代码怎么调入到内核中</strong></li>
+</ul>
+<p>当用户调用系统调用的时候，会触发一个中断，从而进入到内核。这些其实都在用户空间的进程中进行，而且此时会被硬件中断打断。</p>
+<ul>
+<li><strong>内核空间和用户空间的拷贝</strong></li>
+</ul>
 <p>write驱动函数使用copy_from_user函数，需要在内核驱动函数里面的多增加一个参数是用户空间buf缓冲区的地址。</p>
 <p>read驱动函数使用copy_to_user函数</p>
-<p>这两个函数看起来确实挺简单，但是底层逻辑来讲，是先通过线性地址读取物理地址的内容，然后拷贝在通过映射到线性地址给用户，如果内存中不存在，需要去磁盘寻找，效率会大打折扣。</p></li>
-</ul>
+<p>这两个函数看起来确实挺简单，但是底层逻辑来讲，是先通过线性地址读取物理地址的内容，然后拷贝在通过映射到线性地址给用户，如果内存中不存在，需要去磁盘寻找，效率会大打折扣。</p>
 <h2 id="x86段页式内存管理和页表映射机制">x86段页式内存管理和页表映射机制</h2>
-<p>逻辑地址 —(段管理) –&gt; 线性地址 —(页管理)–&gt;物理地址</p>
+<p>逻辑地址 ---(段管理) --&gt; 线性地址 ---(页管理)--&gt;物理地址</p>
 <p>在linux内核里面的段选择Segment Selcetor设置为了0,也就是其实逻辑地址就是线性地址。</p>
 <p>关于二级页表的映射</p>
 <p>线性地址是32位，高10位为页表目录，中10位位页表项，低12位为偏移量，先从页表目录索引，然后再索引页表项，然后得到物理块编号 + offset 就可以得到 物理地址。</p>
@@ -336,153 +343,151 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <li><strong>semaphore的内核源码实现</strong></li>
 </ul>
 <p>主要看down 和 up 的实现，list_head 用于连接所有等待信号量的进程 semaphore_waiter表示一个正在等待信号量的进程。</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="co">// include/linux/semaphore.h</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="kw">struct</span> semaphore {</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>    raw_spinlock_t      lock;       <span class="co">// 保护信号量的自旋锁</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>    <span class="dt">unsigned</span> <span class="dt">int</span>        count;      <span class="co">// 资源计数器</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>    <span class="kw">struct</span> list_head    wait_list;  <span class="co">// 等待队列</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>};</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="co">// 等待队列节点</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="kw">struct</span> semaphore_waiter {</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>    <span class="kw">struct</span> list_head list;</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a>    <span class="kw">struct</span> task_struct *task;       <span class="co">// 等待的进程</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a>    <span class="dt">bool</span> up;                       <span class="co">// 是否已被唤醒</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a>};</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a><span class="co">// kernel/locking/semaphore.c</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a><span class="dt">void</span> sema_init(<span class="kw">struct</span> semaphore *sem, <span class="dt">int</span> val)</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a>{</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a>    <span class="dt">static</span> <span class="kw">struct</span> lock_class_key __key;</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a>    *sem = (<span class="kw">struct</span> semaphore) __SEMAPHORE_INITIALIZER(*sem, val);</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a>    lockdep_init_map(&amp;sem-&gt;lock.dep_map, <span class="st">&quot;semaphore-&gt;lock&quot;</span>, &amp;__key, <span class="dv">0</span>);</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true"></a>}</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true"></a></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true"></a><span class="dt">void</span> down(<span class="kw">struct</span> semaphore *sem)</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true"></a>{</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> flags;</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true"></a>    </span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true"></a>    <span class="co">// 尝试快速获取</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true"></a>    <span class="cf">if</span> (likely(sem-&gt;count &gt; <span class="dv">0</span>)) {</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true"></a>        sem-&gt;count--;</span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true"></a>        <span class="cf">return</span>;</span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true"></a>    }</span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true"></a>    </span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true"></a>    raw_spin_lock_irqsave(&amp;sem-&gt;lock, flags);</span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true"></a>    <span class="cf">if</span> (likely(sem-&gt;count &gt; <span class="dv">0</span>)) {</span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true"></a>        sem-&gt;count--;</span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true"></a>        raw_spin_unlock_irqrestore(&amp;sem-&gt;lock, flags);</span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true"></a>        <span class="cf">return</span>;</span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true"></a>    }</span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true"></a>    </span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true"></a>    <span class="co">// 资源不足，进入等待</span></span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true"></a>    __down(sem);</span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true"></a>    raw_spin_unlock_irqrestore(&amp;sem-&gt;lock, flags);</span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true"></a>}</span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true"></a></span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true"></a><span class="dt">static</span> noinline <span class="dt">void</span> __sched __down(<span class="kw">struct</span> semaphore *sem)</span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true"></a>{</span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true"></a>    __down_common(sem, TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT);</span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true"></a>}</span>
-<span id="cb3-49"><a href="#cb3-49" aria-hidden="true"></a></span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true"></a><span class="dt">static</span> <span class="kw">inline</span> <span class="dt">int</span> __sched __down_common(<span class="kw">struct</span> semaphore *sem, <span class="dt">long</span> state,</span>
-<span id="cb3-51"><a href="#cb3-51" aria-hidden="true"></a>                                <span class="dt">long</span> timeout)</span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true"></a>{</span>
-<span id="cb3-53"><a href="#cb3-53" aria-hidden="true"></a>    <span class="kw">struct</span> semaphore_waiter waiter;</span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true"></a>    </span>
-<span id="cb3-55"><a href="#cb3-55" aria-hidden="true"></a>    <span class="co">// 将当前任务加入等待队列</span></span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true"></a>    waiter.task = current;</span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true"></a>    waiter.up = false;</span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true"></a>    list_add_tail(&amp;waiter.list, &amp;sem-&gt;wait_list);</span>
-<span id="cb3-59"><a href="#cb3-59" aria-hidden="true"></a>    </span>
-<span id="cb3-60"><a href="#cb3-60" aria-hidden="true"></a>    <span class="cf">for</span> (;;) {</span>
-<span id="cb3-61"><a href="#cb3-61" aria-hidden="true"></a>        <span class="cf">if</span> (signal_pending_state(state, current))</span>
-<span id="cb3-62"><a href="#cb3-62" aria-hidden="true"></a>            <span class="cf">goto</span> interrupted;</span>
-<span id="cb3-63"><a href="#cb3-63" aria-hidden="true"></a>        <span class="cf">if</span> (unlikely(timeout &lt;= <span class="dv">0</span>))</span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true"></a>            <span class="cf">goto</span> timed_out;</span>
-<span id="cb3-65"><a href="#cb3-65" aria-hidden="true"></a>            </span>
-<span id="cb3-66"><a href="#cb3-66" aria-hidden="true"></a>        __set_current_state(state);</span>
-<span id="cb3-67"><a href="#cb3-67" aria-hidden="true"></a>        raw_spin_unlock_irq(&amp;sem-&gt;lock);</span>
-<span id="cb3-68"><a href="#cb3-68" aria-hidden="true"></a>        timeout = schedule_timeout(timeout);  <span class="co">// 让出CPU</span></span>
-<span id="cb3-69"><a href="#cb3-69" aria-hidden="true"></a>        raw_spin_lock_irq(&amp;sem-&gt;lock);</span>
-<span id="cb3-70"><a href="#cb3-70" aria-hidden="true"></a>        </span>
-<span id="cb3-71"><a href="#cb3-71" aria-hidden="true"></a>        <span class="cf">if</span> (waiter.up)  <span class="co">// 被up操作唤醒</span></span>
-<span id="cb3-72"><a href="#cb3-72" aria-hidden="true"></a>            <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb3-73"><a href="#cb3-73" aria-hidden="true"></a>    }</span>
-<span id="cb3-74"><a href="#cb3-74" aria-hidden="true"></a>    </span>
-<span id="cb3-75"><a href="#cb3-75" aria-hidden="true"></a> timed_out:</span>
-<span id="cb3-76"><a href="#cb3-76" aria-hidden="true"></a>    list_del(&amp;waiter.list);</span>
-<span id="cb3-77"><a href="#cb3-77" aria-hidden="true"></a>    <span class="cf">return</span> -ETIME;</span>
-<span id="cb3-78"><a href="#cb3-78" aria-hidden="true"></a>    </span>
-<span id="cb3-79"><a href="#cb3-79" aria-hidden="true"></a> interrupted:</span>
-<span id="cb3-80"><a href="#cb3-80" aria-hidden="true"></a>    list_del(&amp;waiter.list);</span>
-<span id="cb3-81"><a href="#cb3-81" aria-hidden="true"></a>    <span class="cf">return</span> -EINTR;</span>
-<span id="cb3-82"><a href="#cb3-82" aria-hidden="true"></a>}</span>
-<span id="cb3-83"><a href="#cb3-83" aria-hidden="true"></a></span>
-<span id="cb3-84"><a href="#cb3-84" aria-hidden="true"></a><span class="dt">void</span> up(<span class="kw">struct</span> semaphore *sem)</span>
-<span id="cb3-85"><a href="#cb3-85" aria-hidden="true"></a>{</span>
-<span id="cb3-86"><a href="#cb3-86" aria-hidden="true"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> flags;</span>
-<span id="cb3-87"><a href="#cb3-87" aria-hidden="true"></a>    raw_spin_lock_irqsave(&amp;sem-&gt;lock, flags);</span>
-<span id="cb3-88"><a href="#cb3-88" aria-hidden="true"></a>    </span>
-<span id="cb3-89"><a href="#cb3-89" aria-hidden="true"></a>    <span class="cf">if</span> (likely(list_empty(&amp;sem-&gt;wait_list))) {</span>
-<span id="cb3-90"><a href="#cb3-90" aria-hidden="true"></a>        sem-&gt;count++;  <span class="co">// 无等待者，直接增加计数</span></span>
-<span id="cb3-91"><a href="#cb3-91" aria-hidden="true"></a>    } <span class="cf">else</span> {</span>
-<span id="cb3-92"><a href="#cb3-92" aria-hidden="true"></a>        __up(sem);     <span class="co">// 唤醒等待者</span></span>
-<span id="cb3-93"><a href="#cb3-93" aria-hidden="true"></a>    }</span>
-<span id="cb3-94"><a href="#cb3-94" aria-hidden="true"></a>    </span>
-<span id="cb3-95"><a href="#cb3-95" aria-hidden="true"></a>    raw_spin_unlock_irqrestore(&amp;sem-&gt;lock, flags);</span>
-<span id="cb3-96"><a href="#cb3-96" aria-hidden="true"></a>}</span>
-<span id="cb3-97"><a href="#cb3-97" aria-hidden="true"></a></span>
-<span id="cb3-98"><a href="#cb3-98" aria-hidden="true"></a><span class="dt">static</span> noinline <span class="dt">void</span> __sched __up(<span class="kw">struct</span> semaphore *sem)</span>
-<span id="cb3-99"><a href="#cb3-99" aria-hidden="true"></a>{</span>
-<span id="cb3-100"><a href="#cb3-100" aria-hidden="true"></a>    <span class="co">// 获取等待队列中的第一个任务</span></span>
-<span id="cb3-101"><a href="#cb3-101" aria-hidden="true"></a>    <span class="kw">struct</span> semaphore_waiter *waiter = list_first_entry(</span>
-<span id="cb3-102"><a href="#cb3-102" aria-hidden="true"></a>        &amp;sem-&gt;wait_list, <span class="kw">struct</span> semaphore_waiter, list);</span>
-<span id="cb3-103"><a href="#cb3-103" aria-hidden="true"></a>        </span>
-<span id="cb3-104"><a href="#cb3-104" aria-hidden="true"></a>    list_del(&amp;waiter-&gt;list);      <span class="co">// 从队列移除</span></span>
-<span id="cb3-105"><a href="#cb3-105" aria-hidden="true"></a>    waiter-&gt;up = true;            <span class="co">// 标记为已唤醒</span></span>
-<span id="cb3-106"><a href="#cb3-106" aria-hidden="true"></a>    wake_up_process(waiter-&gt;task); <span class="co">// 唤醒任务</span></span>
-<span id="cb3-107"><a href="#cb3-107" aria-hidden="true"></a>}</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="co">// include/linux/semaphore.h</span>
+<span class="kw">struct</span> semaphore {
+    raw_spinlock_t      lock;       <span class="co">// 保护信号量的自旋锁</span>
+    <span class="dt">unsigned</span> <span class="dt">int</span>        count;      <span class="co">// 资源计数器</span>
+    <span class="kw">struct</span> list_head    wait_list;  <span class="co">// 等待队列</span>
+};
+
+<span class="co">// 等待队列节点</span>
+<span class="kw">struct</span> semaphore_waiter {
+    <span class="kw">struct</span> list_head list;
+    <span class="kw">struct</span> task_struct *task;       <span class="co">// 等待的进程</span>
+    bool up;                       <span class="co">// 是否已被唤醒</span>
+};
+
+<span class="co">// kernel/locking/semaphore.c</span>
+<span class="dt">void</span> sema_init(<span class="kw">struct</span> semaphore *sem, <span class="dt">int</span> val)
+{
+    <span class="dt">static</span> <span class="kw">struct</span> lock_class_key __key;
+    *sem = (<span class="kw">struct</span> semaphore) __SEMAPHORE_INITIALIZER(*sem, val);
+    lockdep_init_map(&amp;sem-&gt;lock.dep_map, <span class="st">&quot;semaphore-&gt;lock&quot;</span>, &amp;__key, <span class="dv">0</span>);
+}
+
+<span class="dt">void</span> down(<span class="kw">struct</span> semaphore *sem)
+{
+    <span class="dt">unsigned</span> <span class="dt">long</span> flags;
+    
+    <span class="co">// 尝试快速获取</span>
+    <span class="cf">if</span> (likely(sem-&gt;count &gt; <span class="dv">0</span>)) {
+        sem-&gt;count--;
+        <span class="cf">return</span>;
+    }
+    
+    raw_spin_lock_irqsave(&amp;sem-&gt;lock, flags);
+    <span class="cf">if</span> (likely(sem-&gt;count &gt; <span class="dv">0</span>)) {
+        sem-&gt;count--;
+        raw_spin_unlock_irqrestore(&amp;sem-&gt;lock, flags);
+        <span class="cf">return</span>;
+    }
+    
+    <span class="co">// 资源不足，进入等待</span>
+    __down(sem);
+    raw_spin_unlock_irqrestore(&amp;sem-&gt;lock, flags);
+}
+
+<span class="dt">static</span> noinline <span class="dt">void</span> __sched __down(<span class="kw">struct</span> semaphore *sem)
+{
+    __down_common(sem, TASK_UNINTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT);
+}
+
+<span class="dt">static</span> <span class="kw">inline</span> <span class="dt">int</span> __sched __down_common(<span class="kw">struct</span> semaphore *sem, <span class="dt">long</span> state,
+                                <span class="dt">long</span> timeout)
+{
+    <span class="kw">struct</span> semaphore_waiter waiter;
+    
+    <span class="co">// 将当前任务加入等待队列</span>
+    waiter.task = current;
+    waiter.up = false;
+    list_add_tail(&amp;waiter.list, &amp;sem-&gt;wait_list);
+    
+    <span class="cf">for</span> (;;) {
+        <span class="cf">if</span> (signal_pending_state(state, current))
+            <span class="cf">goto</span> interrupted;
+        <span class="cf">if</span> (unlikely(timeout &lt;= <span class="dv">0</span>))
+            <span class="cf">goto</span> timed_out;
+            
+        __set_current_state(state);
+        raw_spin_unlock_irq(&amp;sem-&gt;lock);
+        timeout = schedule_timeout(timeout);  <span class="co">// 让出CPU</span>
+        raw_spin_lock_irq(&amp;sem-&gt;lock);
+        
+        <span class="cf">if</span> (waiter.up)  <span class="co">// 被up操作唤醒</span>
+            <span class="cf">return</span> <span class="dv">0</span>;
+    }
+    
+ timed_out:
+    list_del(&amp;waiter.list);
+    <span class="cf">return</span> -ETIME;
+    
+ interrupted:
+    list_del(&amp;waiter.list);
+    <span class="cf">return</span> -EINTR;
+}
+
+<span class="dt">void</span> up(<span class="kw">struct</span> semaphore *sem)
+{
+    <span class="dt">unsigned</span> <span class="dt">long</span> flags;
+    raw_spin_lock_irqsave(&amp;sem-&gt;lock, flags);
+    
+    <span class="cf">if</span> (likely(list_empty(&amp;sem-&gt;wait_list))) {
+        sem-&gt;count++;  <span class="co">// 无等待者，直接增加计数</span>
+    } <span class="cf">else</span> {
+        __up(sem);     <span class="co">// 唤醒等待者</span>
+    }
+    
+    raw_spin_unlock_irqrestore(&amp;sem-&gt;lock, flags);
+}
+
+<span class="dt">static</span> noinline <span class="dt">void</span> __sched __up(<span class="kw">struct</span> semaphore *sem)
+{
+    <span class="co">// 获取等待队列中的第一个任务</span>
+    <span class="kw">struct</span> semaphore_waiter *waiter = list_first_entry(
+        &amp;sem-&gt;wait_list, <span class="kw">struct</span> semaphore_waiter, list);
+        
+    list_del(&amp;waiter-&gt;list);      <span class="co">// 从队列移除</span>
+    waiter-&gt;up = true;            <span class="co">// 标记为已唤醒</span>
+    wake_up_process(waiter-&gt;task); <span class="co">// 唤醒任务</span>
+}</code></pre></div>
 <p>按照我自己学习和看书的理解：</p>
 <p>down操作，就是如果没有了信号量，则需要让需要执行的任务让出CPU，就是将需要等待执行的任务链表放在信号量存储的等待队列里面，然后呢up操作的时候检查信号量的等待队列是否任务链表，有的话，将任务链表唤醒</p>
 <ul>
-<li><p><strong>内核原子变量的说明和使用</strong></p>
-<p>如果一些资源非常复杂，不可以让任务进行休眠，可以用原子变量实现，<code>atomic_t</code> 原子操作不会被cpu、打断，也不会被调度程序打断，常用的有<code>atomic_dec_and_test</code>(v–)和<code>atomic_inc</code>(v++)。</p></li>
-<li><p><strong>atomic的内核源码实现</strong></p>
-<p>因为原子变量用到了汇编，因此先分析一下arm内核源码</p></li>
+<li><strong>内核原子变量的说明和使用</strong></li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="dt">static</span> <span class="kw">inline</span> <span class="dt">void</span> atomic_add(<span class="dt">int</span> i, atomic_t *v)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>{</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>    <span class="dt">unsigned</span> <span class="dt">long</span> tmp;       <span class="co">// 用于存储strex指令的结果（成功0/失败1）</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>    <span class="dt">int</span> result;              <span class="co">// 存储从内存加载的当前值</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a>    <span class="co">// 预取指令：提示CPU即将写入该内存地址，优化缓存性能</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a>    prefetchw(&amp;v-&gt;counter);</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a>    </span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a>    <span class="co">// 内联汇编开始</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a>    __asm__ __volatile__(</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a>        <span class="st">&quot;@ atomic_add</span><span class="sc">\n</span><span class="st">&quot;</span>     <span class="co">// 汇编注释，表明这是原子加操作</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a>        </span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true"></a>        <span class="co">// 循环标签：如果存储失败将跳转回这里重试</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true"></a>        <span class="st">&quot;1: ldrex   %0, [%3]</span><span class="sc">\n</span><span class="st">&quot;</span>   <span class="co">// 独占加载：%0 = result = *(%3 = &amp;v-&gt;counter)</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true"></a>        <span class="st">&quot;   add %0, %0, %4</span><span class="sc">\n</span><span class="st">&quot;</span>      <span class="co">// 执行加法：result = result + %4(i)</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true"></a>        <span class="st">&quot;   strex   %1, %0, [%3]</span><span class="sc">\n</span><span class="st">&quot;</span> <span class="co">// 独占存储：尝试将result写回内存，%1(tmp)=存储结果(0成功/1失败)</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true"></a>        <span class="st">&quot;   teq %1, #0</span><span class="sc">\n</span><span class="st">&quot;</span>          <span class="co">// 测试tmp是否等于0</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true"></a>        <span class="st">&quot;   bne 1b&quot;</span>                <span class="co">// 如果存储失败(tmp != 0)，跳回标签1重试</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true"></a>        </span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true"></a>        <span class="co">// 输出操作数</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true"></a>        : <span class="st">&quot;=&amp;r&quot;</span> (result),   <span class="co">// %0：绑定到result变量（寄存器约束，&amp;表示早期修改）</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true"></a>          <span class="st">&quot;=&amp;r&quot;</span> (tmp),      <span class="co">// %1：绑定到tmp变量</span></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true"></a>          <span class="st">&quot;+Qo&quot;</span> (v-&gt;counter) <span class="co">// %2：内存操作数，+表示读写，Q表示内存地址约束</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true"></a>        </span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true"></a>        <span class="co">// 输入操作数</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true"></a>        : <span class="st">&quot;r&quot;</span> (&amp;v-&gt;counter), <span class="co">// %3：输入参数，v-&gt;counter的地址（寄存器约束）</span></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true"></a>          <span class="st">&quot;Ir&quot;</span> (i)           <span class="co">// %4：输入参数，立即数i（Ir表示立即数或寄存器）</span></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true"></a>        </span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true"></a>        <span class="co">// 破坏描述部分</span></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true"></a>        : <span class="st">&quot;cc&quot;</span>              <span class="co">// 表示条件码寄存器被修改</span></span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true"></a>    );</span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true"></a>}</span></code></pre></div>
+<p>如果一些资源非常复杂，不可以让任务进行休眠，可以用原子变量实现，<code>atomic_t</code> 原子操作不会被cpu、打断，也不会被调度程序打断，常用的有<code>atomic_dec_and_test</code>(v--)和<code>atomic_inc</code>(v++)。</p>
+<ul>
+<li><strong>atomic的内核源码实现</strong></li>
+</ul>
+<p>因为原子变量用到了汇编，因此先分析一下arm内核源码</p>
+<p>```c static inline void atomic_add(int i, atomic_t *v) { unsigned long tmp; // 用于存储strex指令的结果（成功0/失败1） int result; // 存储从内存加载的当前值</p>
+<pre><code>// 预取指令：提示CPU即将写入该内存地址，优化缓存性能
+prefetchw(&amp;v-&gt;counter);
+
+// 内联汇编开始
+__asm__ __volatile__(
+    &quot;@ atomic_add\n&quot;     // 汇编注释，表明这是原子加操作
+    
+    // 循环标签：如果存储失败将跳转回这里重试
+    &quot;1: ldrex   %0, [%3]\n&quot;   // 独占加载：%0 = result = *(%3 = &amp;v-&gt;counter)
+    &quot;   add %0, %0, %4\n&quot;      // 执行加法：result = result + %4(i)
+    &quot;   strex   %1, %0, [%3]\n&quot; // 独占存储：尝试将result写回内存，%1(tmp)=存储结果(0成功/1失败)
+    &quot;   teq %1, #0\n&quot;          // 测试tmp是否等于0
+    &quot;   bne 1b&quot;                // 如果存储失败(tmp != 0)，跳回标签1重试
+    
+    // 输出操作数
+    : &quot;=&amp;r&quot; (result),   // %0：绑定到result变量（寄存器约束，&amp;表示早期修改）
+      &quot;=&amp;r&quot; (tmp),      // %1：绑定到tmp变量
+      &quot;+Qo&quot; (v-&gt;counter) // %2：内存操作数，+表示读写，Q表示内存地址约束
+    
+    // 输入操作数
+    : &quot;r&quot; (&amp;v-&gt;counter), // %3：输入参数，v-&gt;counter的地址（寄存器约束）
+      &quot;Ir&quot; (i)           // %4：输入参数，立即数i（Ir表示立即数或寄存器）
+    
+    // 破坏描述部分
+    : &quot;cc&quot;              // 表示条件码寄存器被修改
+);</code></pre>
+<p>} ```</p>
 <p>这里总结一下信号量的特点:</p>
 <p>1.用于进程和进程之间的同步</p>
 <p>2.允许有多个进程进入临界区代码执行</p>
@@ -498,169 +503,130 @@ end &quot;root=/dev/ram init=/linuxrc&quot; -serial file:output.tx</code></pre>
 <li><p><strong>spinlock内核源码（UP版）</strong></p></li>
 </ul>
 <p>同样是以arm为例子</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">struct</span> {</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="pp">#ifdef __AARCH64EB__  </span><span class="co">// 大端模式</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>    u16 next;</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>    u16 owner;</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a><span class="pp">#else                 </span><span class="co">// 小端模式</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>    u16 owner;</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>    u16 next;</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a><span class="pp">#endif</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a>} __aligned(<span class="dv">4</span>) arch_spinlock_t;</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">typedef</span> <span class="kw">struct</span> {
+<span class="pp">#ifdef __AARCH64EB__  </span><span class="co">// 大端模式</span>
+    u16 next;
+    u16 owner;
+<span class="pp">#else                 </span><span class="co">// 小端模式</span>
+    u16 owner;
+    u16 next;
+<span class="pp">#endif</span>
+} __aligned(<span class="dv">4</span>) arch_spinlock_t;</code></pre></div>
 <ul>
 <li><strong>spinlock内核源码(SMP版本)</strong></li>
 </ul>
 <h2 id="char设备驱动到platform驱动的华丽转身">char设备驱动到platform驱动的华丽转身</h2>
 <p>Platfrom相当于一个虚拟的总线驱动，就算不在硬件的总线，也可以通过platform进行管理。</p>
 <p>使用Platform驱动在Linux设备驱动开发中具有两大核心优势：</p>
-<ol type="1">
+<ol style="list-style-type: decimal">
 <li><p>硬件与驱动的解耦，驱动注册独立于硬件，通过platform_driver_register()注册纯软件逻辑。设备描述独立存储：硬件资源（地址/中断/时钟）在设备树(DTS)或ACPI表中定义。</p></li>
 <li><p>跨平台移植便捷性，相同驱动适配不同硬件：仅需修改设备树，无需重写驱动。</p></li>
 </ol>
 <p>那么相对于之前简易的字符设备驱动有什么区别呢？</p>
 <p>就是将驱动函数的名字需要改变</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a>hello_init() -&gt; hellodev_probe()</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>hello_exit() -&gt; hellodov_remove() </span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">hello_init() -&gt; hellodev_probe()
+hello_exit() -&gt; hellodov_remove() </code></pre></div>
 <p>然后多了 platform平台驱动driver结构体 和 平台设备device结构体。</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="dt">static</span> <span class="kw">struct</span> platform_driver hello_driver = {</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>    .probe = hellodev_probe,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a>    .remove =hellodov_remove,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a>        .driver = {</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a>        .name = <span class="st">&quot;hello-dev&quot;</span>,</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a>        .of_match_table = my_of_match, <span class="co">// 设备树支持</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a>    },</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a>};</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a><span class="kw">struct</span> platform_device hello_device = {</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a>    .name = <span class="st">&quot;hello-device&quot;</span>,</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a>    .id = -<span class="dv">1</span>,</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a>    .num_resources = ARRAY_SIZE(hellodev_resources),</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a>    .resource = hellodev_resources,</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true"></a>};</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">
+<span class="dt">static</span> <span class="kw">struct</span> platform_driver hello_driver = {
+    .probe = hellodev_probe,
+    .remove =hellodov_remove,
+        .driver = {
+        .name = <span class="st">&quot;hello-dev&quot;</span>,
+        .of_match_table = my_of_match, <span class="co">// 设备树支持</span>
+    },
+};
+
+<span class="kw">struct</span> platform_device hello_device = {
+    .name = <span class="st">&quot;hello-device&quot;</span>,
+    .id = <span class="dv">-1</span>,
+    .num_resources = ARRAY_SIZE(hellodev_resources),
+    .resource = hellodev_resources,
+};</code></pre></div>
 <p>不过现在的device都放在了dts下面了</p>
 <p>然后就是编写字符设备初始化</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a>charDevInit</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>      <span class="co">// 注册平台驱动</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>    ret = platform_driver_register(&amp;hello_driver);</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a>    <span class="co">//然后匹配驱动的probe函数,执行驱动中的hellodev_probe</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a>charDevExit</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a>   <span class="co">// 注销平台驱动</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a>    platform_driver_unregister(&amp;my_platform_driver);</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">charDevInit
+      <span class="co">// 注册平台驱动</span>
+    ret = platform_driver_register(&amp;hello_driver);
+    <span class="co">//然后匹配驱动的probe函数,执行驱动中的hellodev_probe</span>
+
+charDevExit
+   <span class="co">// 注销平台驱动</span>
+    platform_driver_unregister(&amp;my_platform_driver);</code></pre></div>
 <ul>
 <li><p><strong>源码角度分析platform设备和驱动的匹配原则</strong></p>
 <p>platform 是一条虚拟总线，可以将一些设备放置在该虚拟设备总线上，设备为 platform_device，要操作这些设备需要使用匹配的驱动，驱动为 platform_driver，当执行 insmod 时，驱动会在总线上查找与其对应的设备，查找成功后执行 probe 动作进行设备初始化，当驱动卸载后执行 remove 函数，进行退出动作。</p></li>
 </ul>
-<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="kw">struct</span> bus_type platform_bus_type = {</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>    .name       = <span class="st">&quot;platform&quot;</span>,</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>    .dev_groups = platform_dev_groups,</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>    .match      = platform_match, <span class="co">// 核心匹配函数</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a>    .uevent     = platform_uevent,</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a>    .pm     = &amp;platform_dev_pm_ops,</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a>};</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a>EXPORT_SYMBOL_GPL(platform_bus_type);</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true"></a><span class="dt">static</span> <span class="dt">int</span> platform_match(<span class="kw">struct</span> device *dev, <span class="kw">struct</span> device_driver *drv)</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true"></a>{</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true"></a>    <span class="kw">struct</span> platform_device *pdev = to_platform_device(dev);</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true"></a>    <span class="kw">struct</span> platform_driver *pdrv = to_platform_driver(drv);</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true"></a>    </span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true"></a>    <span class="co">/* 1. 检查 driver_override 强制匹配 */</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true"></a>    <span class="cf">if</span> (pdev-&gt;driver_override)</span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true"></a>        <span class="cf">return</span> !strcmp(pdev-&gt;driver_override, drv-&gt;name);</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true"></a>    </span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true"></a>    <span class="co">/* 2. 设备树匹配（现代首选） */</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true"></a>    <span class="cf">if</span> (of_driver_match_device(dev, drv))</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true"></a>    </span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true"></a>    <span class="co">/* 3. ACPI 匹配 */</span></span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true"></a>    <span class="cf">if</span> (acpi_driver_match_device(dev, drv))</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true"></a>        <span class="cf">return</span> <span class="dv">1</span>;</span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true"></a>    </span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true"></a>    <span class="co">/* 4. ID 表匹配 */</span></span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true"></a>    <span class="cf">if</span> (pdrv-&gt;id_table)</span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true"></a>        <span class="cf">return</span> platform_match_id(pdrv-&gt;id_table, pdev) != NULL;</span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true"></a>    </span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true"></a>    <span class="co">/* 5. 名称直接匹配 */</span></span>
-<span id="cb9-32"><a href="#cb9-32" aria-hidden="true"></a>    <span class="cf">return</span> (strcmp(pdev-&gt;name, drv-&gt;name) == <span class="dv">0</span>);</span>
-<span id="cb9-33"><a href="#cb9-33" aria-hidden="true"></a>}</span>
-<span id="cb9-34"><a href="#cb9-34" aria-hidden="true"></a></span>
-<span id="cb9-35"><a href="#cb9-35" aria-hidden="true"></a><span class="co">//设备树匹配函数</span></span>
-<span id="cb9-36"><a href="#cb9-36" aria-hidden="true"></a><span class="dt">static</span> <span class="kw">inline</span> <span class="dt">int</span> of_driver_match_device(<span class="kw">struct</span> device *dev,</span>
-<span id="cb9-37"><a href="#cb9-37" aria-hidden="true"></a>                    <span class="dt">const</span> <span class="kw">struct</span> device_driver *drv)</span>
-<span id="cb9-38"><a href="#cb9-38" aria-hidden="true"></a>{</span>
-<span id="cb9-39"><a href="#cb9-39" aria-hidden="true"></a>    <span class="cf">return</span> of_match_device(drv-&gt;of_match_table, dev) != NULL;</span>
-<span id="cb9-40"><a href="#cb9-40" aria-hidden="true"></a>}</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">struct</span> bus_type platform_bus_type = {
+    .name       = <span class="st">&quot;platform&quot;</span>,
+    .dev_groups = platform_dev_groups,
+    .match      = platform_match, <span class="co">// 核心匹配函数</span>
+    .uevent     = platform_uevent,
+    .pm     = &amp;platform_dev_pm_ops,
+};
+EXPORT_SYMBOL_GPL(platform_bus_type);
+
+<span class="dt">static</span> <span class="dt">int</span> platform_match(<span class="kw">struct</span> device *dev, <span class="kw">struct</span> device_driver *drv)
+{
+    <span class="kw">struct</span> platform_device *pdev = to_platform_device(dev);
+    <span class="kw">struct</span> platform_driver *pdrv = to_platform_driver(drv);
+    
+    <span class="co">/* 1. 检查 driver_override 强制匹配 */</span>
+    <span class="cf">if</span> (pdev-&gt;driver_override)
+        <span class="cf">return</span> !strcmp(pdev-&gt;driver_override, drv-&gt;name);
+    
+    <span class="co">/* 2. 设备树匹配（现代首选） */</span>
+    <span class="cf">if</span> (of_driver_match_device(dev, drv))
+        <span class="cf">return</span> <span class="dv">1</span>;
+    
+    <span class="co">/* 3. ACPI 匹配 */</span>
+    <span class="cf">if</span> (acpi_driver_match_device(dev, drv))
+        <span class="cf">return</span> <span class="dv">1</span>;
+    
+    <span class="co">/* 4. ID 表匹配 */</span>
+    <span class="cf">if</span> (pdrv-&gt;id_table)
+        <span class="cf">return</span> platform_match_id(pdrv-&gt;id_table, pdev) != NULL;
+    
+    <span class="co">/* 5. 名称直接匹配 */</span>
+    <span class="cf">return</span> (strcmp(pdev-&gt;name, drv-&gt;name) == <span class="dv">0</span>);
+}
+
+<span class="co">//设备树匹配函数</span>
+<span class="dt">static</span> <span class="kw">inline</span> <span class="dt">int</span> of_driver_match_device(<span class="kw">struct</span> device *dev,
+                    <span class="dt">const</span> <span class="kw">struct</span> device_driver *drv)
+{
+    <span class="cf">return</span> of_match_device(drv-&gt;of_match_table, dev) != NULL;
+}</code></pre></div>
 <ul>
 <li>1 强制匹配</li>
 </ul>
-<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="co">// 用户强制指定驱动</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>echo <span class="st">&quot;my_driver&quot;</span> &gt; /sys/bus/platform/devices/my_device/driver_override</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="co">// 用户强制指定驱动</span>
+echo <span class="st">&quot;my_driver&quot;</span> &gt; /sys/bus/platform/devices/my_device/driver_override</code></pre></div>
 <ul>
 <li>2 设备树匹配(查看compatible的属性)</li>
 </ul>
-<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="co">// 设备树节点</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a>my_device: my-device@<span class="dv">12340000</span> {</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a>   compatible = <span class="st">&quot;vendor,device-1&quot;</span>, <span class="st">&quot;vendor,device-generic&quot;</span>;</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a>   reg = &lt;<span class="bn">0x12340000</span> <span class="bn">0x1000</span>&gt;;</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a>};</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a><span class="co">// 驱动中的匹配表</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a><span class="dt">static</span> <span class="dt">const</span> <span class="kw">struct</span> of_device_id my_of_match[] = {</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a>   { .compatible = <span class="st">&quot;vendor,device-1&quot;</span> },</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a>   { .compatible = <span class="st">&quot;vendor,device-2&quot;</span> },</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true"></a>   {} <span class="co">// 结束标记</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true"></a>};</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true"></a>MODULE_DEVICE_TABLE(of, my_of_match);</span></code></pre></div>
+<p>```c // 设备树节点 my_device: my-device@12340000 { compatible = &quot;vendor,device-1&quot;, &quot;vendor,device-generic&quot;; reg = &lt;0x12340000 0x1000&gt;; };</p>
+<p>// 驱动中的匹配表 static const struct of_device_id my_of_match[] = { { .compatible = &quot;vendor,device-1&quot; }, { .compatible = &quot;vendor,device-2&quot; }, {} // 结束标记 }; MODULE_DEVICE_TABLE(of, my_of_match); ```</p>
 <ul>
 <li>3 ACPI 匹配</li>
 </ul>
 <p>用于 x86 等 ACPI 系统</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="dt">static</span> <span class="dt">int</span> acpi_driver_match_device(<span class="kw">struct</span> device *dev,</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>                  <span class="kw">struct</span> device_driver *drv)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>{</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>   <span class="dt">const</span> <span class="kw">struct</span> acpi_device_id *acpi_ids = drv-&gt;acpi_match_table;</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a>   </span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>   <span class="cf">if</span> (!acpi_ids)</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>       <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>   </span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a>   <span class="cf">return</span> acpi_match_device_ids(to_acpi_device(dev), acpi_ids) == <span class="dv">0</span>;</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>}</span></code></pre></div>
+<p>```c static int acpi_driver_match_device(struct device <em>dev, struct device_driver </em>drv) { const struct acpi_device_id *acpi_ids = drv-&gt;acpi_match_table;</p>
+<pre><code>if (!acpi_ids)
+    return 0;
+
+return acpi_match_device_ids(to_acpi_device(dev), acpi_ids) == 0;</code></pre>
+<p>} ```</p>
 <ul>
 <li>4 ID 表匹配</li>
 </ul>
-<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="co">// 驱动定义 ID 表</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="dt">static</span> <span class="dt">const</span> <span class="kw">struct</span> platform_device_id my_id_table[] = {</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a>   { <span class="st">&quot;device_v1&quot;</span>, <span class="dv">0</span> },  <span class="co">// 匹配设备名为 &quot;device_v1&quot;</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>   { <span class="st">&quot;device_v2&quot;</span>, <span class="dv">0</span> },</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a>   {} <span class="co">// 结束标记</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a>};</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true"></a></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true"></a><span class="co">// 平台驱动结构</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true"></a><span class="dt">static</span> <span class="kw">struct</span> platform_driver my_driver = {</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true"></a>   .driver = {</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true"></a>       .name = <span class="st">&quot;generic_device&quot;</span>,</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true"></a>   },</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true"></a>   .id_table = my_id_table, <span class="co">// ID 表</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true"></a>   .probe = my_probe,</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true"></a>   .remove = my_remove,</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true"></a>};</span></code></pre></div>
+<p>```c // 驱动定义 ID 表 static const struct platform_device_id my_id_table[] = { { &quot;device_v1&quot;, 0 }, // 匹配设备名为 &quot;device_v1&quot; { &quot;device_v2&quot;, 0 }, {} // 结束标记 };</p>
+<p>// 平台驱动结构 static struct platform_driver my_driver = { .driver = { .name = &quot;generic_device&quot;, }, .id_table = my_id_table, // ID 表 .probe = my_probe, .remove = my_remove, }; ```</p>
 <ul>
 <li>5 名称直接匹配</li>
 </ul>
-<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="co">// 设备</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a><span class="kw">struct</span> platform_device my_device = {</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>   .name = <span class="st">&quot;specific_device&quot;</span>, <span class="co">// 必须与驱动名匹配</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a>};</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a><span class="co">// 驱动</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a><span class="dt">static</span> <span class="kw">struct</span> platform_driver my_driver = {</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true"></a>   .driver = {</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true"></a>       .name = <span class="st">&quot;specific_device&quot;</span>, <span class="co">// 与设备名相同</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true"></a>   },</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true"></a>   .probe = my_probe,</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true"></a>};</span></code></pre></div>
+<p>```c // 设备 struct platform_device my_device = { .name = &quot;specific_device&quot;, // 必须与驱动名匹配 };</p>
+<p>// 驱动 static struct platform_driver my_driver = { .driver = { .name = &quot;specific_device&quot;, // 与设备名相同 }, .probe = my_probe, }; ```</p>
 <h2 id="页框和伙伴算法以及slab机制">页框和伙伴算法以及slab机制</h2>
 <ul>
 <li><p><strong>页框</strong></p>

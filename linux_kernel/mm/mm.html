@@ -1,28 +1,20 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>内存管理</title>
-  <style>
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    span.underline{text-decoration: underline;}
-    div.column{display: inline-block; vertical-align: top; width: 50%;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    ul.task-list{list-style: none;}
-  </style>
-  <link rel="stylesheet" href="doc/linux-style.css" />
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="doc/linux-style.css" type="text/css" />
 </head>
 <body>
-<header id="title-block-header">
+<div id="header">
 <h1 class="title">内存管理</h1>
-</header>
-<nav id="TOC" role="doc-toc">
+</div>
+<div id="TOC">
 <ul>
-<li><a href="#内存管理">内存管理</a>
-<ul>
+<li><a href="#内存管理">内存管理</a><ul>
 <li><a href="#三种地址">三种地址</a></li>
 <li><a href="#内存管理的方法">内存管理的方法</a></li>
 <li><a href="#物理页面描述符-struct-page">1 物理页面描述符 <code>struct page</code></a></li>
@@ -35,13 +27,13 @@
 <li><a href="#总结">总结</a></li>
 </ul></li>
 </ul>
-</nav>
+</div>
 <h1 id="内存管理">内存管理</h1>
 <p>学过操作系统的我们都知道，操作系统的诞生就是为了让用户不能直接的去操控硬件，而只需要提供一套调用接口给用户使用。那么为了不让用户直接操作内存的地址，这个是时候就诞生出来内存管理。</p>
 <h2 id="三种地址">三种地址</h2>
 <p>首先分清楚三种地址的区别： - 逻辑地址：是程序代码中可以直接只用的地址，由虚拟地址经过段机制转化而来，由段选择子+段内偏移量组成。 - 虚拟地址：连续的平坦地址空间，由物理地址经过页机制转换而来。 - 物理地址：直接的硬件地址。</p>
 <p>这里大概讲一下段机制和页机制</p>
-<p>段机制，程序代码需要分成.bss .data .txt 等各种段，也就是把逻辑和数据分开存储，那么就可以将这些内容放在 一个特定的段，然后经过地址转换—虚拟地址= 段基地址 + 段内偏移量。</p>
+<p>段机制，程序代码需要分成.bss .data .txt 等各种段，也就是把逻辑和数据分开存储，那么就可以将这些内容放在 一个特定的段，然后经过地址转换---虚拟地址= 段基地址 + 段内偏移量。</p>
 <p>页机制，其实最主要的是建立一个映射，当一个进程需要调用内存的时候，先将内存分成一块一块的，称为页帧，然后再将虚拟地址分成一块一块的，通常为4KB，称为页,然后建立一个页表，通过页表去查询是哪一块内存。通常现在的也表都是多级页表，也就是嵌套了多个也表，类似于这一页实际上在上一级页表的某一块。</p>
 <h2 id="内存管理的方法">内存管理的方法</h2>
 <p>内存管理主要包括虚地址、地址变换、内存分配和回收、内存扩充、内存共享和保护等功能。</p>
