@@ -53,8 +53,6 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <ul>
 <li><a href="#linux-内核开发">Linux 内核开发</a><ul>
 <li><a href="#一环境配置">一、环境配置</a></li>
-</ul></li>
-<li><a href="#apt-安装的-qemu">apt 安装的 QEMU</a><ul>
 <li><a href="#二gdb调试">二、GDB调试</a></li>
 <li><a href="#三常用命令工具必须掌握">三、常用命令/工具(必须掌握)</a></li>
 <li><a href="#四个人博客搭建">四、个人博客搭建</a></li>
@@ -161,9 +159,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <ul>
 <li>网络桥接策略</li>
 </ul>
-<p>```sh # 源码安装的 QEMU mkdir -p etc/qemu vim etc/qemu/bridge.conf # 添加内容：allow virbr0</p>
-<h1 id="apt-安装的-qemu">apt 安装的 QEMU</h1>
-<p>sudo mkdir -p /etc/qemu/ sudo vim /etc/qemu/bridge.conf # 添加内容：allow virbr0 ```</p>
+<div class="sourceCode"><pre class="sourceCode sh"><code class="sourceCode bash"><span class="co"># 源码安装的 QEMU</span>
+<span class="fu">mkdir</span> -p etc/qemu
+<span class="ex">vim</span> etc/qemu/bridge.conf   # 添加内容：allow virbr0
+
+<span class="co"># apt 安装的 QEMU</span>
+<span class="fu">sudo</span> mkdir -p /etc/qemu/
+<span class="fu">sudo</span> vim /etc/qemu/bridge.conf  # 添加内容：allow virbr0</code></pre></div>
 <ul>
 <li>自定义虚拟机网段</li>
 </ul>
