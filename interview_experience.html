@@ -18,6 +18,7 @@
 <li><a href="#沐曦集成电路--gpu用户态开发">沐曦集成电路--GPU用户态开发</a></li>
 <li><a href="#元戎启行--嵌入式软件开发">元戎启行--嵌入式软件开发</a></li>
 <li><a href="#腾讯--后台开发">腾讯--后台开发</a></li>
+<li><a href="#岚图汽车--智能座舱开发">岚图汽车--智能座舱开发</a></li>
 <li><a href="#泰凌微电子--嵌入式开发已oc">泰凌微电子--嵌入式开发(已OC)</a></li>
 <li><a href="#同为股份--cpp开发已oc">同为股份--cpp开发(已OC)</a></li>
 <li><a href="#经纬恒润--嵌入式开发已oc">经纬恒润--嵌入式开发(已OC)</a></li>
@@ -186,7 +187,27 @@
 <li>1 linux用户态的hook技术 假设在内核中有一个函数，我们想截断他的执行流程，比如说对某文件的读操作。这样就可以监控对这个文件的读操作。这就是钩子。 通过插入一个钩子函数，可以截断程序正常的执行流程，做自己的想做的操作，可以仅仅只做一个监控，也可以彻底截断函数的执行。</li>
 </ul>
 <p>khook的用法： 引入头文件<code>#include &quot;khook/engine.c</code>,在kbuild/makefile中加入，这是一个链接控制脚本，后面会具体说明这个脚本的内容, 使用khook_init()和khook_cleanup()对挂钩引擎进行初始化和注销 ```c //对于已知道原型的函数 #include <linux/fs.h> // has inode_permission() proto KHOOK(inode_permission); static int khook_inode_permission(struct inode *inode, int mask) { int ret = 0; ret = KHOOK_ORIGIN(inode_permission, inode, mask); printk(&quot;%s(%p, %08x) = %d&quot;, <strong>func</strong>, inode, mask, ret); return ret; }</p>
-<p>//对于位置原型的函数 #include <linux/binfmts.h> // has no load_elf_binary() proto KHOOK_EXT(int, load_elf_binary, struct linux_binprm <em>); static int khook_load_elf_binary(struct linux_binprm </em>bprm) { int ret = 0; ret = KHOOK_ORIGIN(load_elf_binary, bprm); printk(&quot;%s(%p) = %d&quot;, <strong>func</strong>, bprm, ret); return ret; } ``` ## 岚图汽车--智能座舱开发 ### 一面 2025.09.10 - 1 说一下实习内容 - <strong>2 说一下TCP七层模型的理解？</strong> - 3 wireshark抓取到的那一层模型？ - 4 哪一层的通信协议？ - 5 你这个应用层有哪些内容？ - <strong>6 tcpdump抓取数据命令是什么？</strong> - 7 GDB如何打印堆栈？ - 8 makefile的主要内容有哪些？ - <strong>9 如何在makefile中连接动态库(.so)？</strong> - 10 有没有遇到过内存泄露，内存泄露怎么调试？ - 12 内存泄露的概念？ - 13 华为实习的数据交互是怎么实现的？ - 14 spi的通信方式？ - 15 你驱动ADS1220芯片的一个具体流程是怎么样的？ - 16 怎么理解虚函数？ - 17 代码错误你一般是怎么调试的？</p>
+<p>//对于位置原型的函数 #include <linux/binfmts.h> // has no load_elf_binary() proto KHOOK_EXT(int, load_elf_binary, struct linux_binprm <em>); static int khook_load_elf_binary(struct linux_binprm </em>bprm) { int ret = 0; ret = KHOOK_ORIGIN(load_elf_binary, bprm); printk(&quot;%s(%p) = %d&quot;, <strong>func</strong>, bprm, ret); return ret; } ```</p>
+<h2 id="岚图汽车--智能座舱开发">岚图汽车--智能座舱开发</h2>
+<h3 id="一面-2025.09.10">一面 2025.09.10</h3>
+<ul>
+<li>1 说一下实习内容</li>
+<li><strong>2 说一下TCP七层模型的理解？</strong></li>
+<li>3 wireshark抓取到的那一层模型？</li>
+<li>4 哪一层的通信协议？</li>
+<li>5 你这个应用层有哪些内容？</li>
+<li><strong>6 tcpdump抓取数据命令是什么？</strong></li>
+<li>7 GDB如何打印堆栈？</li>
+<li>8 makefile的主要内容有哪些？</li>
+<li><strong>9 如何在makefile中连接动态库(.so)？</strong></li>
+<li>10 有没有遇到过内存泄露，内存泄露怎么调试？</li>
+<li>12 内存泄露的概念？</li>
+<li>13 华为实习的数据交互是怎么实现的？</li>
+<li>14 spi的通信方式？</li>
+<li>15 你驱动ADS1220芯片的一个具体流程是怎么样的？</li>
+<li>16 怎么理解虚函数？</li>
+<li>17 代码错误你一般是怎么调试的？</li>
+</ul>
 <h3 id="岚图汽车面经总结">岚图汽车面经总结</h3>
 <ul>
 <li>1 <strong>makefile中连接动态库(.so)？</strong> <code>-L&lt;path&gt;</code></li>
